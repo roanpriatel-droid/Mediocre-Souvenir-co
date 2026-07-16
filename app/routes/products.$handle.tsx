@@ -1,232 +1,250 @@
-import {redirect, useLoaderData} from 'react-router';
+import {useState} from 'react';
+import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/products.$handle';
+import {Analytics, useNonce} from '@shopify/hydrogen';
+import {AddToCartButton} from '~/components/AddToCartButton';
+import {ShirtMockup} from '~/components/ShirtMockup';
+import {ProductLadderStrip} from '~/components/CollectLadder';
+import {RackGrid} from '~/components/TownRackCard';
+import {useAside} from '~/components/Aside';
 import {
-  getSelectedProductOptions,
-  Analytics,
-  useOptimisticVariant,
-  getProductOptions,
-  getAdjacentAndFirstAvailableVariants,
-  useSelectedOptionInUrlParam,
-} from '@shopify/hydrogen';
-import {ProductPrice} from '~/components/ProductPrice';
-import {ProductImage} from '~/components/ProductImage';
-import {ProductForm} from '~/components/ProductForm';
-import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+  COLORWAY_LABELS,
+  getTownByHandle,
+  getTownsByProvince,
+  PRICE,
+  PURCHASABLE_STANDIN_QUERY,
+  SIZES,
+  TIER_LABELS,
+  type Size,
+  type TownProduct,
+} from '~/lib/catalog';
+import {townDescription, townH1, townJsonLd, townTitle} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = ({data}) => {
+  if (!data?.town) return [{title: 'Not found'}];
   return [
-    {title: `Hydrogen | ${data?.product.title ?? ''}`},
+    {title: townTitle(data.town)},
+    {name: 'description', content: townDescription(data.town)},
     {
+      tagName: 'link',
       rel: 'canonical',
-      href: `/products/${data?.product.handle}`,
+      href: `${data.origin}/products/${data.town.handle}`,
     },
   ];
 };
 
-export async function loader(args: Route.LoaderArgs) {
-  // Start fetching non-critical data without blocking time to first byte
-  const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
-  const criticalData = await loadCriticalData(args);
-
-  return {...deferredData, ...criticalData};
-}
-
-/**
- * Load data necessary for rendering content above the fold. This is the critical data
- * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
- */
-async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
+export async function loader({context, params, request}: Route.LoaderArgs) {
   const {handle} = params;
-  const {storefront} = context;
+  if (!handle) throw new Error('Expected product handle to be defined');
 
-  if (!handle) {
-    throw new Error('Expected product handle to be defined');
-  }
-
-  const [{product}] = await Promise.all([
-    storefront.query(PRODUCT_QUERY, {
-      variables: {handle, selectedOptions: getSelectedProductOptions(request)},
-    }),
-    // Add other queries here, so that they are loaded in parallel
-  ]);
-
-  if (!product?.id) {
+  // Catalog-first: every product page is a town. Handles outside the
+  // catalog don't exist here — mock.shop's own products are not our merch.
+  const town = getTownByHandle(handle);
+  if (!town) {
     throw new Response(null, {status: 404});
   }
 
-  // The API handle might be localized, so redirect to the localized handle
-  redirectIfHandleIsLocalized(request, {handle, data: product});
+  // Purchasable stand-in variant (see the swap point in app/lib/catalog).
+  const {product} = await context.storefront.query(PURCHASABLE_STANDIN_QUERY, {
+    cache: context.storefront.CacheLong(),
+  });
+  const standInVariant = product?.variants.nodes[0] ?? null;
 
   return {
-    product,
+    town,
+    standInVariant,
+    neighbours: getTownsByProvince(town.provinceSlug)
+      .filter((t) => t.handle !== town.handle)
+      .slice(0, 4),
+    origin: new URL(request.url).origin,
   };
 }
 
-/**
- * Load data for rendering content below the fold. This data is deferred and will be
- * fetched after the initial page load. If it's unavailable, the page should still 200.
- * Make sure to not throw any errors here, as it will cause the page to 500.
- */
-function loadDeferredData({context, params}: Route.LoaderArgs) {
-  // Put any API calls that is not critical to be available on first page render
-  // For example: product reviews, product recommendations, social feeds.
-
-  return {};
-}
-
-export default function Product() {
-  const {product} = useLoaderData<typeof loader>();
-
-  // Optimistically selects a variant with given available variant information
-  const selectedVariant = useOptimisticVariant(
-    product.selectedOrFirstAvailableVariant,
-    getAdjacentAndFirstAvailableVariants(product),
-  );
-
-  // Sets the search param to the selected variant without navigation
-  // only when no search params are set in the url
-  useSelectedOptionInUrlParam(selectedVariant.selectedOptions);
-
-  // Get the product options array
-  const productOptions = getProductOptions({
-    ...product,
-    selectedOrFirstAvailableVariant: selectedVariant,
-  });
-
-  const {title, descriptionHtml} = product;
+export default function TownProduct() {
+  const {town, standInVariant, neighbours, origin} =
+    useLoaderData<typeof loader>();
+  const [size, setSize] = useState<Size | null>(null);
+  const nonce = useNonce();
+  const {open} = useAside();
 
   return (
-    <div className="product">
-      <ProductImage image={selectedVariant?.image} />
-      <div className="product-main">
-        <h1>{title}</h1>
-        <ProductPrice
-          price={selectedVariant?.price}
-          compareAtPrice={selectedVariant?.compareAtPrice}
-        />
-        <br />
-        <ProductForm
-          productOptions={productOptions}
-          selectedVariant={selectedVariant}
-        />
-        <br />
-        <br />
-        <p>
-          <strong>Description</strong>
-        </p>
-        <br />
-        <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
-        <br />
+    <>
+      <div className="product">
+        <div className="product-art">
+          <ShirtMockup town={town} />
+        </div>
+        <div className="product-main">
+          <nav className="product-breadcrumb" aria-label="Breadcrumb">
+            <Link to="/shop">Shop</Link>
+            {' / '}
+            <Link to={`/provinces/${town.provinceSlug}`}>
+              {town.provinceState}
+            </Link>
+            {' / '}
+            {town.city}
+          </nav>
+          <h1>{townH1(town)}</h1>
+          <p className="msc-kicker msc-kicker--navy">
+            Genuine souvenir · {town.provinceState}, {town.country}
+          </p>
+          <div className="product-price-row">
+            <span className="product-price">${PRICE.amount.replace('.00', '')}</span>
+            <span className="product-price-note">
+              CAD · Comfort Colors 1717 · {COLORWAY_LABELS[town.colorway]}
+            </span>
+          </div>
+
+          <div className="product-options">
+            <span className="msc-label">
+              Size — unisex{size ? `: ${size}` : ''}
+            </span>
+            <div className="product-options-grid">
+              {SIZES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className="product-options-item"
+                  data-selected={size === s}
+                  onClick={() => setSize(s)}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <AddToCartButton
+            disabled={!size || !standInVariant?.availableForSale}
+            onClick={() => open('cart')}
+            lines={
+              standInVariant && size
+                ? [
+                    {
+                      merchandiseId: standInVariant.id,
+                      quantity: 1,
+                      attributes: [
+                        {key: 'Town', value: town.city},
+                        {key: 'Province', value: town.provinceState},
+                        {key: 'Size', value: size},
+                        {
+                          key: 'Colorway',
+                          value: COLORWAY_LABELS[town.colorway],
+                        },
+                      ],
+                    },
+                  ]
+                : []
+            }
+            analytics={{
+              products: [
+                {
+                  id: town.handle,
+                  title: `${town.city} T-Shirt`,
+                  price: PRICE.amount,
+                  quantity: 1,
+                },
+              ],
+            }}
+          >
+            {size ? 'Add to your souvenirs' : 'Pick a size'}
+          </AddToCartButton>
+
+          <ProductLadderStrip />
+
+          <CertificateOfSouvenir town={town} />
+
+          <div className="product-details">
+            <strong>The garment.</strong> Garment-dyed Comfort Colors 1717 —
+            heavyweight 100% ring-spun cotton, dyed after it was sewn, so the
+            fade is built in. The blank does the vintage work; three decades of
+            sun are included at no charge.
+            <ul>
+              <li>Unisex fit, S–3XL</li>
+              <li>
+                {COLORWAY_LABELS[town.colorway]} colorway, faded house palette
+              </li>
+              <li>Printed to order in North America — allow 5–10 business days</li>
+              <li>Machine wash cold. It has already been through worse.</li>
+            </ul>
+          </div>
+        </div>
       </div>
-      <Analytics.ProductView
-        data={{
-          products: [
-            {
-              id: product.id,
-              title: product.title,
-              price: selectedVariant?.price.amount || '0',
-              vendor: product.vendor,
-              variantId: selectedVariant?.id || '',
-              variantTitle: selectedVariant?.title || '',
-              quantity: 1,
-            },
-          ],
+
+      {neighbours.length > 0 && (
+        <section className="msc-section msc-page" aria-labelledby="nearby">
+          <div className="msc-section-rule">
+            <h2 id="nearby">Also in {town.provinceState}</h2>
+            <Link
+              className="msc-section-note"
+              to={`/provinces/${town.provinceSlug}`}
+            >
+              All {town.provinceState} towns →
+            </Link>
+          </div>
+          <RackGrid towns={neighbours} />
+        </section>
+      )}
+
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(townJsonLd(town, origin)),
         }}
       />
+
+      {standInVariant && (
+        <Analytics.ProductView
+          data={{
+            products: [
+              {
+                id: standInVariant.id,
+                title: `${town.city} T-Shirt`,
+                price: PRICE.amount,
+                vendor: 'Mediocre Souvenir Co.',
+                variantId: standInVariant.id,
+                variantTitle: town.city,
+                quantity: 1,
+              },
+            ],
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+/** The hangtag back, on the page: filled in per town, marker font and all. */
+function CertificateOfSouvenir({town}: {town: TownProduct}) {
+  return (
+    <div className="product-certificate">
+      <div className="product-certificate-title">Certificate of Souvenir</div>
+      <dl>
+        <div className="product-certificate-row">
+          <dt>Town</dt>
+          <dd>{town.city}</dd>
+        </div>
+        <div className="product-certificate-row">
+          <dt>Population</dt>
+          <dd>{town.population.toLocaleString('en-CA')} (approx.)</dd>
+        </div>
+        <div className="product-certificate-row">
+          <dt>Known for</dt>
+          <dd>{town.knownFor}</dd>
+        </div>
+        <div className="product-certificate-row">
+          <dt>Established</dt>
+          <dd>{town.estYear}</dd>
+        </div>
+        <div className="product-certificate-row">
+          <dt>Classification</dt>
+          <dd>{TIER_LABELS[town.populationTier]}</dd>
+        </div>
+      </dl>
+      <p style={{fontSize: '13.5px', lineHeight: 1.5}}>
+        This garment honors a real town where people live full lives, mostly
+        without incident. Wear it with the quiet pride it deserves.
+      </p>
     </div>
   );
 }
-
-const PRODUCT_VARIANT_FRAGMENT = `#graphql
-  fragment ProductVariant on ProductVariant {
-    availableForSale
-    compareAtPrice {
-      amount
-      currencyCode
-    }
-    id
-    image {
-      __typename
-      id
-      url
-      altText
-      width
-      height
-    }
-    price {
-      amount
-      currencyCode
-    }
-    product {
-      title
-      handle
-    }
-    selectedOptions {
-      name
-      value
-    }
-    sku
-    title
-    unitPrice {
-      amount
-      currencyCode
-    }
-  }
-` as const;
-
-const PRODUCT_FRAGMENT = `#graphql
-  fragment Product on Product {
-    id
-    title
-    vendor
-    handle
-    descriptionHtml
-    description
-    encodedVariantExistence
-    encodedVariantAvailability
-    options {
-      name
-      optionValues {
-        name
-        firstSelectableVariant {
-          ...ProductVariant
-        }
-        swatch {
-          color
-          image {
-            previewImage {
-              url
-            }
-          }
-        }
-      }
-    }
-    selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions, ignoreUnknownOptions: true, caseInsensitiveMatch: true) {
-      ...ProductVariant
-    }
-    adjacentVariants (selectedOptions: $selectedOptions) {
-      ...ProductVariant
-    }
-    seo {
-      description
-      title
-    }
-  }
-  ${PRODUCT_VARIANT_FRAGMENT}
-` as const;
-
-const PRODUCT_QUERY = `#graphql
-  query Product(
-    $country: CountryCode
-    $handle: String!
-    $language: LanguageCode
-    $selectedOptions: [SelectedOptionInput!]!
-  ) @inContext(country: $country, language: $language) {
-    product(handle: $handle) {
-      ...Product
-    }
-  }
-  ${PRODUCT_FRAGMENT}
-` as const;

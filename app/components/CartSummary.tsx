@@ -31,6 +31,7 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
           )}
         </dd>
       </dl>
+      <CollectLadderHint quantity={cart?.totalQuantity ?? 0} />
       <CartDiscounts
         discountCodes={cart?.discountCodes}
         discountsHeadingId={discountsHeadingId}
@@ -44,6 +45,22 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
       <CartCheckoutActions checkoutUrl={cart?.checkoutUrl} />
     </div>
   );
+}
+
+/**
+ * Collect-more ladder progress. The discount itself is a Shopify automatic
+ * discount configured in the store admin (see README LAUNCH TODO) — this is
+ * just the nudge.
+ */
+function CollectLadderHint({quantity}: {quantity: number}) {
+  if (quantity <= 0) return null;
+  const message =
+    quantity === 1
+      ? 'Collect one more souvenir and save 15% on both.'
+      : quantity === 2
+        ? '15% off unlocked. A third town makes it 20%.'
+        : '20% off unlocked — the maximum. Well collected.';
+  return <p className="cart-ladder-hint">{message}</p>;
 }
 
 function CartCheckoutActions({checkoutUrl}: {checkoutUrl?: string}) {

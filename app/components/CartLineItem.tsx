@@ -2,6 +2,7 @@ import type {CartLineUpdateInput} from '@shopify/hydrogen/storefront-api-types';
 import type {CartLayout, LineItemChildrenMap} from '~/components/CartMain';
 import {CartForm, Image, type OptimisticCartLine} from '@shopify/hydrogen';
 import {useVariantUrl} from '~/lib/variants';
+import {getAllTowns} from '~/lib/catalog';
 import {Link} from 'react-router';
 import {ProductPrice} from './ProductPrice';
 import {useAside} from './Aside';
@@ -29,7 +30,12 @@ export function CartLineItem({
 }) {
   const {id, merchandise} = line;
   const {product, title, image, selectedOptions} = merchandise;
-  const lineItemUrl = useVariantUrl(product.handle, selectedOptions);
+  const variantUrl = useVariantUrl(product.handle, selectedOptions);
+  // town tees ride on a stand-in variant; their identity lives in attributes
+  const townAttr = line.attributes?.find((a) => a.key === 'Town')?.value;
+  const town = townAttr ? getAllTowns().find((t) => t.city === townAttr) : undefined;
+  const lineItemUrl = town ? `/products/${town.handle}` : variantUrl;
+  const displayTitle = town ? `${town.city} T-Shirt` : product.title;
   const {close} = useAside();
   const lineItemChildren = childrenMap[id];
   const childrenLabelId = `cart-line-children-${id}`;
@@ -59,12 +65,20 @@ export function CartLineItem({
             }}
           >
             <p>
-              <strong>{product.title}</strong>
+              <strong>{displayTitle}</strong>
             </p>
           </Link>
           <ProductPrice price={line?.cost?.totalAmount} />
           <ul>
-            {selectedOptions.map((option) => (
+            {/* town tees carry their real identity in line attributes
+                (mock.shop stand-in variant) — prefer those when present */}
+            {(line.attributes?.length
+              ? line.attributes.map((attr) => ({
+                  name: attr.key,
+                  value: attr.value ?? '',
+                }))
+              : selectedOptions
+            ).map((option) => (
               <li key={option.name}>
                 <small>
                   {option.name}: {option.value}

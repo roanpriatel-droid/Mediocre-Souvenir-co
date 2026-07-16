@@ -61,6 +61,16 @@ export function links() {
       rel: 'preconnect',
       href: 'https://shop.app',
     },
+    {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
+    {
+      rel: 'preconnect',
+      href: 'https://fonts.gstatic.com',
+      crossOrigin: 'anonymous' as const,
+    },
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&family=Permanent+Marker&display=swap',
+    },
     {rel: 'icon', type: 'image/svg+xml', href: favicon},
   ];
 }
@@ -195,10 +205,34 @@ export function ErrorBoundary() {
     errorMessage = error.message;
   }
 
+  if (errorStatus === 404) {
+    return (
+      <div className="route-error">
+        <p className="route-error-code">404</p>
+        <h1>There&rsquo;s nothing here. Fitting.</h1>
+        <p className="route-error-note">
+          Whatever you were looking for, it either moved, never existed, or is
+          a town we haven&rsquo;t gotten to yet.
+        </p>
+        <div className="route-error-actions">
+          <a className="msc-button" href="/shop">
+            Browse the towns
+          </a>
+          <a className="msc-button msc-button--ghost" href="/request-your-town">
+            Request your town
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="route-error">
-      <h1>Oops</h1>
-      <h2>{errorStatus}</h2>
+      <p className="route-error-code">{errorStatus}</p>
+      <h1>Something went wrong back here.</h1>
+      <p className="route-error-note">
+        The register is jammed. Give it a moment and try again.
+      </p>
       {errorMessage && (
         <fieldset>
           <pre>{errorMessage}</pre>

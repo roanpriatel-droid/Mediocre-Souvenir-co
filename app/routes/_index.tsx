@@ -1,177 +1,139 @@
-import {Await, useLoaderData, Link} from 'react-router';
+import {Link} from 'react-router';
 import type {Route} from './+types/_index';
-import {Suspense} from 'react';
-import {Image} from '@shopify/hydrogen';
-import type {
-  FeaturedCollectionFragment,
-  RecommendedProductsQuery,
-} from 'storefrontapi.generated';
-import {ProductItem} from '~/components/ProductItem';
-import {MockShopNotice} from '~/components/MockShopNotice';
+import {BadgeLogo} from '~/components/Brand';
+import {TownSearch} from '~/components/TownSearch';
+import {MarqueeStrip, TrustBar} from '~/components/Strips';
+import {RegionBrowse} from '~/components/RegionBrowse';
+import {RackGrid} from '~/components/TownRackCard';
+import {CollectLadder} from '~/components/CollectLadder';
+import {GuestBook, SpottedGrid} from '~/components/SocialProof';
+import {EmailCapture} from '~/components/EmailCapture';
+import {getMostOverlooked, getNewArrivals} from '~/lib/catalog';
+import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
-  return [{title: 'Hydrogen | Home'}];
+  return [
+    {title: `${SITE_NAME} — ${SITE_TAGLINE}`},
+    {
+      name: 'description',
+      content:
+        'Faux-vintage souvenir t-shirts for overlooked towns — garment-dyed ' +
+        'heavyweight tees commemorating the places other souvenirs forgot. ' +
+        'Now open, starting with British Columbia. New towns weekly.',
+    },
+  ];
 };
 
-export async function loader(args: Route.LoaderArgs) {
-  // Start fetching non-critical data without blocking time to first byte
-  const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
-  const criticalData = await loadCriticalData(args);
-
-  return {...deferredData, ...criticalData};
-}
-
-/**
- * Load data necessary for rendering content above the fold. This is the critical data
- * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
- */
-async function loadCriticalData({context}: Route.LoaderArgs) {
-  const [{collections}] = await Promise.all([
-    context.storefront.query(FEATURED_COLLECTION_QUERY),
-    // Add other queries here, so that they are loaded in parallel
-  ]);
-
+export async function loader(_args: Route.LoaderArgs) {
+  // The catalog is local for now (see app/lib/catalog) — no storefront
+  // queries needed above the fold.
   return {
-    isShopLinked: Boolean(context.env.PUBLIC_STORE_DOMAIN),
-    featuredCollection: collections.nodes[0],
+    newArrivals: getNewArrivals(),
+    mostOverlooked: getMostOverlooked(),
   };
 }
 
-/**
- * Load data for rendering content below the fold. This data is deferred and will be
- * fetched after the initial page load. If it's unavailable, the page should still 200.
- * Make sure to not throw any errors here, as it will cause the page to 500.
- */
-function loadDeferredData({context}: Route.LoaderArgs) {
-  const recommendedProducts = context.storefront
-    .query(RECOMMENDED_PRODUCTS_QUERY)
-    .catch((error: Error) => {
-      // Log query errors, but don't throw them so the page can still render
-      console.error(error);
-      return null;
-    });
-
-  return {
-    recommendedProducts,
-  };
-}
-
-export default function Homepage() {
-  const data = useLoaderData<typeof loader>();
+export default function Homepage({loaderData}: Route.ComponentProps) {
+  const {newArrivals, mostOverlooked} = loaderData;
   return (
     <div className="home">
-      {data.isShopLinked ? null : <MockShopNotice />}
-      <FeaturedCollection collection={data.featuredCollection} />
-      <RecommendedProducts products={data.recommendedProducts} />
+      {/* HERO — the CTA is a search field, not a shop button */}
+      <section className="hero">
+        <BadgeLogo size={210} className="hero-badge" />
+        <h1>GENUINE MERCH FOR OVERLOOKED PLACES.</h1>
+        <p className="hero-sub">
+          Souvenir tees for the towns that never got one · Now open
+        </p>
+        <TownSearch />
+      </section>
+
+      <MarqueeStrip />
+
+      {/* BROWSE BY REGION — the real navigation */}
+      <section className="msc-section msc-page" aria-labelledby="browse-region">
+        <div className="msc-section-rule">
+          <h2 id="browse-region">Browse by province</h2>
+          <span className="msc-section-note">
+            Starting with British Columbia · New towns weekly
+          </span>
+        </div>
+        <RegionBrowse />
+      </section>
+
+      {/* NEW ARRIVALS */}
+      <section className="msc-section msc-page" aria-labelledby="new-arrivals">
+        <div className="msc-section-rule">
+          <h2 id="new-arrivals">New arrivals</h2>
+          <Link className="msc-section-note" to="/new-arrivals">
+            See all →
+          </Link>
+        </div>
+        <RackGrid towns={newArrivals} />
+      </section>
+
+      {/* MOST OVERLOOKED */}
+      <section
+        className="msc-section msc-page"
+        aria-labelledby="most-overlooked"
+      >
+        <div className="msc-section-rule">
+          <h2 id="most-overlooked">Most overlooked</h2>
+          <span className="msc-section-note">
+            Towns of modest renown · Curated with care
+          </span>
+        </div>
+        <RackGrid towns={mostOverlooked} />
+      </section>
+
+      {/* COLLECT LADDER */}
+      <section className="msc-section msc-page">
+        <CollectLadder />
+      </section>
+
+      {/* REQUEST YOUR TOWN teaser */}
+      <section className="msc-section msc-page" aria-labelledby="request-town">
+        <div className="msc-form-success">
+          <span className="msc-kicker">The waitlist</span>
+          <h2 id="request-town">Don&rsquo;t see your town?</h2>
+          <p style={{maxWidth: '46ch'}}>
+            Tell us where you&rsquo;re from. Enough requests and your town gets
+            the commemorative garment it has quietly deserved all along.
+          </p>
+          <Link className="msc-button" to="/request-your-town">
+            Request your town
+          </Link>
+        </div>
+      </section>
+
+      <MarqueeStrip variant="mustard" />
+
+      {/* GUEST BOOK */}
+      <section className="msc-section msc-page" aria-labelledby="guest-book">
+        <div className="msc-section-rule">
+          <h2 id="guest-book">Guest book</h2>
+          <span className="msc-section-note">Reviews, when they arrive</span>
+        </div>
+        <GuestBook />
+      </section>
+
+      {/* SPOTTED IN THE WILD */}
+      <section className="msc-section msc-page" aria-labelledby="spotted">
+        <div className="msc-section-rule">
+          <h2 id="spotted">Spotted in the wild</h2>
+          <span className="msc-section-note">
+            Tag @mediocresouvenirco for a feature
+          </span>
+        </div>
+        <SpottedGrid />
+      </section>
+
+      {/* TRUST BAR */}
+      <section className="msc-section" style={{paddingBottom: 0}}>
+        <TrustBar />
+      </section>
+
+      {/* EMAIL CAPTURE */}
+      <EmailCapture />
     </div>
   );
 }
-
-function FeaturedCollection({
-  collection,
-}: {
-  collection: FeaturedCollectionFragment;
-}) {
-  if (!collection) return null;
-  const image = collection?.image;
-  return (
-    <Link
-      className="featured-collection"
-      to={`/collections/${collection.handle}`}
-    >
-      {image && (
-        <div className="featured-collection-image">
-          <Image
-            data={image}
-            sizes="100vw"
-            alt={image.altText || collection.title}
-          />
-        </div>
-      )}
-      <h1>{collection.title}</h1>
-    </Link>
-  );
-}
-
-function RecommendedProducts({
-  products,
-}: {
-  products: Promise<RecommendedProductsQuery | null>;
-}) {
-  return (
-    <section
-      className="recommended-products"
-      aria-labelledby="recommended-products"
-    >
-      <h2 id="recommended-products">Recommended Products</h2>
-      <Suspense fallback={<div>Loading...</div>}>
-        <Await resolve={products}>
-          {(response) => (
-            <div className="recommended-products-grid">
-              {response
-                ? response.products.nodes.map((product) => (
-                    <ProductItem key={product.id} product={product} />
-                  ))
-                : null}
-            </div>
-          )}
-        </Await>
-      </Suspense>
-      <br />
-    </section>
-  );
-}
-
-const FEATURED_COLLECTION_QUERY = `#graphql
-  fragment FeaturedCollection on Collection {
-    id
-    title
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-    handle
-  }
-  query FeaturedCollection($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 1, sortKey: UPDATED_AT, reverse: true) {
-      nodes {
-        ...FeaturedCollection
-      }
-    }
-  }
-` as const;
-
-const RECOMMENDED_PRODUCTS_QUERY = `#graphql
-  fragment RecommendedProduct on Product {
-    id
-    title
-    handle
-    priceRange {
-      minVariantPrice {
-        amount
-        currencyCode
-      }
-    }
-    featuredImage {
-      id
-      url
-      altText
-      width
-      height
-    }
-  }
-  query RecommendedProducts ($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    products(first: 4, sortKey: UPDATED_AT, reverse: true) {
-      nodes {
-        ...RecommendedProduct
-      }
-    }
-  }
-` as const;

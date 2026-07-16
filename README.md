@@ -43,3 +43,14 @@ npm run dev
 ## Setup for using Customer Account API (`/account` section)
 
 Follow step 1 and 2 of <https://shopify.dev/docs/custom-storefronts/building-with-the-customer-account-api/hydrogen#step-1-set-up-a-public-domain-for-local-development>
+
+## LAUNCH TODO (real store, before go-live)
+
+- [ ] Link the real Shopify store: `npx shopify hydrogen link` + `npx shopify hydrogen env pull`
+- [ ] Swap the purchasable stand-in: see “The swap point” in `app/lib/catalog/index.ts` — map each town to its Printify-synced product (Comfort Colors 1717, not Bella+Canvas)
+- [ ] Configure the **automatic discount** in Shopify admin: 2+ items → 15%, 3+ → 20%, mix-and-match, no code. The collect-ladder UI promises this; checkout must honor it.
+- [ ] Free-shipping threshold: $75 CAD (announcement bar promise)
+- [ ] Swap `app/lib/submissions.ts` in-memory store for a durable backend (Klaviyo / Shopify customer tags / KV) — town requests and Postcards signups currently persist only in Oxygen logs
+- [ ] Replace placeholder logo SVGs in `app/components/Brand.tsx` with the committed brand assets
+- [ ] Verify Certificate of Souvenir facts (population, est. year, known-for) per town before printing
+- [ ] Set real contact email + Instagram handles (placeholders: hello@mediocresouvenir.co, @mediocresouvenirco)

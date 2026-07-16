@@ -1,129 +1,91 @@
-import {Suspense} from 'react';
-import {Await, NavLink} from 'react-router';
-import type {FooterQuery, HeaderQuery} from 'storefrontapi.generated';
+import {Link} from 'react-router';
+import {getTownsByProvince, PROVINCES} from '~/lib/catalog';
+import {MSCMonogram} from '~/components/Brand';
 
-interface FooterProps {
-  footer: Promise<FooterQuery | null>;
-  header: HeaderQuery;
-  publicStoreDomain: string;
-}
-
-export function Footer({
-  footer: footerPromise,
-  header,
-  publicStoreDomain,
-}: FooterProps) {
+/**
+ * Static brand footer. The browse-by-province link list is the SEO spine —
+ * every open province page is one hop from every page on the site.
+ */
+export function Footer() {
+  const openProvinces = PROVINCES.filter((p) => p.status === 'open');
   return (
-    <Suspense>
-      <Await resolve={footerPromise}>
-        {(footer) => (
-          <footer className="footer">
-            {footer?.menu && header.shop.primaryDomain?.url && (
-              <FooterMenu
-                menu={footer.menu}
-                primaryDomainUrl={header.shop.primaryDomain.url}
-                publicStoreDomain={publicStoreDomain}
-              />
-            )}
-          </footer>
-        )}
-      </Await>
-    </Suspense>
+    <footer className="footer">
+      <div className="footer-inner">
+        <div className="footer-brand">
+          <MSCMonogram size={72} onDark />
+          <div className="footer-wordmark">MEDIOCRE SOUVENIR CO.</div>
+          <div className="footer-tagline">
+            Genuine merch for overlooked places
+          </div>
+          <p style={{fontSize: '14px', maxWidth: '38ch', opacity: 0.8}}>
+            Commemorating the places other souvenirs forgot. Every garment
+            honors a real town where people live full lives, mostly without
+            incident.
+          </p>
+        </div>
+        <div className="footer-col">
+          <h4>Browse</h4>
+          <ul>
+            <li>
+              <Link to="/shop">Shop all towns</Link>
+            </li>
+            {openProvinces.map((province) => (
+              <li key={province.slug}>
+                <Link to={`/provinces/${province.slug}`}>
+                  {province.name} ({getTownsByProvince(province.slug).length})
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link to="/new-arrivals">New arrivals</Link>
+            </li>
+            <li>
+              <Link to="/provinces">All provinces</Link>
+            </li>
+          </ul>
+        </div>
+        <div className="footer-col">
+          <h4>The Co.</h4>
+          <ul>
+            <li>
+              <Link to="/request-your-town">Request your town</Link>
+            </li>
+            <li>
+              <Link to="/contact">Contact</Link>
+            </li>
+            <li>
+              <a
+                href="https://instagram.com/mediocresouvenirco"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Instagram
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div className="footer-col">
+          <h4>Fine print</h4>
+          <ul>
+            <li>
+              <Link to="/policies/shipping-policy">Shipping</Link>
+            </li>
+            <li>
+              <Link to="/policies/refund-policy">Returns</Link>
+            </li>
+            <li>
+              <Link to="/policies/privacy-policy">Privacy</Link>
+            </li>
+            <li>
+              <Link to="/policies/terms-of-service">Terms</Link>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div className="footer-bottom">
+        <span>© {new Date().getFullYear()} Mediocre Souvenir Co. · Est. 2026</span>
+        <span>You were somewhere.</span>
+      </div>
+    </footer>
   );
-}
-
-function FooterMenu({
-  menu,
-  primaryDomainUrl,
-  publicStoreDomain,
-}: {
-  menu: FooterQuery['menu'];
-  primaryDomainUrl: FooterProps['header']['shop']['primaryDomain']['url'];
-  publicStoreDomain: string;
-}) {
-  return (
-    <nav className="footer-menu" role="navigation">
-      {(menu || FALLBACK_FOOTER_MENU).items.map((item) => {
-        if (!item.url) return null;
-        // if the url is internal, we strip the domain
-        const url =
-          item.url.includes('myshopify.com') ||
-          item.url.includes(publicStoreDomain) ||
-          item.url.includes(primaryDomainUrl)
-            ? new URL(item.url).pathname
-            : item.url;
-        const isExternal = !url.startsWith('/');
-        return isExternal ? (
-          <a href={url} key={item.id} rel="noopener noreferrer" target="_blank">
-            {item.title}
-          </a>
-        ) : (
-          <NavLink
-            end
-            key={item.id}
-            prefetch="intent"
-            style={activeLinkStyle}
-            to={url}
-          >
-            {item.title}
-          </NavLink>
-        );
-      })}
-    </nav>
-  );
-}
-
-const FALLBACK_FOOTER_MENU = {
-  id: 'gid://shopify/Menu/199655620664',
-  items: [
-    {
-      id: 'gid://shopify/MenuItem/461633060920',
-      resourceId: 'gid://shopify/ShopPolicy/23358046264',
-      tags: [],
-      title: 'Privacy Policy',
-      type: 'SHOP_POLICY',
-      url: '/policies/privacy-policy',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461633093688',
-      resourceId: 'gid://shopify/ShopPolicy/23358013496',
-      tags: [],
-      title: 'Refund Policy',
-      type: 'SHOP_POLICY',
-      url: '/policies/refund-policy',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461633126456',
-      resourceId: 'gid://shopify/ShopPolicy/23358111800',
-      tags: [],
-      title: 'Shipping Policy',
-      type: 'SHOP_POLICY',
-      url: '/policies/shipping-policy',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461633159224',
-      resourceId: 'gid://shopify/ShopPolicy/23358079032',
-      tags: [],
-      title: 'Terms of Service',
-      type: 'SHOP_POLICY',
-      url: '/policies/terms-of-service',
-      items: [],
-    },
-  ],
-};
-
-function activeLinkStyle({
-  isActive,
-  isPending,
-}: {
-  isActive: boolean;
-  isPending: boolean;
-}) {
-  return {
-    fontWeight: isActive ? 'bold' : undefined,
-    color: isPending ? 'grey' : 'white',
-  };
 }
