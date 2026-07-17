@@ -1,0 +1,49 @@
+# Mediocre Souvenir Co.
+
+> Genuine Merch for Overlooked Places. Faux-vintage souvenir t-shirts for
+> unglamorous, overlooked towns across Canada and the United States —
+> commemorated with the exact reverence a Hawaii gift shop would use.
+> Deadpan, affectionate, never mean toward the places. Est. 2026.
+
+## What we sell
+
+- Souvenir t-shirts, one per real overlooked town (e.g. "Trail, BC",
+  "Hope, BC", "Tofino, BC"). The catalog is the product; it grows weekly.
+- Blank: Comfort Colors 1717 — garment-dyed, heavyweight (6.1 oz / ~207
+  GSM), 100% ring-spun cotton. The fade is structural, not printed.
+- Unisex, sizes S-3XL. Colorways: Ivory, Butter, Blue Jean, Brick, Sage.
+- Price: $36 CAD in Canada, $36 USD in the US (currency parity).
+- Collect-more discount: 2+ save 15%, 3+ save 20%, automatic at checkout,
+  mix and match, no code.
+- Printed to order in North America, 5-10 business days. Free shipping over
+  $75 (CAD in Canada, USD in the US). Returns: 30 days.
+
+## Coverage
+
+Launching region by region: British Columbia is open (~40 towns, Tofino to
+Trail). Alberta is next, then east across Canada, then south into the US
+(all 50 states are modeled and open as demand warrants). Every US state has
+its own landing page at /states/<slug>; provinces at /provinces/<slug>.
+
+## Key pages
+
+- / — home, with city search ("find your town")
+- /shop — full catalog with filters (region, town size, template, colorway)
+- /provinces and /states/<slug>, /provinces/<slug> — browse by region
+- /products/<city-slug>-t-shirt — per-town product pages
+- /request-your-town — waitlist; requests drive the print schedule
+- /about — brand story and philosophy
+- /materials — Comfort Colors 1717 spec and construction
+- /size-guide — measurements + find-my-size
+- /care — garment care
+- /lookbook — the British Columbia road trip, shoppable
+- /journal — editorial (water towers, heavyweight cotton, overlooked towns)
+- /faq — shipping, returns, sizing, materials
+
+## Voice and integrity
+
+The humor is entirely in the sincerity. We never mock the towns. We never
+fabricate reviews, ratings, sales counts, or press — trust is carried by
+the garment spec, the return policy, and the sincerity of the whole thing.
+
+Contact: hello@mediocresouvenir.co · Instagram @mediocresouvenirco

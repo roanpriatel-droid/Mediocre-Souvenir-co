@@ -26,9 +26,12 @@ export function PageLayout({cart, children = null}: PageLayoutProps) {
     <Aside.Provider>
       <CartAside cart={cart} />
       <MobileMenuAside />
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
       <AnnouncementBar />
       <Header cart={cart} />
-      <main>{children}</main>
+      <main id="main">{children}</main>
       <Footer />
       <EmailCaptureModal />
     </Aside.Provider>

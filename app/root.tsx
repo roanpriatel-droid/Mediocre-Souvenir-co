@@ -161,10 +161,40 @@ export function Layout({children}: {children?: React.ReactNode}) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta name="theme-color" content="#F1E9D6" />
+        {/* Sensible social defaults; per-route meta overrides title/description/canonical. */}
+        <meta property="og:site_name" content="Mediocre Souvenir Co." />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="/og-default.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="/og-default.png" />
+        <meta name="twitter:site" content="@mediocresouvenirco" />
         <link rel="stylesheet" href={resetStyles}></link>
         <link rel="stylesheet" href={appStyles}></link>
         <Meta />
         <Links />
+        <script
+          type="application/ld+json"
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Mediocre Souvenir Co.',
+              alternateName: 'MSC',
+              slogan: 'Genuine Merch for Overlooked Places',
+              foundingDate: '2026',
+              description:
+                'Faux-vintage souvenir t-shirts for overlooked towns across ' +
+                'Canada and the US, made with the reverence a Hawaii gift ' +
+                'shop would use.',
+              areaServed: ['CA', 'US'],
+              sameAs: ['https://instagram.com/mediocresouvenirco'],
+            }),
+          }}
+        />
       </head>
       <body>
         {children}

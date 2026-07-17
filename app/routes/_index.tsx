@@ -23,6 +23,16 @@ export const meta: Route.MetaFunction = () => {
         'other souvenirs forgot. Now open, starting with British Columbia. ' +
         'New towns weekly.',
     },
+    {
+      property: 'og:title',
+      content: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    },
+    {
+      property: 'og:description',
+      content:
+        'Souvenir tees for the towns that never got one. Now open, ' +
+        'starting with British Columbia.',
+    },
   ];
 };
 
