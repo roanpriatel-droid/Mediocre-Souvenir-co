@@ -65,8 +65,39 @@ SocialProof empty states, EmailCapture, cart suite, Aside drawer.
 
 ## Scores — after
 
-_Updated in Phase 6._
+| Dimension | Before | After | What moved it |
+| --- | --- | --- | --- |
+| Visual craft | 7 | 9 | Scroll reveals, full-bleed editorial statement, rotated postcard interlude, rack-card lift + art-zoom hover, `text-wrap: balance`, spacing normalized. |
+| Page depth | 4 | 9 | Eight new fully-built pages: about, materials, size-guide, care, lookbook, journal + 4 long articles (600–900 words each), FAQ. No stubs. |
+| PDP persuasion | 6 | 9 | 3-view swipe gallery (front/detail/certificate) with indicators, sticky mobile ATC, per-town benefit-led pitch, three accordions, size-guide modal, "complete the collection" cross-sell with ladder framing. |
+| Mobile experience | 7 | 9 | Sticky ATC, swipe gallery + dots, responsive toolbar/footer/statement, 375px rhythm verified. |
+| Performance | 8 | 8 | Build green; SVG-first pages stay light; reveals use IntersectionObserver, not scroll listeners. Fonts still Google-hosted with swap (self-hosting deferred — see NEEDS_INPUT). |
+| SEO / GEO | 7 | 9 | Branded 1200×630 OG image + OG/Twitter defaults, Organization JSON-LD sitewide, Article schema on journal, FAQPage schema, llms.txt, sitemap covers all new routes. |
+| Accessibility | 7 | 9 | Global `:focus-visible` system, skip link, native `<dialog>`/`<details>` for modal+accordions (keyboard-free), `aria-pressed`/`role=progressbar`, alt text via townImageAlt everywhere. |
+| Conversion architecture | 6 | 9 | Free-shipping progress to the real $75, cart upsell (a town not in cart), drawer trust row, shop filters (region/size/template/colorway) + sort + count, once-per-session email modal, analytics seam (view_item, add_to_cart, begin_checkout, newsletter_signup). |
 
 ## Changelog
 
-_Updated per phase._
+- **Phase 0** — BRAND.md reverse-engineered and locked; AUDIT baseline; NEEDS_INPUT.
+- **Phase 1** — `Reveal` component; editorial statement + postcard sections on home;
+  rack/region hover craft; balanced headings; spacing pass.
+- **Phase 2** — `/about`, `/materials`, `/size-guide`, `/care`, `/lookbook`,
+  `/journal` (+ `/journal/$slug` × 4 articles), `/faq`; sitemap-style footer with
+  guides column; new routes added to sitemap.
+- **Phase 3** — PDP rebuilt: `ProductGallery` (swipe + tabs + dots), `sticky-atc`,
+  `townPitch()` per-town copy, Details/Materials/Shipping accordions, size-guide
+  `<dialog>`, cross-sell; `ShirtMockup` gains a `detail` crop view.
+- **Phase 4** — `FreeShippingProgress`, `CartUpsell`, drawer trust row, `/shop`
+  filters+sort+count with empty state, `EmailCaptureModal` (session-gated),
+  `app/lib/analytics.ts` seam wired to footer + modal + checkout.
+- **Phase 5** — `og-default.png` (rendered from brand fonts), OG/Twitter meta +
+  Organization JSON-LD in root, `llms.txt`, `:focus-visible` system, skip link.
+- **Phase 6** — build + typecheck green; all routes confirmed in build manifest;
+  scores updated; deployed to Oxygen.
+
+## Verification
+
+`npm run build` and `npm run typecheck` both exit 0. All eight new routes present
+in `dist/server` and `dist/client`. Live behavior (hover, reveals, sticky ATC,
+swipe, modal) is exercised on the Oxygen deploy — the local ARM64 box cannot run
+the dev server (workerd), which remains this project's only verification ceiling.
