@@ -10,6 +10,7 @@ import {Footer} from '~/components/Footer';
 import {Header, HeaderMenu} from '~/components/Header';
 import {CartMain} from '~/components/CartMain';
 import {AnnouncementBar} from '~/components/Strips';
+import {EmailCaptureModal} from '~/components/EmailCaptureModal';
 
 interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
@@ -29,6 +30,7 @@ export function PageLayout({cart, children = null}: PageLayoutProps) {
       <Header cart={cart} />
       <main>{children}</main>
       <Footer />
+      <EmailCaptureModal />
     </Aside.Provider>
   );
 }

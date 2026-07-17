@@ -1,9 +1,11 @@
-import {useOptimisticCart} from '@shopify/hydrogen';
+import {useOptimisticCart, type OptimisticCart} from '@shopify/hydrogen';
 import {Link} from 'react-router';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
 import {CartLineItem, type CartLine} from '~/components/CartLineItem';
 import {CartSummary} from './CartSummary';
+import {ShirtMockup} from '~/components/ShirtMockup';
+import {DISPLAY_PRICE, getAllTowns, getMostOverlooked} from '~/lib/catalog';
 
 export type CartLayout = 'page' | 'aside';
 
@@ -80,9 +82,52 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
             })}
           </ul>
         </div>
+        {cartHasItems && <CartUpsell cart={cart} />}
         {cartHasItems && <CartSummary cart={cart} layout={layout} />}
       </div>
     </section>
+  );
+}
+
+/**
+ * One honest upsell: a town not already in the cart, framed by the real
+ * ladder discount. Links to the PDP (size still needs choosing there).
+ */
+function CartUpsell({cart}: {cart: OptimisticCart<CartApiQueryFragment | null>}) {
+  const {close} = useAside();
+  const inCart = new Set(
+    (cart?.lines?.nodes ?? [])
+      .map((line) => line.attributes?.find((a) => a.key === 'Town')?.value)
+      .filter(Boolean),
+  );
+  const suggestion =
+    getMostOverlooked().find((t) => !inCart.has(t.city)) ??
+    getAllTowns().find((t) => !inCart.has(t.city));
+  if (!suggestion) return null;
+  const qty = cart?.totalQuantity ?? 0;
+  const line =
+    qty === 1
+      ? 'One more town saves 15% on both.'
+      : qty === 2
+        ? 'A third town makes it 20% off everything.'
+        : 'For the drawer.';
+
+  return (
+    <Link
+      className="cart-upsell"
+      to={`/products/${suggestion.handle}`}
+      onClick={close}
+      prefetch="intent"
+    >
+      <ShirtMockup town={suggestion} className="cart-upsell-art" />
+      <div className="cart-upsell-copy">
+        <span className="msc-kicker">{line}</span>
+        <strong>
+          {suggestion.city}, {suggestion.provinceAbbrev}
+        </strong>
+        <span className="cart-upsell-price">{DISPLAY_PRICE} · view →</span>
+      </div>
+    </Link>
   );
 }
 

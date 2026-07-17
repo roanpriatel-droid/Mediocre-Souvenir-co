@@ -1,9 +1,22 @@
+import {useEffect} from 'react';
 import {useFetcher} from 'react-router';
+import {trackEvent} from '~/lib/analytics';
 
 /** "Postcards from us." Email capture, posts to /api/subscribe. */
 export function EmailCapture() {
   const fetcher = useFetcher<{ok: boolean; error?: string}>();
   const done = fetcher.data?.ok;
+
+  useEffect(() => {
+    if (done) {
+      trackEvent('newsletter_signup', {source: 'footer'});
+      try {
+        localStorage.setItem('msc-subscribed', '1');
+      } catch {
+        // fine
+      }
+    }
+  }, [done]);
 
   return (
     <section className="email-capture">

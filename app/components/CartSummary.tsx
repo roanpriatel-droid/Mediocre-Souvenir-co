@@ -3,6 +3,7 @@ import type {CartLayout} from '~/components/CartMain';
 import {CartForm, Money, type OptimisticCart} from '@shopify/hydrogen';
 import {useEffect, useId, useRef, useState} from 'react';
 import {useFetcher} from 'react-router';
+import {trackEvent} from '~/lib/analytics';
 
 type CartSummaryProps = {
   cart: OptimisticCart<CartApiQueryFragment | null>;
@@ -31,6 +32,9 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
           )}
         </dd>
       </dl>
+      <FreeShippingProgress
+        subtotal={Number(cart?.cost?.subtotalAmount?.amount ?? 0)}
+      />
       <CollectLadderHint quantity={cart?.totalQuantity ?? 0} />
       <CartDiscounts
         discountCodes={cart?.discountCodes}
@@ -63,15 +67,51 @@ function CollectLadderHint({quantity}: {quantity: number}) {
   return <p className="cart-ladder-hint">{message}</p>;
 }
 
+/** Progress toward the real $75 free-shipping threshold (Canada & US). */
+function FreeShippingProgress({subtotal}: {subtotal: number}) {
+  const THRESHOLD = 75;
+  if (!subtotal) return null;
+  const remaining = THRESHOLD - subtotal;
+  const pct = Math.min(100, Math.round((subtotal / THRESHOLD) * 100));
+  return (
+    <div className="cart-shipping-progress">
+      <div
+        className="cart-shipping-progress-track"
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Progress toward free shipping"
+      >
+        <div style={{width: `${pct}%`}} />
+      </div>
+      <p>
+        {remaining > 0
+          ? `$${remaining.toFixed(2)} away from free shipping.`
+          : 'Free shipping unlocked. The mail is on us.'}
+      </p>
+    </div>
+  );
+}
+
 function CartCheckoutActions({checkoutUrl}: {checkoutUrl?: string}) {
   if (!checkoutUrl) return null;
 
   return (
-    <div>
-      <a href={checkoutUrl} target="_self">
-        <p>Continue to Checkout &rarr;</p>
+    <div className="cart-checkout">
+      <a
+        className="msc-button cart-checkout-button"
+        href={checkoutUrl}
+        target="_self"
+        onClick={() => trackEvent('begin_checkout')}
+      >
+        Continue to checkout →
       </a>
-      <br />
+      <div className="cart-trust-row">
+        <span>30-day returns</span>
+        <span>Secure checkout</span>
+        <span>Printed to order</span>
+      </div>
     </div>
   );
 }
