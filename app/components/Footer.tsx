@@ -48,6 +48,15 @@ export function Footer() {
           <h4>The Co.</h4>
           <ul>
             <li>
+              <Link to="/about">About</Link>
+            </li>
+            <li>
+              <Link to="/lookbook">Lookbook</Link>
+            </li>
+            <li>
+              <Link to="/journal">The Journal</Link>
+            </li>
+            <li>
               <Link to="/request-your-town">Request your town</Link>
             </li>
             <li>
@@ -65,8 +74,20 @@ export function Footer() {
           </ul>
         </div>
         <div className="footer-col">
-          <h4>Fine print</h4>
+          <h4>Guides &amp; fine print</h4>
           <ul>
+            <li>
+              <Link to="/materials">Materials &amp; construction</Link>
+            </li>
+            <li>
+              <Link to="/size-guide">Size &amp; fit guide</Link>
+            </li>
+            <li>
+              <Link to="/care">Care guide</Link>
+            </li>
+            <li>
+              <Link to="/faq">FAQ</Link>
+            </li>
             <li>
               <Link to="/policies/shipping-policy">Shipping</Link>
             </li>
