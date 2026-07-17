@@ -72,6 +72,8 @@ export function links() {
       href: 'https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&family=Permanent+Marker&display=swap',
     },
     {rel: 'icon', type: 'image/svg+xml', href: favicon},
+    {rel: 'icon', type: 'image/png', sizes: '48x48', href: '/favicon-48.png'},
+    {rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png'},
   ];
 }
 
