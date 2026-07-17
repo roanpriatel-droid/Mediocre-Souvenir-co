@@ -38,6 +38,23 @@ export function townH1(town: TownProduct): string {
   return `${town.city} T-Shirt`;
 }
 
+/** PDP lead paragraph — benefit-led, sensory, deadpan, derived per town. */
+export function townPitch(town: TownProduct): string {
+  const styleLine: Record<TownProduct['style'], string> = {
+    'classic-varsity': 'set in arched varsity lettering over the landmark',
+    'retro-postcard': 'set as a greetings-from postcard with the souvenir stripe',
+    'faded-slogan': 'printed as one deadpan line at 88% ink, two hundred washes in',
+  };
+  return (
+    `${town.city}, ${town.provinceState}. ${town.knownFor} — ` +
+    `commemorated properly at last, ${styleLine[town.style]}, on a ` +
+    `garment-dyed ${COLORWAY_LABELS[town.colorway]} heavyweight that ` +
+    `already feels ten summers old. Made for the ` +
+    `${town.population.toLocaleString(localeFor(town.country))} people who ` +
+    `get it, and everyone who is about to.`
+  );
+}
+
 export function townImageAlt(town: TownProduct): string {
   return (
     `Faded ${COLORWAY_LABELS[town.colorway].toLowerCase()} ${town.city}, ` +

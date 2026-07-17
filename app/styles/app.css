@@ -2119,3 +2119,243 @@ p {
   border-top: 2px dashed var(--msc-navy);
   opacity: 0.5;
 }
+
+/* ============================================================
+   Phase 3 — PDP conversion engine
+   ============================================================ */
+
+.product-pitch {
+  font-size: 16.5px;
+  line-height: 1.6;
+  max-width: 56ch;
+}
+
+.product-options-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.product-size-guide-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--msc-brick);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 0;
+}
+
+.product-size-guide-link:hover {
+  color: var(--msc-navy);
+}
+
+/* gallery */
+.product-gallery {
+  align-self: start;
+  position: sticky;
+  top: calc(var(--header-height) + 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (max-width: 860px) {
+  .product-gallery {
+    position: static;
+  }
+}
+
+.product-gallery-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  border: var(--border-std);
+  background: var(--msc-cream-deep);
+  box-shadow: var(--shadow-offset);
+}
+
+.product-gallery-track::-webkit-scrollbar {
+  display: none;
+}
+
+.product-gallery-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  padding: 32px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-gallery-slide svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.product-gallery-slide--cert {
+  padding: 24px;
+}
+
+.product-gallery-slide--cert .product-certificate {
+  width: 100%;
+  max-width: 380px;
+}
+
+.product-gallery-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.product-gallery-nav button {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 6px;
+  border: var(--border-std);
+  background: var(--msc-cream-deep);
+  color: var(--msc-navy);
+  cursor: pointer;
+}
+
+.product-gallery-nav button:hover {
+  background: var(--msc-mustard);
+}
+
+.product-gallery-nav button[data-active='true'] {
+  background: var(--msc-navy);
+  color: var(--msc-cream);
+}
+
+.product-gallery-dots {
+  display: none;
+  justify-content: center;
+  gap: 8px;
+}
+
+.product-gallery-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--msc-navy);
+  background: transparent;
+}
+
+.product-gallery-dots span[data-active='true'] {
+  background: var(--msc-brick);
+  border-color: var(--msc-brick);
+}
+
+@media (max-width: 860px) {
+  .product-gallery-nav {
+    display: none;
+  }
+
+  .product-gallery-dots {
+    display: flex;
+  }
+}
+
+.product-accordions {
+  display: flex;
+  flex-direction: column;
+}
+
+/* sticky add-to-cart bar */
+.sticky-atc {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 15;
+  background: var(--msc-cream);
+  border-top: var(--border-heavy);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transform: translateY(110%);
+  transition: transform 240ms ease;
+}
+
+.sticky-atc[data-visible='true'] {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sticky-atc {
+    transition: none;
+  }
+}
+
+.sticky-atc-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sticky-atc-info strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--msc-navy);
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sticky-atc-info span {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--msc-brick);
+  font-weight: 700;
+}
+
+.sticky-atc .msc-button,
+.sticky-atc button[type='submit'] {
+  white-space: nowrap;
+}
+
+/* modal (native dialog) */
+.msc-modal {
+  border: var(--border-heavy);
+  background: var(--msc-cream);
+  color: var(--msc-asphalt);
+  box-shadow: 6px 6px 0 var(--msc-navy);
+  padding: 24px;
+  max-width: min(680px, calc(100vw - 32px));
+  width: 100%;
+}
+
+.msc-modal::backdrop {
+  background: rgba(28, 28, 28, 0.5);
+}
+
+.msc-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.msc-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--msc-brick);
+  cursor: pointer;
+}

@@ -43,16 +43,29 @@ function arcFontSize(name: string): number {
   return 15;
 }
 
-export function ShirtMockup({town, className}: {town: TownProduct; className?: string}) {
+export function ShirtMockup({
+  town,
+  className,
+  view = 'front',
+}: {
+  town: TownProduct;
+  className?: string;
+  /** 'front' = full tee; 'detail' = cropped in on the chest print */
+  view?: 'front' | 'detail';
+}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const fill = SHIRT_FILL[town.colorway];
   const ink = inksFor(town.colorway);
 
   return (
     <svg
-      viewBox="0 0 300 280"
+      viewBox={view === 'detail' ? '80 66 150 130' : '0 0 300 280'}
       role="img"
-      aria-label={townImageAlt(town)}
+      aria-label={
+        view === 'detail'
+          ? `${townImageAlt(town)} — print detail`
+          : townImageAlt(town)
+      }
       className={className}
     >
       {/* the blank — Comfort Colors 1717 silhouette */}
