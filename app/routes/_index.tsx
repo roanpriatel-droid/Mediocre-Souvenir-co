@@ -1,6 +1,7 @@
 import {Link} from 'react-router';
 import type {Route} from './+types/_index';
-import {BadgeLogo} from '~/components/Brand';
+import {BadgeLogo, MSCMonogram} from '~/components/Brand';
+import {Reveal} from '~/components/Reveal';
 import {TownSearch} from '~/components/TownSearch';
 import {MarqueeStrip, TrustBar} from '~/components/Strips';
 import {RegionBrowse} from '~/components/RegionBrowse';
@@ -63,27 +64,74 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
 
       {/* NEW ARRIVALS */}
       <section className="msc-section msc-page" aria-labelledby="new-arrivals">
-        <div className="msc-section-rule">
-          <h2 id="new-arrivals">New arrivals</h2>
-          <Link className="msc-section-note" to="/new-arrivals">
-            See all →
-          </Link>
-        </div>
-        <RackGrid towns={newArrivals} />
+        <Reveal>
+          <div className="msc-section-rule">
+            <h2 id="new-arrivals">New arrivals</h2>
+            <Link className="msc-section-note" to="/new-arrivals">
+              See all →
+            </Link>
+          </div>
+          <RackGrid towns={newArrivals} />
+        </Reveal>
       </section>
+
+      {/* EDITORIAL STATEMENT */}
+      <Reveal as="section" className="statement" delay={1}>
+        <p className="msc-kicker statement-kicker">The whole idea</p>
+        <h2>
+          Every town is somebody&rsquo;s hometown. Most of them never got a
+          souvenir.
+        </h2>
+        <span className="msc-marker">we&rsquo;re fixing that, alphabetically.</span>
+      </Reveal>
 
       {/* MOST OVERLOOKED */}
       <section
         className="msc-section msc-page"
         aria-labelledby="most-overlooked"
       >
-        <div className="msc-section-rule">
-          <h2 id="most-overlooked">Most overlooked</h2>
-          <span className="msc-section-note">
-            Towns of modest renown · Curated with care
-          </span>
-        </div>
-        <RackGrid towns={mostOverlooked} />
+        <Reveal>
+          <div className="msc-section-rule">
+            <h2 id="most-overlooked">Most overlooked</h2>
+            <span className="msc-section-note">
+              Towns of modest renown · Curated with care
+            </span>
+          </div>
+          <RackGrid towns={mostOverlooked} />
+        </Reveal>
+      </section>
+
+      {/* POSTCARD INTERLUDE */}
+      <section className="msc-section msc-page" aria-label="A note from the road">
+        <Reveal delay={1}>
+          <div className="postcard">
+            <div className="postcard-left">
+              <span className="msc-kicker">From the road</span>
+              <span className="msc-marker">
+                Dear whoever&rsquo;s home — stopped in Hope for gas. Stayed
+                for the reasons people stay anywhere: the coffee was fine,
+                the mountains were enormous, and nobody made a thing of it.
+                Bought the shirt. You&rsquo;d get it.
+              </span>
+              <span className="msc-kicker msc-kicker--navy">
+                — the management
+              </span>
+            </div>
+            <div className="postcard-right">
+              <div className="postcard-stamp">
+                <MSCMonogram size={52} />
+              </div>
+              <div className="postcard-lines" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+              <Link className="msc-button msc-button--navy" to="/lookbook">
+                See the road trip
+              </Link>
+            </div>
+          </div>
+        </Reveal>
       </section>
 
       {/* COLLECT LADDER */}
@@ -110,22 +158,26 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
 
       {/* GUEST BOOK */}
       <section className="msc-section msc-page" aria-labelledby="guest-book">
-        <div className="msc-section-rule">
-          <h2 id="guest-book">Guest book</h2>
-          <span className="msc-section-note">Reviews, when they arrive</span>
-        </div>
-        <GuestBook />
+        <Reveal>
+          <div className="msc-section-rule">
+            <h2 id="guest-book">Guest book</h2>
+            <span className="msc-section-note">Reviews, when they arrive</span>
+          </div>
+          <GuestBook />
+        </Reveal>
       </section>
 
       {/* SPOTTED IN THE WILD */}
       <section className="msc-section msc-page" aria-labelledby="spotted">
-        <div className="msc-section-rule">
-          <h2 id="spotted">Spotted in the wild</h2>
-          <span className="msc-section-note">
-            Tag @mediocresouvenirco for a feature
-          </span>
-        </div>
-        <SpottedGrid />
+        <Reveal>
+          <div className="msc-section-rule">
+            <h2 id="spotted">Spotted in the wild</h2>
+            <span className="msc-section-note">
+              Tag @mediocresouvenirco for a feature
+            </span>
+          </div>
+          <SpottedGrid />
+        </Reveal>
       </section>
 
       {/* TRUST BAR */}

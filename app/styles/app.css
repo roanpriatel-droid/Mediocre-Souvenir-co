@@ -1641,3 +1641,216 @@ main {
   justify-content: center;
   padding: 24px 0;
 }
+
+/* ============================================================
+   Phase 1 — editorial craft
+   ============================================================ */
+
+/* scroll reveals — opacity/translate only, inert under reduced motion */
+.reveal {
+  transition: opacity 380ms ease, transform 380ms ease;
+}
+
+.reveal--hidden {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.reveal--shown,
+.reveal--initial {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal-delay-1 {
+  transition-delay: 70ms;
+}
+
+.reveal-delay-2 {
+  transition-delay: 140ms;
+}
+
+.reveal-delay-3 {
+  transition-delay: 210ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    transition: none;
+  }
+
+  .reveal--hidden {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* typographic craft */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* rack card hover: the tag lifts off the rack, art leans in */
+.rack-card {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.rack-card .rack-card-art {
+  transition: transform 240ms ease;
+  transform-origin: 50% 40%;
+}
+
+.rack-card:hover {
+  transform: translate(-2px, -3px) rotate(-0.5deg);
+  box-shadow: 5px 6px 0 var(--msc-navy);
+}
+
+.rack-card:hover .rack-card-art {
+  transform: scale(1.045);
+}
+
+.region-card {
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rack-card,
+  .rack-card .rack-card-art,
+  .region-card {
+    transition: none;
+  }
+
+  .rack-card:hover,
+  .rack-card:hover .rack-card-art {
+    transform: none;
+  }
+}
+
+/* editorial statement — a typographic full-bleed moment */
+.statement {
+  background: var(--msc-navy);
+  color: var(--msc-cream);
+  padding: 96px 24px;
+  text-align: center;
+  border-top: var(--border-heavy);
+  border-bottom: var(--border-heavy);
+  position: relative;
+  overflow: hidden;
+}
+
+.statement h2 {
+  color: var(--msc-cream);
+  font-size: clamp(1.9rem, 5vw, 3.4rem);
+  max-width: 22ch;
+  margin: 0 auto;
+  text-shadow:
+    2px 1px 0 rgba(184, 80, 58, 0.5),
+    -2px -1px 0 rgba(212, 166, 74, 0.35);
+}
+
+.statement .msc-marker {
+  font-size: clamp(16px, 2.2vw, 22px);
+  color: var(--msc-mustard);
+  margin-top: 22px;
+}
+
+.statement-kicker {
+  color: var(--msc-mustard);
+  margin-bottom: 18px;
+}
+
+/* postcard interlude — an art-directed aside between racks */
+.postcard {
+  max-width: 860px;
+  margin: 0 auto;
+  background: var(--msc-cream-deep);
+  border: var(--border-std);
+  box-shadow: 5px 5px 0 var(--msc-navy);
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  transform: rotate(-0.6deg);
+}
+
+.postcard-left {
+  padding: 34px 30px;
+  border-right: 2px dashed var(--msc-asphalt);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.postcard-left .msc-marker {
+  font-size: 19px;
+  line-height: 1.55;
+  transform: rotate(-1deg);
+  color: var(--msc-navy);
+}
+
+.postcard-right {
+  padding: 34px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.postcard-stamp {
+  width: 74px;
+  height: 88px;
+  border: 2px solid var(--msc-brick);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  transform: rotate(3deg);
+}
+
+.postcard-lines {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.postcard-lines span {
+  display: block;
+  border-bottom: 1.5px solid var(--msc-navy);
+  opacity: 0.5;
+}
+
+@media (max-width: 640px) {
+  .postcard {
+    grid-template-columns: 1fr;
+  }
+
+  .postcard-left {
+    border-right: none;
+    border-bottom: 2px dashed var(--msc-asphalt);
+  }
+}
+
+/* breathing room normalization */
+.msc-section {
+  padding: 72px 0 16px;
+}
+
+.hero {
+  padding: 88px 24px 80px;
+}
+
+@media (max-width: 640px) {
+  .msc-section {
+    padding: 52px 0 8px;
+  }
+
+  .hero {
+    padding: 60px 20px 56px;
+  }
+}
