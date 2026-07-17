@@ -9,10 +9,14 @@ import {RackGrid} from '~/components/TownRackCard';
 import {useAside} from '~/components/Aside';
 import {
   COLORWAY_LABELS,
+  DISPLAY_PRICE,
+  getRegion,
   getTownByHandle,
-  getTownsByProvince,
+  getTownsByRegion,
+  localeFor,
   PRICE,
   PURCHASABLE_STANDIN_QUERY,
+  regionPath,
   SIZES,
   TIER_LABELS,
   type Size,
@@ -53,7 +57,7 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
   return {
     town,
     standInVariant,
-    neighbours: getTownsByProvince(town.provinceSlug)
+    neighbours: getTownsByRegion(town.provinceSlug)
       .filter((t) => t.handle !== town.handle)
       .slice(0, 4),
     origin: new URL(request.url).origin,
@@ -77,9 +81,7 @@ export default function TownProduct() {
           <nav className="product-breadcrumb" aria-label="Breadcrumb">
             <Link to="/shop">Shop</Link>
             {' / '}
-            <Link to={`/provinces/${town.provinceSlug}`}>
-              {town.provinceState}
-            </Link>
+            <Link to={regionUrl(town)}>{town.provinceState}</Link>
             {' / '}
             {town.city}
           </nav>
@@ -88,9 +90,10 @@ export default function TownProduct() {
             Genuine souvenir · {town.provinceState}, {town.country}
           </p>
           <div className="product-price-row">
-            <span className="product-price">${PRICE.amount.replace('.00', '')}</span>
+            <span className="product-price">{DISPLAY_PRICE}</span>
             <span className="product-price-note">
-              CAD · Comfort Colors 1717 · {COLORWAY_LABELS[town.colorway]}
+              CAD in Canada · USD in the US · Comfort Colors 1717 ·{' '}
+              {COLORWAY_LABELS[town.colorway]}
             </span>
           </div>
 
@@ -174,10 +177,7 @@ export default function TownProduct() {
         <section className="msc-section msc-page" aria-labelledby="nearby">
           <div className="msc-section-rule">
             <h2 id="nearby">Also in {town.provinceState}</h2>
-            <Link
-              className="msc-section-note"
-              to={`/provinces/${town.provinceSlug}`}
-            >
+            <Link className="msc-section-note" to={regionUrl(town)}>
               All {town.provinceState} towns →
             </Link>
           </div>
@@ -214,6 +214,12 @@ export default function TownProduct() {
   );
 }
 
+/** Region landing URL for a town — /provinces/... or /states/... by kind. */
+function regionUrl(town: TownProduct): string {
+  const region = getRegion(town.provinceSlug);
+  return region ? regionPath(region) : '/provinces';
+}
+
 /** The hangtag back, on the page: filled in per town, marker font and all. */
 function CertificateOfSouvenir({town}: {town: TownProduct}) {
   return (
@@ -226,7 +232,9 @@ function CertificateOfSouvenir({town}: {town: TownProduct}) {
         </div>
         <div className="product-certificate-row">
           <dt>Population</dt>
-          <dd>{town.population.toLocaleString('en-CA')} (approx.)</dd>
+          <dd>
+            {town.population.toLocaleString(localeFor(town.country))} (approx.)
+          </dd>
         </div>
         <div className="product-certificate-row">
           <dt>Known for</dt>

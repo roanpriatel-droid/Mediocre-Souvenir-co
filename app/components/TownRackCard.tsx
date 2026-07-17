@@ -1,5 +1,5 @@
 import {Link} from 'react-router';
-import {PRICE, TIER_LABELS, type TownProduct} from '~/lib/catalog';
+import {DISPLAY_PRICE, TIER_LABELS, type TownProduct} from '~/lib/catalog';
 import {ShirtMockup} from '~/components/ShirtMockup';
 
 /** A product card styled like a souvenir rack tag, punch hole included. */
@@ -17,7 +17,7 @@ export function TownRackCard({town}: {town: TownProduct}) {
       </div>
       <div className="rack-card-price">
         <span>Genuine souvenir</span>
-        <strong>${PRICE.amount.replace('.00', '')}</strong>
+        <strong>{DISPLAY_PRICE}</strong>
       </div>
     </Link>
   );

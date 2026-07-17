@@ -18,7 +18,7 @@ type Viewport = 'desktop' | 'mobile';
 /** People arrive looking for a place — the nav is built around getting them there. */
 export const NAV_ITEMS = [
   {title: 'Shop All', to: '/shop'},
-  {title: 'Browse by Province', to: '/provinces'},
+  {title: 'Browse by Region', to: '/provinces'},
   {title: 'New Arrivals', to: '/new-arrivals'},
   {title: 'Request Your Town', to: '/request-your-town'},
   {title: 'Contact', to: '/contact'},

@@ -1,5 +1,5 @@
 import {useLoaderData} from 'react-router';
-import type {Route} from './+types/provinces.$slug';
+import type {Route} from './+types/states.$slug';
 import {RegionLanding} from '~/components/RegionLanding';
 import {getRegion, getTownsByRegion} from '~/lib/catalog';
 import {regionDescription, regionTitle} from '~/lib/seo';
@@ -15,13 +15,13 @@ export const meta: Route.MetaFunction = ({data}) => {
     {
       tagName: 'link',
       rel: 'canonical',
-      href: `${data.origin}/provinces/${data.region.slug}`,
+      href: `${data.origin}/states/${data.region.slug}`,
     },
   ];
 };
 
 export async function loader({params, request}: Route.LoaderArgs) {
-  const region = getRegion(params.slug ?? '', 'province');
+  const region = getRegion(params.slug ?? '', 'state');
   if (!region) throw new Response(null, {status: 404});
   return {
     region,
@@ -30,7 +30,7 @@ export async function loader({params, request}: Route.LoaderArgs) {
   };
 }
 
-export default function ProvincePage() {
+export default function StatePage() {
   const {region, towns, origin} = useLoaderData<typeof loader>();
   return <RegionLanding region={region} towns={towns} origin={origin} />;
 }

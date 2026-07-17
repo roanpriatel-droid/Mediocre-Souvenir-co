@@ -1,13 +1,13 @@
 import {Link} from 'react-router';
-import {getTownsByProvince, PROVINCES} from '~/lib/catalog';
+import {getOpenRegions, getTownsByRegion, regionPath} from '~/lib/catalog';
 import {MSCMonogram} from '~/components/Brand';
 
 /**
- * Static brand footer. The browse-by-province link list is the SEO spine —
- * every open province page is one hop from every page on the site.
+ * Static brand footer. The browse-by-region link list is the SEO spine —
+ * every open province and state page is one hop from every page on the site.
  */
 export function Footer() {
-  const openProvinces = PROVINCES.filter((p) => p.status === 'open');
+  const openRegions = getOpenRegions();
   return (
     <footer className="footer">
       <div className="footer-inner">
@@ -29,10 +29,10 @@ export function Footer() {
             <li>
               <Link to="/shop">Shop all towns</Link>
             </li>
-            {openProvinces.map((province) => (
-              <li key={province.slug}>
-                <Link to={`/provinces/${province.slug}`}>
-                  {province.name} ({getTownsByProvince(province.slug).length})
+            {openRegions.map((region) => (
+              <li key={region.slug}>
+                <Link to={regionPath(region)}>
+                  {region.name} ({getTownsByRegion(region.slug).length})
                 </Link>
               </li>
             ))}
@@ -40,7 +40,7 @@ export function Footer() {
               <Link to="/new-arrivals">New arrivals</Link>
             </li>
             <li>
-              <Link to="/provinces">All provinces</Link>
+              <Link to="/provinces">All regions</Link>
             </li>
           </ul>
         </div>

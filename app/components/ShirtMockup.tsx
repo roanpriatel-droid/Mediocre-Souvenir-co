@@ -1,5 +1,5 @@
 import {useId} from 'react';
-import type {Colorway, TownProduct} from '~/lib/catalog/types';
+import {localeFor, type Colorway, type TownProduct} from '~/lib/catalog/types';
 import {townImageAlt} from '~/lib/seo';
 
 /**
@@ -180,7 +180,7 @@ function RetroPostcard({town, ink}: {town: TownProduct; ink: Ink}) {
         fill={ink.primary}
         opacity="0.85"
       >
-        {`POP. ${town.population.toLocaleString('en-CA')} · ${town.knownFor.toUpperCase()}`}
+        {`POP. ${town.population.toLocaleString(localeFor(town.country))} · ${town.knownFor.toUpperCase()}`}
       </text>
     </g>
   );

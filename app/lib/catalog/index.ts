@@ -1,30 +1,16 @@
 import {britishColumbiaTowns} from './data.british-columbia';
-import type {Province, TownProduct} from './types';
+import {REGIONS, regionPath} from './regions';
+import type {Region, TownProduct} from './types';
 
 export * from './types';
+export {REGIONS, regionPath};
 
 /**
- * The full catalog. Add a province by importing its data file here —
+ * The full catalog. Add a region by importing its data file here —
  * navigation, search, sitemaps, and SEO pick it up automatically.
  * Built to hold 200+ SKUs; everything below stays O(catalog) or better.
  */
 const ALL_TOWNS: TownProduct[] = [...britishColumbiaTowns];
-
-export const PROVINCES: Province[] = [
-  {slug: 'british-columbia', name: 'British Columbia', abbrev: 'BC', country: 'Canada', status: 'open'},
-  {slug: 'alberta', name: 'Alberta', abbrev: 'AB', country: 'Canada', status: 'next'},
-  {slug: 'saskatchewan', name: 'Saskatchewan', abbrev: 'SK', country: 'Canada', status: 'someday'},
-  {slug: 'manitoba', name: 'Manitoba', abbrev: 'MB', country: 'Canada', status: 'someday'},
-  {slug: 'ontario', name: 'Ontario', abbrev: 'ON', country: 'Canada', status: 'someday'},
-  {slug: 'quebec', name: 'Quebec', abbrev: 'QC', country: 'Canada', status: 'someday'},
-  {slug: 'new-brunswick', name: 'New Brunswick', abbrev: 'NB', country: 'Canada', status: 'someday'},
-  {slug: 'nova-scotia', name: 'Nova Scotia', abbrev: 'NS', country: 'Canada', status: 'someday'},
-  {slug: 'prince-edward-island', name: 'Prince Edward Island', abbrev: 'PE', country: 'Canada', status: 'someday'},
-  {slug: 'newfoundland-and-labrador', name: 'Newfoundland and Labrador', abbrev: 'NL', country: 'Canada', status: 'someday'},
-  {slug: 'yukon', name: 'Yukon', abbrev: 'YT', country: 'Canada', status: 'someday'},
-  {slug: 'northwest-territories', name: 'Northwest Territories', abbrev: 'NT', country: 'Canada', status: 'someday'},
-  {slug: 'nunavut', name: 'Nunavut', abbrev: 'NU', country: 'Canada', status: 'someday'},
-];
 
 const byHandle = new Map(ALL_TOWNS.map((t) => [t.handle, t]));
 
@@ -36,14 +22,27 @@ export function getTownByHandle(handle: string): TownProduct | undefined {
   return byHandle.get(handle);
 }
 
-export function getTownsByProvince(provinceSlug: string): TownProduct[] {
-  return ALL_TOWNS.filter((t) => t.provinceSlug === provinceSlug).sort((a, b) =>
+export function getTownsByRegion(regionSlug: string): TownProduct[] {
+  return ALL_TOWNS.filter((t) => t.provinceSlug === regionSlug).sort((a, b) =>
     a.city.localeCompare(b.city),
   );
 }
 
-export function getProvince(slug: string): Province | undefined {
-  return PROVINCES.find((p) => p.slug === slug);
+export function getRegion(
+  slug: string,
+  kind?: Region['kind'],
+): Region | undefined {
+  return REGIONS.find(
+    (r) => r.slug === slug && (kind === undefined || r.kind === kind),
+  );
+}
+
+export function getRegionsByCountry(country: Region['country']): Region[] {
+  return REGIONS.filter((r) => r.country === country);
+}
+
+export function getOpenRegions(): Region[] {
+  return REGIONS.filter((r) => r.status === 'open');
 }
 
 export function getNewArrivals(): TownProduct[] {

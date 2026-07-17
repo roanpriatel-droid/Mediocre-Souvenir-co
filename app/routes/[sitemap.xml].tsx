@@ -1,5 +1,5 @@
 import type {Route} from './+types/[sitemap.xml]';
-import {getAllTowns, PROVINCES} from '~/lib/catalog';
+import {getAllTowns, getOpenRegions, regionPath} from '~/lib/catalog';
 
 /**
  * Catalog-driven sitemap. Every town product page and every open province
@@ -18,12 +18,10 @@ export async function loader({request}: Route.LoaderArgs) {
     '/request-your-town',
     '/contact',
   ];
-  const provincePaths = PROVINCES.filter((p) => p.status === 'open').map(
-    (p) => `/provinces/${p.slug}`,
-  );
+  const regionPaths = getOpenRegions().map(regionPath);
   const townPaths = getAllTowns().map((t) => `/products/${t.handle}`);
 
-  const urls = [...staticPaths, ...provincePaths, ...townPaths]
+  const urls = [...staticPaths, ...regionPaths, ...townPaths]
     .map(
       (path) =>
         `  <url><loc>${origin}${path}</loc><changefreq>weekly</changefreq></url>`,

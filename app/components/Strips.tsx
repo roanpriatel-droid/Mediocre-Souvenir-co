@@ -3,7 +3,7 @@
 export function AnnouncementBar() {
   return (
     <div className="announcement-bar">
-      GENUINE SOUVENIRS · FREE CANADIAN SHIPPING OVER $75
+      GENUINE SOUVENIRS · FREE SHIPPING OVER $75 · CANADA &amp; USA
     </div>
   );
 }
@@ -13,6 +13,7 @@ const MARQUEE_ITEMS = [
   'NEW TOWNS WEEKLY',
   'GENUINE SOUVENIR',
   'FREE SHIPPING $75+',
+  'CANADA & USA',
 ];
 
 export function MarqueeStrip({variant}: {variant?: 'mustard'}) {
@@ -41,7 +42,7 @@ const TRUST_ITEMS = [
   },
   {
     title: 'Free shipping over $75',
-    note: 'Anywhere in Canada. The mail knows where your town is.',
+    note: 'Canada and the US. The mail knows where your town is.',
   },
   {
     title: 'Secure checkout',

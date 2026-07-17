@@ -53,15 +53,28 @@ export interface TownProduct {
   newArrival?: boolean;
 }
 
-export interface Province {
+export interface Region {
   slug: string;
   name: string;
   abbrev: string;
   country: 'Canada' | 'United States';
+  /** Determines the URL prefix: /provinces/... or /states/... (territories ride with provinces) */
+  kind: 'province' | 'state';
   status: 'open' | 'next' | 'someday';
 }
 
+/**
+ * Currency parity: $36 CAD in Canada, $36 USD in the US, one "$36" promise
+ * everywhere. Shopify Markets enforces the per-market currency at checkout
+ * (see README LAUNCH TODO); these constants drive display and JSON-LD.
+ */
 export const PRICE = {amount: '36.00', currencyCode: 'CAD'} as const;
+export const PRICE_US = {amount: '36.00', currencyCode: 'USD'} as const;
+export const DISPLAY_PRICE = '$36';
+
+export function localeFor(country: Region['country']): string {
+  return country === 'United States' ? 'en-US' : 'en-CA';
+}
 
 export const SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL'] as const;
 export type Size = (typeof SIZES)[number];

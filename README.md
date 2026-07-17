@@ -49,7 +49,9 @@ Follow step 1 and 2 of <https://shopify.dev/docs/custom-storefronts/building-wit
 - [ ] Link the real Shopify store: `npx shopify hydrogen link` + `npx shopify hydrogen env pull`
 - [ ] Swap the purchasable stand-in: see “The swap point” in `app/lib/catalog/index.ts` — map each town to its Printify-synced product (Comfort Colors 1717, not Bella+Canvas)
 - [ ] Configure the **automatic discount** in Shopify admin: 2+ items → 15%, 3+ → 20%, mix-and-match, no code. The collect-ladder UI promises this; checkout must honor it.
-- [ ] Free-shipping threshold: $75 CAD (announcement bar promise)
+- [ ] **Shopify Markets**: CAD base market + US market at currency parity ($36 CAD / $36 USD — fixed price list, not auto-conversion). JSON-LD already advertises both offers.
+- [ ] Free-shipping thresholds: $75 CAD (Canada) and $75 USD (US) — the announcement bar promises one clean "$75" in both markets
+- [ ] Printify: route US orders to US print partners so the 5–10 day delivery window holds cross-border
 - [ ] Swap `app/lib/submissions.ts` in-memory store for a durable backend (Klaviyo / Shopify customer tags / KV) — town requests and Postcards signups currently persist only in Oxygen logs
 - [ ] Replace placeholder logo SVGs in `app/components/Brand.tsx` with the committed brand assets
 - [ ] Verify Certificate of Souvenir facts (population, est. year, known-for) per town before printing

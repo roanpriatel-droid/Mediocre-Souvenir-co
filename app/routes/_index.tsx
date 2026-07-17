@@ -17,9 +17,10 @@ export const meta: Route.MetaFunction = () => {
     {
       name: 'description',
       content:
-        'Faux-vintage souvenir t-shirts for overlooked towns — garment-dyed ' +
-        'heavyweight tees commemorating the places other souvenirs forgot. ' +
-        'Now open, starting with British Columbia. New towns weekly.',
+        'Faux-vintage souvenir t-shirts for overlooked towns across Canada ' +
+        'and the US — garment-dyed heavyweight tees commemorating the places ' +
+        'other souvenirs forgot. Now open, starting with British Columbia. ' +
+        'New towns weekly.',
     },
   ];
 };
@@ -52,9 +53,9 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
       {/* BROWSE BY REGION — the real navigation */}
       <section className="msc-section msc-page" aria-labelledby="browse-region">
         <div className="msc-section-rule">
-          <h2 id="browse-region">Browse by province</h2>
+          <h2 id="browse-region">Browse by region</h2>
           <span className="msc-section-note">
-            Starting with British Columbia · New towns weekly
+            Starting with British Columbia · Then east, then south
           </span>
         </div>
         <RegionBrowse />

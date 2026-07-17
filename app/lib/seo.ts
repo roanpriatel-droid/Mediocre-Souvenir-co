@@ -1,8 +1,12 @@
+import {regionPath} from './catalog/regions';
 import {
   COLORWAY_LABELS,
+  DISPLAY_PRICE,
+  localeFor,
   PRICE,
+  PRICE_US,
   TIER_LABELS,
-  type Province,
+  type Region,
   type TownProduct,
 } from './catalog/types';
 
@@ -11,6 +15,7 @@ import {
  * landing page for "[city] t-shirt" — title tag, meta description, H1,
  * alt text, and structured data are all derived from the town fields, so
  * a new SKU is fully SEO-complete on creation with zero manual work.
+ * Prices read "$36" everywhere — CAD in Canada, USD in the US (parity).
  */
 
 export const SITE_NAME = 'Mediocre Souvenir Co.';
@@ -24,8 +29,8 @@ export function townDescription(town: TownProduct): string {
   return (
     `A genuine faux-vintage ${town.city}, ${town.provinceState} souvenir t-shirt. ` +
     `${town.knownFor}. Garment-dyed Comfort Colors 1717 heavyweight cotton, ` +
-    `printed with the respect a town of ${town.population.toLocaleString('en-CA')} deserves. ` +
-    `$${PRICE.amount} CAD — collect 2 and save 15%.`
+    `printed with the respect a town of ${town.population.toLocaleString(localeFor(town.country))} deserves. ` +
+    `${DISPLAY_PRICE} — collect 2 and save 15%. Ships across Canada and the US.`
   );
 }
 
@@ -51,20 +56,21 @@ function labelForStyle(town: TownProduct): string {
   }
 }
 
-export function provinceTitle(province: Province, townCount: number): string {
-  return `${province.name} Souvenir T-Shirts — ${townCount} Overlooked Towns | ${SITE_NAME}`;
+export function regionTitle(region: Region, townCount: number): string {
+  return `${region.name} Souvenir T-Shirts — ${townCount} Overlooked Towns | ${SITE_NAME}`;
 }
 
-export function provinceDescription(province: Province, townCount: number): string {
+export function regionDescription(region: Region, townCount: number): string {
   return (
-    `Faux-vintage souvenir t-shirts for ${townCount} overlooked ${province.name} ` +
+    `Faux-vintage souvenir t-shirts for ${townCount} overlooked ${region.name} ` +
     `towns — every one commemorated with the reverence a Hawaii gift shop would use. ` +
-    `Garment-dyed heavyweight tees, $${PRICE.amount} each, collect 2 and save 15%.`
+    `Garment-dyed heavyweight tees, ${DISPLAY_PRICE} each, collect 2 and save 15%.`
   );
 }
 
-/** JSON-LD Product structured data for a town tee. */
+/** JSON-LD Product structured data — one offer per market currency. */
 export function townJsonLd(town: TownProduct, origin: string) {
+  const url = `${origin}/products/${town.handle}`;
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -72,7 +78,7 @@ export function townJsonLd(town: TownProduct, origin: string) {
     description: townDescription(town),
     brand: {'@type': 'Brand', name: SITE_NAME},
     category: 'Apparel & Accessories > Clothing > Shirts & Tops',
-    url: `${origin}/products/${town.handle}`,
+    url,
     material: '100% ring-spun cotton (Comfort Colors 1717, garment-dyed)',
     additionalProperty: [
       {'@type': 'PropertyValue', name: 'City', value: town.city},
@@ -80,27 +86,38 @@ export function townJsonLd(town: TownProduct, origin: string) {
       {'@type': 'PropertyValue', name: 'Country', value: town.country},
       {'@type': 'PropertyValue', name: 'Population tier', value: TIER_LABELS[town.populationTier]},
     ],
-    offers: {
-      '@type': 'Offer',
-      price: PRICE.amount,
-      priceCurrency: PRICE.currencyCode,
-      availability: 'https://schema.org/InStock',
-      url: `${origin}/products/${town.handle}`,
-    },
+    offers: [
+      {
+        '@type': 'Offer',
+        price: PRICE.amount,
+        priceCurrency: PRICE.currencyCode,
+        availability: 'https://schema.org/InStock',
+        eligibleRegion: {'@type': 'Country', name: 'CA'},
+        url,
+      },
+      {
+        '@type': 'Offer',
+        price: PRICE_US.amount,
+        priceCurrency: PRICE_US.currencyCode,
+        availability: 'https://schema.org/InStock',
+        eligibleRegion: {'@type': 'Country', name: 'US'},
+        url,
+      },
+    ],
   };
 }
 
-/** JSON-LD ItemList / CollectionPage for a province page. */
-export function provinceJsonLd(
-  province: Province,
+/** JSON-LD ItemList / CollectionPage for a region page. */
+export function regionJsonLd(
+  region: Region,
   towns: TownProduct[],
   origin: string,
 ) {
   return {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `${province.name} Souvenir T-Shirts`,
-    url: `${origin}/provinces/${province.slug}`,
+    name: `${region.name} Souvenir T-Shirts`,
+    url: `${origin}${regionPath(region)}`,
     mainEntity: {
       '@type': 'ItemList',
       itemListElement: towns.map((town, i) => ({
