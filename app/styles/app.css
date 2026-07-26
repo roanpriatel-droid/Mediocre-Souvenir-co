@@ -3540,3 +3540,40 @@ select:focus-visible,
     gap: 8px;
   }
 }
+
+/* ---------- collection pagination ---------- */
+
+.collection-pagination > div {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Hydrogen's Pagination renders bare previous/next links; give them the
+   same rack-tag treatment as every other control on the site. */
+.collection-pagination a {
+  align-self: center;
+  border: var(--border-std);
+  background: var(--msc-cream-deep);
+  box-shadow: 2px 2px 0 var(--msc-navy);
+  padding: 12px 26px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: var(--msc-asphalt);
+  text-align: center;
+}
+
+.collection-pagination a:hover {
+  background: var(--msc-mustard);
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--msc-navy);
+  color: var(--msc-asphalt);
+}
+
+/* An empty <PreviousLink> on page one renders nothing — keep it out of flow. */
+.collection-pagination a:empty {
+  display: none;
+}

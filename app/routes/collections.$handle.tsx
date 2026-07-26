@@ -1,8 +1,9 @@
 import {useMemo} from 'react';
 import {Link, redirect, useLoaderData, useSearchParams} from 'react-router';
-import {useNonce} from '@shopify/hydrogen';
+import {getPaginationVariables, useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/collections.$handle';
-import {SouvenirGrid} from '~/components/SouvenirCard';
+import {SouvenirProductCard} from '~/components/SouvenirCard';
+import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {RegionWaitlist} from '~/components/RegionWaitlist';
 import {RackGrid} from '~/components/TownRackCard';
 import {Reveal} from '~/components/Reveal';
@@ -18,7 +19,7 @@ import {
 import {
   countryCollectionHandle,
   isRegionOpen,
-  loadCollection,
+  loadCollectionPage,
   loadRegionStatus,
   regionForCollectionHandle,
   type SouvenirCard,
@@ -51,6 +52,18 @@ const SORTS = {
 
 type SortKey = keyof typeof SORTS;
 
+/** Our sort labels mapped onto ProductCollectionSortKeys. */
+const SORT_VARIABLES: Record<
+  SortKey,
+  {sortKey: string; reverse: boolean}
+> = {
+  featured: {sortKey: 'COLLECTION_DEFAULT', reverse: false},
+  'a-z': {sortKey: 'TITLE', reverse: false},
+  'z-a': {sortKey: 'TITLE', reverse: true},
+  'price-asc': {sortKey: 'PRICE', reverse: false},
+  'price-desc': {sortKey: 'PRICE', reverse: true},
+};
+
 export const meta: Route.MetaFunction = ({data}) => {
   if (!data) return [{title: `Collections | ${SITE_NAME}`}];
   const {title, description, canonical} = data.seo;
@@ -73,9 +86,20 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   const region = regionForCollectionHandle(handle);
   const localCollection = getCollection(handle);
 
-  // One Storefront round trip; failures degrade rather than throw.
-  const shopifyCollection = await loadCollection(context.storefront, handle);
-  const products: SouvenirCard[] = shopifyCollection?.products ?? [];
+  // Sort and availability are resolved by the API. With 1,600 products a
+  // client-side sort would only reorder the page you happen to be on.
+  const url = new URL(request.url);
+  const sort = (url.searchParams.get('sort') ?? 'featured') as SortKey;
+  const availability = url.searchParams.get('availability') ?? '';
+  const paginationVariables = getPaginationVariables(request, {pageBy: 24});
+
+  const shopifyCollection = await loadCollectionPage(context.storefront, handle, {
+    ...paginationVariables,
+    ...SORT_VARIABLES[sort],
+    filters: availability === 'in-stock' ? [{available: true}] : undefined,
+  });
+  const products: SouvenirCard[] = shopifyCollection?.products.nodes ?? [];
+  const connection = shopifyCollection?.products ?? null;
 
   // ── Region collection ────────────────────────────────────────────────
   if (region) {
@@ -93,6 +117,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
 
     return {
       kind: 'region' as const,
+      connection,
       handle,
       region,
       open,
@@ -117,6 +142,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   if (shopifyCollection) {
     return {
       kind: 'shopify' as const,
+      connection,
       handle,
       region: null,
       open: products.length > 0,
@@ -141,6 +167,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   if (localCollection) {
     return {
       kind: 'local' as const,
+      connection: null,
       handle,
       region: null,
       open: true,
@@ -182,10 +209,8 @@ export default function CollectionPage() {
       {preventScrollReset: true, replace: true},
     );
 
-  const visible = useMemo(
-    () => sortProducts(filterProducts(data.products, availability), sort),
-    [data.products, availability, sort],
-  );
+  // The API already sorted and filtered; this page is exactly what to show.
+  const visible = data.products;
 
   const isRegion = data.kind === 'region';
   const showWaitlist = isRegion && visible.length === 0;
@@ -256,7 +281,7 @@ export default function CollectionPage() {
 
           <div className="shop-count">
             <span className="msc-kicker msc-kicker--navy">
-              {visible.length} of {data.products.length}
+              {visible.length} on this page
             </span>
             {(availability || sort !== 'featured') && (
               <button
@@ -269,7 +294,32 @@ export default function CollectionPage() {
             )}
           </div>
 
-          <SouvenirGrid products={visible} />
+          {data.connection ? (
+            <div className="collection-pagination">
+              <PaginatedResourceSection
+                connection={data.connection}
+                resourcesClassName="rack-grid"
+              >
+                {({node, index}) => (
+                  <SouvenirProductCard
+                    key={node.id}
+                    product={node}
+                    loading={index < 4 ? 'eager' : 'lazy'}
+                  />
+                )}
+              </PaginatedResourceSection>
+            </div>
+          ) : (
+            <div className="rack-grid">
+              {visible.map((product, i) => (
+                <SouvenirProductCard
+                  key={product.id}
+                  product={product}
+                  loading={i < 4 ? 'eager' : 'lazy'}
+                />
+              ))}
+            </div>
+          )}
         </>
       ) : (
         <EmptyRack handle={data.handle} filtered={data.products.length > 0} />
@@ -404,27 +454,4 @@ function EmptyRack({handle, filtered}: {handle: string; filtered: boolean}) {
       </div>
     </div>
   );
-}
-
-function filterProducts(products: SouvenirCard[], availability: string) {
-  if (availability === 'in-stock') return products.filter((p) => p.availableForSale);
-  if (availability === 'sold-out') return products.filter((p) => !p.availableForSale);
-  return products;
-}
-
-function sortProducts(products: SouvenirCard[], sort: SortKey) {
-  const price = (p: SouvenirCard) => Number(p.priceRange.minVariantPrice.amount);
-  const copy = [...products];
-  switch (sort) {
-    case 'a-z':
-      return copy.sort((a, b) => a.title.localeCompare(b.title));
-    case 'z-a':
-      return copy.sort((a, b) => b.title.localeCompare(a.title));
-    case 'price-asc':
-      return copy.sort((a, b) => price(a) - price(b));
-    case 'price-desc':
-      return copy.sort((a, b) => price(b) - price(a));
-    default:
-      return copy; // Shopify's own collection sort order
-  }
 }

@@ -132,6 +132,61 @@ export const COLLECTION_QUERY = `#graphql
 ` as const;
 
 /**
+ * The paginated collection query.
+ *
+ * Sorting and availability filtering happen in the API, not in the browser —
+ * with 1,600 products a client-side sort would only reorder whatever page you
+ * happened to be looking at, which is worse than no sort at all.
+ */
+export const COLLECTION_PAGE_QUERY = `#graphql
+  query SouvenirCollectionPage(
+    $handle: String!
+    $first: Int
+    $last: Int
+    $startCursor: String
+    $endCursor: String
+    $sortKey: ProductCollectionSortKeys
+    $reverse: Boolean
+    $filters: [ProductFilter!]
+    $country: CountryCode
+    $language: LanguageCode
+  ) @inContext(country: $country, language: $language) {
+    collection(handle: $handle) {
+      id
+      handle
+      title
+      description
+      image {
+        url
+        altText
+        width
+        height
+      }
+      products(
+        first: $first
+        last: $last
+        before: $startCursor
+        after: $endCursor
+        sortKey: $sortKey
+        reverse: $reverse
+        filters: $filters
+      ) {
+        nodes {
+          ...SouvenirCard
+        }
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
+        }
+      }
+    }
+  }
+  ${PRODUCT_CARD_FRAGMENT}
+` as const;
+
+/**
  * Market-neutral variant of the collection query.
  *
  * `@inContext(country:)` scopes results to that market's catalog, so a product
@@ -294,6 +349,98 @@ export async function loadCollection(
     };
   } catch (error) {
     console.error(`[msc:collection] "${handle}" failed to load`, error);
+    return null;
+  }
+}
+
+export interface CollectionPage {
+  id: string;
+  handle: string;
+  title: string;
+  description: string;
+  /** Connection shape Hydrogen's <Pagination> consumes directly. */
+  products: {
+    nodes: SouvenirCard[];
+    pageInfo: {
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+      startCursor?: string | null;
+      endCursor?: string | null;
+    };
+  };
+}
+
+const EMPTY_PAGE_INFO = {
+  hasNextPage: false,
+  hasPreviousPage: false,
+  startCursor: null,
+  endCursor: null,
+};
+
+/**
+ * One page of a collection, sorted and filtered by the API.
+ *
+ * Falls back to the shop's default catalog when the buyer's market returns an
+ * empty first page — the same market-mismatch guard as loadCollection, since
+ * that failure mode is what made a fully stocked store look closed.
+ */
+export async function loadCollectionPage(
+  storefront: Storefront,
+  handle: string,
+  variables: Record<string, unknown>,
+): Promise<CollectionPage | null> {
+  try {
+    const data = await storefront.query(COLLECTION_PAGE_QUERY, {
+      variables: {...variables, handle},
+      cache: storefront.CacheShort(),
+    });
+    const collection = data?.collection;
+    if (!collection) {
+      console.warn(
+        `[msc:collection] "${handle}" is not visible to the Storefront API ` +
+          `(missing, or not published to this sales channel)`,
+      );
+      return null;
+    }
+
+    let products = collection.products;
+    const isFirstPage = !variables.startCursor && !variables.endCursor;
+
+    if (!products?.nodes?.length && isFirstPage) {
+      console.warn(
+        `[msc:collection] "${handle}" returned 0 products in the buyer market; ` +
+          `retrying without market context`,
+      );
+      try {
+        const neutral = await storefront.query(COLLECTION_QUERY_NEUTRAL, {
+          variables: {handle, first: 100},
+          cache: storefront.CacheShort(),
+        });
+        const neutralNodes = neutral?.collection?.products?.nodes ?? [];
+        if (neutralNodes.length) {
+          console.warn(
+            `[msc:collection] "${handle}" has ${neutralNodes.length} products ` +
+              `in the default catalog — the buyer market is missing them`,
+          );
+          products = {nodes: neutralNodes, pageInfo: EMPTY_PAGE_INFO};
+        }
+      } catch (error) {
+        console.error(`[msc:collection] "${handle}" neutral retry failed`, error);
+      }
+    }
+
+    return {
+      id: collection.id,
+      handle: collection.handle,
+      title: collection.title,
+      description: collection.description ?? '',
+      products: {
+        nodes: (products?.nodes ?? []) as SouvenirCard[],
+        pageInfo: products?.pageInfo ?? EMPTY_PAGE_INFO,
+      },
+    };
+  } catch (error) {
+    console.error(`[msc:collection] "${handle}" page failed to load`, error);
     return null;
   }
 }
