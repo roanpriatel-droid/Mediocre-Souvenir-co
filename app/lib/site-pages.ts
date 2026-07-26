@@ -22,11 +22,39 @@ export interface SitePage {
 
 const CORE_PAGES: SitePage[] = [
   {
+    path: '/collections/all-souvenirs',
+    title: 'All souvenirs',
+    summary: 'Every shirt in the shop, every region we have reached.',
+    keywords: ['shop', 'browse', 'all', 'catalog', 'products', 'tees', 'shirts'],
+    group: 'The Co.',
+  },
+  {
+    path: '/collections/now-open',
+    title: 'Now open',
+    summary: 'The regions we have actually gotten to, and what is on their racks.',
+    keywords: ['open', 'available', 'live', 'in stock'],
+    group: 'The Co.',
+  },
+  {
+    path: '/collections/canada',
+    title: 'Canada',
+    summary: 'Every Canadian province and territory on the rack.',
+    keywords: ['canada', 'canadian', 'provinces', 'territories'],
+    group: 'The Co.',
+  },
+  {
+    path: '/collections/united-states',
+    title: 'United States',
+    summary: 'Every US state on the rack.',
+    keywords: ['usa', 'us', 'america', 'states'],
+    group: 'The Co.',
+  },
+  {
     path: '/shop',
-    title: 'Shop all towns',
+    title: 'Town index',
     summary:
-      'The whole rack, filterable by region, town size, design template, and colorway.',
-    keywords: ['browse', 'all', 'catalog', 'products', 'tees', 'shirts'],
+      'Every town we have drawn, filterable by region, town size, design template, and colorway.',
+    keywords: ['index', 'a-z', 'towns', 'filter', 'colorway', 'template'],
     group: 'The Co.',
   },
   {
@@ -41,12 +69,12 @@ const CORE_PAGES: SitePage[] = [
     path: '/provinces',
     title: 'Browse by region',
     summary:
-      'Every province and state, open or on the route. British Columbia is open; Alberta is next.',
-    keywords: ['provinces', 'states', 'region', 'canada', 'united states', 'map'],
+      'All 63 provinces and states. British Columbia is open; every other region takes a waitlist.',
+    keywords: ['provinces', 'states', 'region', 'canada', 'united states', 'map', 'waitlist'],
     group: 'The Co.',
   },
   {
-    path: '/new-arrivals',
+    path: '/collections/new-arrivals',
     title: 'New arrivals',
     summary: 'The latest towns to be taken as seriously as they always should have been.',
     keywords: ['new', 'latest', 'recent', 'just added'],

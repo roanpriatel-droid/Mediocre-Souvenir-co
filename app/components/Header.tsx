@@ -15,13 +15,20 @@ interface HeaderProps {
 
 type Viewport = 'desktop' | 'mobile';
 
-/** People arrive looking for a place — the nav is built around getting them there. */
+/**
+ * The nav maps onto the store's collections.
+ *
+ * People arrive looking for a place, so the path to a region is never more
+ * than two clicks: country → region, or Regions → the grid. "Now Open" is the
+ * shortcut for the only question a returning visitor has.
+ */
 export const NAV_ITEMS = [
-  {title: 'Shop All', to: '/shop'},
-  {title: 'Browse by Region', to: '/provinces'},
-  {title: 'New Arrivals', to: '/new-arrivals'},
-  {title: 'Request Your Town', to: '/request-your-town'},
-  {title: 'Contact', to: '/contact'},
+  {title: 'Shop All', to: '/collections/all-souvenirs'},
+  {title: 'Canada', to: '/collections/canada'},
+  {title: 'United States', to: '/collections/united-states'},
+  {title: 'New Arrivals', to: '/collections/new-arrivals'},
+  {title: 'Now Open', to: '/collections/now-open'},
+  {title: 'Regions', to: '/provinces'},
 ];
 
 export function Header({cart}: HeaderProps) {

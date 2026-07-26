@@ -241,17 +241,17 @@ export function ErrorBoundary() {
     return (
       <div className="route-error">
         <p className="route-error-code">404</p>
-        <h1>There&rsquo;s nothing here. Fitting.</h1>
+        <h1>This page, like the town, has little to offer.</h1>
         <p className="route-error-note">
           Whatever you were looking for, it either moved, never existed, or is
-          a town we haven&rsquo;t gotten to yet.
+          a region we haven&rsquo;t gotten to yet. All three are on brand.
         </p>
         <div className="route-error-actions">
-          <a className="msc-button" href="/shop">
+          <a className="msc-button" href="/collections/all-souvenirs">
             Browse the towns
           </a>
-          <a className="msc-button msc-button--ghost" href="/request-your-town">
-            Request your town
+          <a className="msc-button msc-button--ghost" href="/provinces">
+            Find your region
           </a>
         </div>
       </div>

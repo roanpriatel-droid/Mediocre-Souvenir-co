@@ -121,11 +121,13 @@ function CartUpsell({cart}: {cart: OptimisticCart<CartApiQueryFragment | null>})
     >
       <ShirtMockup town={suggestion} className="cart-upsell-art" />
       <div className="cart-upsell-copy">
-        <span className="msc-kicker">{line}</span>
+        <span className="msc-kicker">Add another town you&rsquo;ll never visit</span>
         <strong>
           {suggestion.city}, {suggestion.provinceAbbrev}
         </strong>
-        <span className="cart-upsell-price">{DISPLAY_PRICE} · view →</span>
+        <span className="cart-upsell-price">
+          {DISPLAY_PRICE} · {line}
+        </span>
       </div>
     </Link>
   );
@@ -144,7 +146,7 @@ function CartEmpty({
       <p>Every town is somebody&rsquo;s hometown. Go find yours.</p>
       <Link
         className="msc-button"
-        to="/shop"
+        to="/collections/all-souvenirs"
         onClick={close}
         prefetch="viewport"
       >

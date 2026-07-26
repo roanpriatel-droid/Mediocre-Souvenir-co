@@ -7,6 +7,7 @@
 export function trackEvent(
   event:
     | 'newsletter_signup'
+    | 'waitlist_signup'
     | 'begin_checkout'
     | 'town_request_submitted'
     | 'email_modal_shown'

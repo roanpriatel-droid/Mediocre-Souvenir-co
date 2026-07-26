@@ -24,11 +24,13 @@ export function EmailCapture({source = 'postcards-footer'}: {source?: string}) {
 
   return (
     <section className="email-capture">
+      {/* "Postcards from us" is the fixed brand string (BRAND.md); the
+          headline carries the newer line. */}
       <div className="msc-kicker">Postcards from us</div>
-      <h2>10% off your first souvenir.</h2>
+      <h2>Postcards from nowhere, occasionally.</h2>
       <p className="email-capture-sub">
-        Occasional mail about new towns. Written the way a postcard should be:
-        briefly.
+        Mail when a region opens or a town lands. Written the way a postcard
+        should be: briefly, and from somewhere you have never been.
       </p>
       {done ? (
         <p className="email-capture-done">

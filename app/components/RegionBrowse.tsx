@@ -1,68 +1,104 @@
 import {Link} from 'react-router';
-import {
-  getRegionsByCountry,
-  getTownsByRegion,
-  regionPath,
-  type Region,
-} from '~/lib/catalog';
+import {getRegionsByCountry, type Region} from '~/lib/catalog';
+import {regionNote} from '~/lib/region-copy';
 
 /**
- * Browse by region — the real navigation. Renders every province and state
- * from the catalog config, grouped by country, so new regions appear here
- * without a redesign. Launch order: BC, then Alberta, then east, then south.
+ * The region grid — 63 tiles, and every one of them goes somewhere.
+ *
+ * This used to be half a navigation: British Columbia was a link and the other
+ * 62 regions were dead grey cards announcing their own absence. Now each tile
+ * links to its region collection, which either shows the shirts or runs the
+ * waitlist. The grid is the top of the demand funnel, not a status board.
+ *
+ * `open` maps region slug → whether that collection currently holds products.
+ * It comes from a single Storefront query in the route loader; when that
+ * lookup fails the map is empty and we fall back to the region's configured
+ * status, so the grid always renders.
  */
-export function RegionBrowse() {
+export function RegionBrowse({
+  open = {},
+  live = false,
+}: {
+  open?: Record<string, boolean>;
+  live?: boolean;
+}) {
+  const isOpen = (region: Region) =>
+    live && region.slug in open ? open[region.slug] : region.status === 'open';
+
   return (
     <div className="region-browse">
-      <RegionGroup label="Canada" regions={getRegionsByCountry('Canada')} />
+      <RegionGroup
+        label="Canada"
+        countryHandle="canada"
+        regions={getRegionsByCountry('Canada')}
+        isOpen={isOpen}
+      />
       <RegionGroup
         label="United States"
+        countryHandle="united-states"
         regions={getRegionsByCountry('United States')}
+        isOpen={isOpen}
       />
       <div className="region-grid" style={{marginTop: '16px'}}>
-        <Link className="region-card" to="/request-your-town" prefetch="intent">
+        <Link className="region-card region-card--request" to="/request-your-town" prefetch="intent">
           <span className="region-card-name">Somewhere else?</span>
-          <span className="region-card-count">Request your town</span>
+          <span className="region-card-count">Name your town →</span>
         </Link>
       </div>
     </div>
   );
 }
 
-function RegionGroup({label, regions}: {label: string; regions: Region[]}) {
+function RegionGroup({
+  label,
+  countryHandle,
+  regions,
+  isOpen,
+}: {
+  label: string;
+  countryHandle: string;
+  regions: Region[];
+  isOpen: (region: Region) => boolean;
+}) {
+  const openCount = regions.filter(isOpen).length;
   return (
     <section aria-label={label} style={{marginBottom: '28px'}}>
-      <p className="msc-kicker msc-kicker--navy" style={{marginBottom: '12px'}}>
-        {label}
-      </p>
+      <div className="region-group-head">
+        <p className="msc-kicker msc-kicker--navy">{label}</p>
+        <Link className="region-group-all" to={`/collections/${countryHandle}`}>
+          {openCount > 0
+            ? `${openCount} open · see all →`
+            : 'see all →'}
+        </Link>
+      </div>
       <div className="region-grid">
         {regions.map((region) => (
-          <RegionCard key={region.slug} region={region} />
+          <RegionCard key={region.slug} region={region} open={isOpen(region)} />
         ))}
       </div>
     </section>
   );
 }
 
-function RegionCard({region}: {region: Region}) {
-  if (region.status === 'open') {
-    const count = getTownsByRegion(region.slug).length;
-    return (
-      <Link className="region-card" to={regionPath(region)} prefetch="intent">
-        <span className="region-card-name">{region.name}</span>
-        <span className="region-card-count">{count} towns · Now open</span>
-      </Link>
-    );
-  }
+function RegionCard({region, open}: {region: Region; open: boolean}) {
   return (
-    <div
-      className="region-card region-card--soon"
-      aria-label={`${region.name} — coming soon`}
+    <Link
+      className="region-card"
+      data-open={open || undefined}
+      to={`/collections/${region.slug}`}
+      prefetch="intent"
+      title={`${region.name} — ${regionNote(region)}`}
     >
       <span className="region-card-name">{region.name}</span>
       <span className="region-card-count">
-        {region.status === 'next' ? 'Up next' : 'In due time'}
+        {open ? (
+          <span className="region-card-badge">Now open</span>
+        ) : region.status === 'next' ? (
+          'Up next'
+        ) : (
+          'In due time'
+        )}
       </span>
-    </div>
+    </Link>
   );
 }

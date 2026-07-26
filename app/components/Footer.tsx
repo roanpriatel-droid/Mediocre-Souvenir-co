@@ -1,5 +1,5 @@
 import {Link} from 'react-router';
-import {getOpenRegions, getTownsByRegion, regionPath} from '~/lib/catalog';
+import {getOpenRegions, getTownsByRegion} from '~/lib/catalog';
 import {MSCMonogram} from '~/components/Brand';
 
 /**
@@ -27,23 +27,32 @@ export function Footer() {
           <h4>Browse</h4>
           <ul>
             <li>
-              <Link to="/shop">Shop all towns</Link>
+              <Link to="/collections/all-souvenirs">All souvenirs</Link>
+            </li>
+            <li>
+              <Link to="/collections/canada">Canada</Link>
+            </li>
+            <li>
+              <Link to="/collections/united-states">United States</Link>
             </li>
             {openRegions.map((region) => (
               <li key={region.slug}>
-                <Link to={regionPath(region)}>
+                <Link to={`/collections/${region.slug}`}>
                   {region.name} ({getTownsByRegion(region.slug).length})
                 </Link>
               </li>
             ))}
             <li>
-              <Link to="/new-arrivals">New arrivals</Link>
+              <Link to="/collections/new-arrivals">New arrivals</Link>
             </li>
             <li>
-              <Link to="/collections">Collections</Link>
+              <Link to="/collections/now-open">Now open</Link>
             </li>
             <li>
-              <Link to="/provinces">All regions</Link>
+              <Link to="/provinces">All 63 regions</Link>
+            </li>
+            <li>
+              <Link to="/shop">Town index</Link>
             </li>
             <li>
               <Link to="/search">Search</Link>

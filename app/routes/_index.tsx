@@ -1,4 +1,5 @@
-import {Link} from 'react-router';
+import {Suspense} from 'react';
+import {Await, Link} from 'react-router';
 import type {Route} from './+types/_index';
 import {BadgeLogo, MSCMonogram} from '~/components/Brand';
 import {Reveal} from '~/components/Reveal';
@@ -9,7 +10,13 @@ import {RackGrid} from '~/components/TownRackCard';
 import {CollectLadder} from '~/components/CollectLadder';
 import {GuestBook, SpottedGrid} from '~/components/SocialProof';
 import {EmailCapture} from '~/components/EmailCapture';
+import {SouvenirGrid, SouvenirGridSkeleton} from '~/components/SouvenirCard';
 import {getMostOverlooked, getNewArrivals} from '~/lib/catalog';
+import {
+  loadCollectionProducts,
+  loadRegionStatus,
+  UTILITY_COLLECTIONS,
+} from '~/lib/shopify-collections';
 import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
@@ -36,17 +43,41 @@ export const meta: Route.MetaFunction = () => {
   ];
 };
 
-export async function loader(_args: Route.LoaderArgs) {
-  // The catalog is local for now (see app/lib/catalog) — no storefront
-  // queries needed above the fold.
+export async function loader({context}: Route.LoaderArgs) {
+  // Critical: the region grid is the primary navigation and must be in the
+  // first byte, so its status query is awaited.
+  const regionStatus = await loadRegionStatus(context.storefront);
+
+  // Deferred: the two product rows sit below the fold. Streaming them keeps
+  // the hero and the grid off the Storefront's critical path — the rows
+  // render a skeleton and swap in when the store answers.
   return {
+    regionStatus,
+    nowOpen: loadCollectionProducts(
+      context.storefront,
+      UTILITY_COLLECTIONS.nowOpen,
+      8,
+    ),
+    newArrivalProducts: loadCollectionProducts(
+      context.storefront,
+      UTILITY_COLLECTIONS.newArrivals,
+      8,
+    ),
+    // Local catalog stands in wherever the store answers with nothing.
     newArrivals: getNewArrivals(),
     mostOverlooked: getMostOverlooked(),
   };
 }
 
 export default function Homepage({loaderData}: Route.ComponentProps) {
-  const {newArrivals, mostOverlooked} = loaderData;
+  const {
+    regionStatus,
+    nowOpen,
+    newArrivalProducts,
+    newArrivals,
+    mostOverlooked,
+  } = loaderData;
+  const openCount = Object.values(regionStatus.open).filter(Boolean).length;
   return (
     <div className="home">
       {/* HERO — the CTA is a search field, not a shop button */}
@@ -61,28 +92,59 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
 
       <MarqueeStrip />
 
-      {/* BROWSE BY REGION — the real navigation */}
+      {/* BROWSE BY REGION — the real navigation, and the waitlist engine */}
       <section className="msc-section msc-page" aria-labelledby="browse-region">
         <div className="msc-section-rule">
           <h2 id="browse-region">Browse by region</h2>
           <span className="msc-section-note">
-            Starting with British Columbia · Then east, then south
+            {openCount > 0
+              ? `${openCount} open · every other tile takes a waitlist`
+              : 'Every tile goes somewhere · the waitlist sets the order'}
           </span>
         </div>
-        <RegionBrowse />
+        <RegionBrowse open={regionStatus.open} live={regionStatus.live} />
       </section>
 
-      {/* NEW ARRIVALS */}
+      {/* NOW OPEN — live products, streamed in */}
+      <section className="msc-section msc-page" aria-labelledby="now-open">
+        <div className="msc-section-rule">
+          <h2 id="now-open">Now open</h2>
+          <Link className="msc-section-note" to="/collections/now-open">
+            See all →
+          </Link>
+        </div>
+        <Suspense fallback={<SouvenirGridSkeleton count={4} />}>
+          <Await resolve={nowOpen} errorElement={<RowFallback />}>
+            {(products) =>
+              products.length > 0 ? (
+                <SouvenirGrid products={products} eagerCount={0} />
+              ) : (
+                <RackGrid towns={mostOverlooked.slice(0, 4)} />
+              )
+            }
+          </Await>
+        </Suspense>
+      </section>
+
+      {/* NEW ARRIVALS — live where the store has them, catalog otherwise */}
       <section className="msc-section msc-page" aria-labelledby="new-arrivals">
-        <Reveal>
-          <div className="msc-section-rule">
-            <h2 id="new-arrivals">New arrivals</h2>
-            <Link className="msc-section-note" to="/new-arrivals">
-              See all →
-            </Link>
-          </div>
-          <RackGrid towns={newArrivals} />
-        </Reveal>
+        <div className="msc-section-rule">
+          <h2 id="new-arrivals">New arrivals</h2>
+          <Link className="msc-section-note" to="/collections/new-arrivals">
+            See all →
+          </Link>
+        </div>
+        <Suspense fallback={<SouvenirGridSkeleton count={4} />}>
+          <Await resolve={newArrivalProducts} errorElement={<RowFallback />}>
+            {(products) =>
+              products.length > 0 ? (
+                <SouvenirGrid products={products} eagerCount={0} />
+              ) : (
+                <RackGrid towns={newArrivals} />
+              )
+            }
+          </Await>
+        </Suspense>
       </section>
 
       {/* EDITORIAL STATEMENT */}
@@ -197,6 +259,19 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
 
       {/* EMAIL CAPTURE */}
       <EmailCapture />
+    </div>
+  );
+}
+
+/** A streamed row that failed still shows something, not a gap. */
+function RowFallback() {
+  return (
+    <div className="guest-book-empty">
+      <h3>That rack is being restocked.</h3>
+      <p>
+        The shelf is there; the shirts are on their way back to it. Try{' '}
+        <Link to="/collections/all-souvenirs">everything we make</Link>.
+      </p>
     </div>
   );
 }

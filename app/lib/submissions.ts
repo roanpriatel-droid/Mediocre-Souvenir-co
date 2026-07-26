@@ -21,6 +21,14 @@ export interface TownRequest {
 export interface Subscriber {
   email: string;
   source: string;
+  /** Region slug when the signup came from a region waitlist. */
+  region?: string;
+  regionName?: string;
+  /**
+   * Tags to apply at the ESP — `region:ontario`, `country:ca`, `waitlist`.
+   * Shopify customer tags and Klaviyo lists both take this shape directly.
+   */
+  tags?: string[];
   submittedAt: string;
 }
 

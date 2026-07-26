@@ -650,6 +650,61 @@ main {
   color: var(--msc-brick);
 }
 
+/* Unopened regions are quieter, but they are links — every tile goes to a
+   collection page that either sells shirts or takes a waitlist signup. */
+.region-card:not([data-open]) {
+  background: var(--msc-cream);
+}
+
+.region-card:not([data-open]) .region-card-name {
+  opacity: 0.82;
+}
+
+.region-card:not([data-open]) .region-card-count {
+  color: var(--msc-navy);
+  opacity: 0.7;
+}
+
+.region-card:not([data-open]):hover .region-card-count {
+  opacity: 1;
+}
+
+/* open regions earn the mustard flag */
+.region-card-badge {
+  display: inline-block;
+  background: var(--msc-mustard);
+  border: 2px solid var(--msc-asphalt);
+  padding: 2px 8px;
+  color: var(--msc-asphalt);
+}
+
+.region-card[data-open] {
+  background: var(--msc-cream-deep);
+}
+
+.region-card--request {
+  border-style: dashed;
+  background: transparent;
+}
+
+.region-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.region-group-all {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--msc-brick);
+}
+
 .region-card--soon {
   opacity: 0.62;
   background: var(--msc-cream);
@@ -658,6 +713,250 @@ main {
 .region-card--soon:hover {
   box-shadow: none;
   transform: none;
+}
+
+/* ---------- region waitlist ---------- */
+
+.region-waitlist {
+  border: var(--border-heavy);
+  background: var(--msc-cream-deep);
+  box-shadow: var(--shadow-offset);
+  padding: 48px 36px;
+  max-width: 680px;
+  margin: 8px auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  position: relative;
+}
+
+.region-waitlist-stamp {
+  position: absolute;
+  top: -22px;
+  right: 24px;
+  background: var(--msc-cream);
+  border: var(--border-std);
+  border-radius: 50%;
+  padding: 8px;
+  transform: rotate(-8deg);
+}
+
+.region-waitlist h2 {
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.1;
+  max-width: 22ch;
+}
+
+.region-waitlist-sub {
+  font-size: 16.5px;
+  line-height: 1.55;
+  max-width: 46ch;
+}
+
+.region-waitlist-form {
+  width: 100%;
+  max-width: 440px;
+  margin-top: 8px;
+  text-align: left;
+}
+
+.region-waitlist-field {
+  display: flex;
+  gap: 10px;
+}
+
+.region-waitlist-field .msc-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.region-waitlist-done {
+  font-family: var(--font-marker);
+  font-size: 20px;
+  color: var(--msc-brick);
+  transform: rotate(-2deg);
+}
+
+.region-waitlist-fineprint {
+  font-size: 13.5px;
+  max-width: 40ch;
+  opacity: 0.8;
+}
+
+.region-waitlist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+@media (max-width: 560px) {
+  .region-waitlist {
+    padding: 40px 20px;
+  }
+
+  .region-waitlist-field {
+    flex-direction: column;
+  }
+
+  .region-waitlist-stamp {
+    right: 12px;
+  }
+}
+
+/* ---------- collection page extras ---------- */
+
+.region-description {
+  max-width: 68ch;
+}
+
+.collection-footnote {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px dotted var(--msc-asphalt);
+  font-size: 15.5px;
+  text-align: center;
+}
+
+/* ---------- loading skeletons ---------- */
+
+.rack-card--skeleton {
+  pointer-events: none;
+}
+
+.skeleton-block,
+.skeleton-line {
+  background: var(--msc-cream-deep);
+  border: 1px solid rgba(28, 28, 28, 0.12);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-block {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+}
+
+.skeleton-line {
+  height: 12px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.skeleton-line--title {
+  height: 20px;
+  width: 65%;
+}
+
+.skeleton-line--short {
+  width: 40%;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block,
+  .skeleton-line {
+    animation: none;
+  }
+}
+
+/* art placeholder for a product with no photo and no known town */
+.rack-card-art-empty {
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  background: var(--msc-cream);
+  border: 2px dashed var(--msc-navy);
+}
+
+.rack-card-art-empty span {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--msc-navy);
+  opacity: 0.5;
+  letter-spacing: 3px;
+}
+
+/* ---------- PDP additions ---------- */
+
+.product-price-was {
+  font-family: var(--font-body);
+  font-size: 18px;
+  text-decoration: line-through;
+  opacity: 0.6;
+  margin-left: 8px;
+}
+
+.product-stock-note {
+  font-size: 13.5px;
+  color: var(--msc-brick);
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.product-options-item[data-soldout] {
+  opacity: 0.4;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.product-trust-row {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 16px 0;
+  border-top: 1px dotted var(--msc-asphalt);
+  border-bottom: 1px dotted var(--msc-asphalt);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.product-trust-row li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+}
+
+.product-trust-row strong {
+  font-family: var(--font-body);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--msc-navy);
+}
+
+.product-trust-row span {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.msc-accordion--certificate summary {
+  color: var(--msc-brick);
+}
+
+@media (max-width: 420px) {
+  .product-trust-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .product-trust-row li {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
 }
 
 .region-card--soon .region-card-count {
@@ -2861,6 +3160,14 @@ p {
   transform: translateY(0);
 }
 
+/* Sticky add-to-cart is a mobile affordance. On desktop the buy box stays in
+   view beside the gallery, so the bar is redundant furniture. */
+@media (min-width: 901px) {
+  .sticky-atc {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sticky-atc {
     transition: none;
@@ -3143,4 +3450,93 @@ select:focus-visible,
 .skip-link:focus {
   top: 12px;
   color: var(--msc-cream);
+}
+
+/* ============================================================
+   390px audit — the width most people actually hold
+   ============================================================ */
+
+@media (max-width: 560px) {
+  /* A souvenir rack reads better two-up than one enormous card per screen. */
+  .rack-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .rack-card-town {
+    font-size: 17px;
+  }
+
+  .rack-card-meta,
+  .rack-card-price {
+    font-size: 12px;
+  }
+
+  /* Region tiles: two-up, so 63 regions are scannable rather than a mile
+     of single-file cards. */
+  .region-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .region-card {
+    min-height: 88px;
+    padding: 14px 12px 12px;
+  }
+
+  .region-card-name {
+    font-size: 16px;
+  }
+
+  .region-card-count {
+    font-size: 10.5px;
+    letter-spacing: 1.2px;
+  }
+
+  /* Filters stack and go full width — a 44px row is the tap target. */
+  .shop-toolbar {
+    grid-template-columns: 1fr;
+    display: grid;
+    gap: 12px;
+  }
+
+  .shop-toolbar label {
+    width: 100%;
+  }
+
+  .search-page-field {
+    flex-direction: column;
+  }
+
+  .collection-index-grid,
+  .policy-index,
+  .journal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .msc-breadcrumb {
+    font-size: 11px;
+    letter-spacing: 1.2px;
+  }
+
+  /* Nothing may push the page sideways. */
+  .province-header h1,
+  .article-header h1 {
+    overflow-wrap: break-word;
+  }
+}
+
+@media (max-width: 400px) {
+  .sticky-atc {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .sticky-atc-info strong {
+    font-size: 15px;
+  }
+
+  .product-options-grid {
+    gap: 8px;
+  }
 }

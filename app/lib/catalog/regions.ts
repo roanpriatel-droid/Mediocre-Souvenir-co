@@ -92,9 +92,15 @@ export const REGIONS: Region[] = [
   us('wyoming', 'Wyoming', 'WY'),
 ];
 
-/** URL for a region's landing page, by kind. */
-export function regionPath(region: Pick<Region, 'slug' | 'kind'>): string {
-  return region.kind === 'state'
-    ? `/states/${region.slug}`
-    : `/provinces/${region.slug}`;
+/**
+ * Where a region lives.
+ *
+ * Regions used to have their own landing pages under /provinces and /states.
+ * They are Shopify smart collections now — one per region, handle equal to the
+ * slug — so the collection page *is* the region page. The old URLs still route
+ * and 301 here (see provinces.$slug.tsx), and this stays the single definition
+ * so links, JSON-LD, and the sitemap cannot disagree.
+ */
+export function regionPath(region: Pick<Region, 'slug'>): string {
+  return `/collections/${region.slug}`;
 }
