@@ -46,12 +46,7 @@ const SEARCH_CARD_FRAGMENT = `#graphql
 ` as const;
 
 export const PRODUCT_SEARCH_QUERY = `#graphql
-  query SouvenirSearch(
-    $query: String!
-    $first: Int!
-    $country: CountryCode
-    $language: LanguageCode
-  ) @inContext(country: $country, language: $language) {
+  query SouvenirSearch($query: String!, $first: Int!) {
     search(query: $query, first: $first, types: PRODUCT) {
       totalCount
       nodes {
@@ -81,12 +76,7 @@ export const PRODUCT_SEARCH_QUERY_NEUTRAL = `#graphql
 
 /** Look products up by handle — used by editorial that references specific towns. */
 export const PRODUCTS_BY_HANDLE_QUERY = `#graphql
-  query SouvenirProductsByHandle(
-    $query: String!
-    $first: Int!
-    $country: CountryCode
-    $language: LanguageCode
-  ) @inContext(country: $country, language: $language) {
+  query SouvenirProductsByHandle($query: String!, $first: Int!) {
     products(first: $first, query: $query) {
       nodes {
         ...SearchCard
@@ -97,12 +87,7 @@ export const PRODUCTS_BY_HANDLE_QUERY = `#graphql
 ` as const;
 
 export const PREDICTIVE_SEARCH_QUERY = `#graphql
-  query SouvenirPredictive(
-    $query: String!
-    $limit: Int!
-    $country: CountryCode
-    $language: LanguageCode
-  ) @inContext(country: $country, language: $language) {
+  query SouvenirPredictive($query: String!, $limit: Int!) {
     predictiveSearch(query: $query, limit: $limit, types: [PRODUCT]) {
       products {
         id

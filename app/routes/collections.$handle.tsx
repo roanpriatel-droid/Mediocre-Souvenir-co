@@ -10,6 +10,7 @@ import {DISPLAY_PRICE, type Region} from '~/lib/catalog';
 import {
   COLLECTION_REDIRECTS,
   countryCollectionHandle,
+  UTILITY_COLLECTIONS,
   isRegionOpen,
   loadCollectionPage,
   loadRegionStatus,
@@ -148,7 +149,41 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     };
   }
 
+  // A handle the site itself publishes must never 404 just because the store
+  // did not answer. These URLs are in the nav on every page; a 404 here takes
+  // the whole shop down, which is exactly what removing the catalog fallback
+  // did. Render the rack empty and say so instead.
+  if (KNOWN_HANDLES.has(handle)) {
+    return {
+      kind: 'shopify' as const,
+      connection: null,
+      handle,
+      region: null,
+      open: false,
+      heading: titleForHandle(handle),
+      description: '',
+      products: [] as SouvenirCard[],
+      origin,
+      seo: {
+        title: `${titleForHandle(handle)} | ${SITE_NAME}`,
+        description:
+          'Faux-vintage souvenir t-shirts for overlooked towns across Canada and the US.',
+        canonical: `${origin}/collections/${handle}`,
+      },
+    };
+  }
+
   throw new Response('No such collection', {status: 404});
+}
+
+/** Every collection handle this site links to. */
+const KNOWN_HANDLES = new Set<string>(Object.values(UTILITY_COLLECTIONS));
+
+function titleForHandle(handle: string): string {
+  return handle
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 export default function CollectionPage() {

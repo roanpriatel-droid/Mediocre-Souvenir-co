@@ -77,16 +77,17 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
   // any more: this used to check out against a mock.shop variant, which meant
   // a page could look buyable while being attached to nothing.
   if (!live) {
-    // A handle we recognise as a town but the store does not carry sends the
-    // reader to that region rather than a dead end.
-    if (town) {
-      const fallbackRegion = getRegion(town.provinceSlug);
-      throw redirect(
-        fallbackRegion ? `/collections/${fallbackRegion.slug}` : '/collections/all-souvenirs',
-        302,
-      );
-    }
-    throw new Response(null, {status: 404});
+    // Never a dead end. If the store cannot give us this product — whether the
+    // handle is wrong or the Storefront is not answering — send the reader to
+    // the most specific rack we can name rather than 404ing them.
+    console.warn(`[msc:product] "${handle}" not returned by the Storefront API`);
+    const fallbackRegion = town ? getRegion(town.provinceSlug) : undefined;
+    throw redirect(
+      fallbackRegion
+        ? `/collections/${fallbackRegion.slug}`
+        : '/collections/all-souvenirs',
+      302,
+    );
   }
 
   // "More from [region]" — the region collection when we can identify it,

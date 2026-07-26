@@ -26,11 +26,7 @@ export const PRODUCT_QUERY = `#graphql
     width
     height
   }
-  query SouvenirProduct(
-    $handle: String!
-    $country: CountryCode
-    $language: LanguageCode
-  ) @inContext(country: $country, language: $language) {
+  query SouvenirProduct($handle: String!) {
     product(handle: $handle) {
       id
       handle

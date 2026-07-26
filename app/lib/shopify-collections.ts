@@ -115,12 +115,7 @@ const PRODUCT_CARD_FRAGMENT = `#graphql
 ` as const;
 
 export const COLLECTION_QUERY = `#graphql
-  query SouvenirCollection(
-    $handle: String!
-    $first: Int!
-    $country: CountryCode
-    $language: LanguageCode
-  ) @inContext(country: $country, language: $language) {
+  query SouvenirCollection($handle: String!, $first: Int!) {
     collection(handle: $handle) {
       id
       handle
@@ -159,9 +154,7 @@ export const COLLECTION_PAGE_QUERY = `#graphql
     $sortKey: ProductCollectionSortKeys
     $reverse: Boolean
     $filters: [ProductFilter!]
-    $country: CountryCode
-    $language: LanguageCode
-  ) @inContext(country: $country, language: $language) {
+  ) {
     collection(handle: $handle) {
       id
       handle

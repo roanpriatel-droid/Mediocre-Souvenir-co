@@ -401,8 +401,6 @@ export type SouvenirCardFragment = Pick<
 export type SouvenirCollectionQueryVariables = StorefrontAPI.Exact<{
   handle: StorefrontAPI.Scalars['String']['input'];
   first: StorefrontAPI.Scalars['Int']['input'];
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
 }>;
 
 export type SouvenirCollectionQuery = {
@@ -464,8 +462,6 @@ export type SouvenirCollectionPageQueryVariables = StorefrontAPI.Exact<{
   filters?: StorefrontAPI.InputMaybe<
     Array<StorefrontAPI.ProductFilter> | StorefrontAPI.ProductFilter
   >;
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
 }>;
 
 export type SouvenirCollectionPageQuery = {
@@ -591,8 +587,6 @@ export type SouvenirProductImageFragment = Pick<
 
 export type SouvenirProductQueryVariables = StorefrontAPI.Exact<{
   handle: StorefrontAPI.Scalars['String']['input'];
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
 }>;
 
 export type SouvenirProductQuery = {
@@ -675,8 +669,6 @@ export type SearchCardFragment = Pick<
 export type SouvenirSearchQueryVariables = StorefrontAPI.Exact<{
   query: StorefrontAPI.Scalars['String']['input'];
   first: StorefrontAPI.Scalars['Int']['input'];
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
 }>;
 
 export type SouvenirSearchQuery = {
@@ -755,8 +747,6 @@ export type SouvenirSearchNeutralQuery = {
 export type SouvenirProductsByHandleQueryVariables = StorefrontAPI.Exact<{
   query: StorefrontAPI.Scalars['String']['input'];
   first: StorefrontAPI.Scalars['Int']['input'];
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
 }>;
 
 export type SouvenirProductsByHandleQuery = {
@@ -796,8 +786,6 @@ export type SouvenirProductsByHandleQuery = {
 export type SouvenirPredictiveQueryVariables = StorefrontAPI.Exact<{
   query: StorefrontAPI.Scalars['String']['input'];
   limit: StorefrontAPI.Scalars['Int']['input'];
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
 }>;
 
 export type SouvenirPredictiveQuery = {
@@ -935,11 +923,11 @@ interface GeneratedQueryTypes {
     return: FooterQuery;
     variables: FooterQueryVariables;
   };
-  '#graphql\n  query SouvenirCollection(\n    $handle: String!\n    $first: Int!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(first: $first) {\n        nodes {\n          ...SouvenirCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
+  '#graphql\n  query SouvenirCollection($handle: String!, $first: Int!) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(first: $first) {\n        nodes {\n          ...SouvenirCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
     return: SouvenirCollectionQuery;
     variables: SouvenirCollectionQueryVariables;
   };
-  '#graphql\n  query SouvenirCollectionPage(\n    $handle: String!\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n    $sortKey: ProductCollectionSortKeys\n    $reverse: Boolean\n    $filters: [ProductFilter!]\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(\n        first: $first\n        last: $last\n        before: $startCursor\n        after: $endCursor\n        sortKey: $sortKey\n        reverse: $reverse\n        filters: $filters\n      ) {\n        nodes {\n          ...SouvenirCard\n        }\n        pageInfo {\n          hasNextPage\n          hasPreviousPage\n          startCursor\n          endCursor\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
+  '#graphql\n  query SouvenirCollectionPage(\n    $handle: String!\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n    $sortKey: ProductCollectionSortKeys\n    $reverse: Boolean\n    $filters: [ProductFilter!]\n  ) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(\n        first: $first\n        last: $last\n        before: $startCursor\n        after: $endCursor\n        sortKey: $sortKey\n        reverse: $reverse\n        filters: $filters\n      ) {\n        nodes {\n          ...SouvenirCard\n        }\n        pageInfo {\n          hasNextPage\n          hasPreviousPage\n          startCursor\n          endCursor\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
     return: SouvenirCollectionPageQuery;
     variables: SouvenirCollectionPageQueryVariables;
   };
@@ -951,11 +939,11 @@ interface GeneratedQueryTypes {
     return: SouvenirCollectionsStatusQuery;
     variables: SouvenirCollectionsStatusQueryVariables;
   };
-  '#graphql\n  fragment SouvenirProductMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SouvenirProductImage on Image {\n    id\n    url\n    altText\n    width\n    height\n  }\n  query SouvenirProduct(\n    $handle: String!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      handle\n      title\n      description\n      vendor\n      availableForSale\n      featuredImage {\n        ...SouvenirProductImage\n      }\n      images(first: 8) {\n        nodes {\n          ...SouvenirProductImage\n        }\n      }\n      options {\n        name\n        optionValues {\n          name\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          ...SouvenirProductMoney\n        }\n        maxVariantPrice {\n          ...SouvenirProductMoney\n        }\n      }\n      variants(first: 100) {\n        nodes {\n          id\n          title\n          availableForSale\n          quantityAvailable\n          price {\n            ...SouvenirProductMoney\n          }\n          compareAtPrice {\n            ...SouvenirProductMoney\n          }\n          selectedOptions {\n            name\n            value\n          }\n          image {\n            ...SouvenirProductImage\n          }\n        }\n      }\n      collections(first: 20) {\n        nodes {\n          handle\n          title\n        }\n      }\n      seo {\n        title\n        description\n      }\n    }\n  }\n': {
+  '#graphql\n  fragment SouvenirProductMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SouvenirProductImage on Image {\n    id\n    url\n    altText\n    width\n    height\n  }\n  query SouvenirProduct($handle: String!) {\n    product(handle: $handle) {\n      id\n      handle\n      title\n      description\n      vendor\n      availableForSale\n      featuredImage {\n        ...SouvenirProductImage\n      }\n      images(first: 8) {\n        nodes {\n          ...SouvenirProductImage\n        }\n      }\n      options {\n        name\n        optionValues {\n          name\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          ...SouvenirProductMoney\n        }\n        maxVariantPrice {\n          ...SouvenirProductMoney\n        }\n      }\n      variants(first: 100) {\n        nodes {\n          id\n          title\n          availableForSale\n          quantityAvailable\n          price {\n            ...SouvenirProductMoney\n          }\n          compareAtPrice {\n            ...SouvenirProductMoney\n          }\n          selectedOptions {\n            name\n            value\n          }\n          image {\n            ...SouvenirProductImage\n          }\n        }\n      }\n      collections(first: 20) {\n        nodes {\n          handle\n          title\n        }\n      }\n      seo {\n        title\n        description\n      }\n    }\n  }\n': {
     return: SouvenirProductQuery;
     variables: SouvenirProductQueryVariables;
   };
-  '#graphql\n  query SouvenirSearch(\n    $query: String!\n    $first: Int!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    search(query: $query, first: $first, types: PRODUCT) {\n      totalCount\n      nodes {\n        ...on Product {\n          ...SearchCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n  }\n\n': {
+  '#graphql\n  query SouvenirSearch($query: String!, $first: Int!) {\n    search(query: $query, first: $first, types: PRODUCT) {\n      totalCount\n      nodes {\n        ...on Product {\n          ...SearchCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n  }\n\n': {
     return: SouvenirSearchQuery;
     variables: SouvenirSearchQueryVariables;
   };
@@ -963,11 +951,11 @@ interface GeneratedQueryTypes {
     return: SouvenirSearchNeutralQuery;
     variables: SouvenirSearchNeutralQueryVariables;
   };
-  '#graphql\n  query SouvenirProductsByHandle(\n    $query: String!\n    $first: Int!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    products(first: $first, query: $query) {\n      nodes {\n        ...SearchCard\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n  }\n\n': {
+  '#graphql\n  query SouvenirProductsByHandle($query: String!, $first: Int!) {\n    products(first: $first, query: $query) {\n      nodes {\n        ...SearchCard\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n  }\n\n': {
     return: SouvenirProductsByHandleQuery;
     variables: SouvenirProductsByHandleQueryVariables;
   };
-  '#graphql\n  query SouvenirPredictive(\n    $query: String!\n    $limit: Int!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    predictiveSearch(query: $query, limit: $limit, types: [PRODUCT]) {\n      products {\n        id\n        handle\n        title\n        featuredImage {\n          url\n          altText\n        }\n        priceRange {\n          minVariantPrice {\n            amount\n            currencyCode\n          }\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  query SouvenirPredictive($query: String!, $limit: Int!) {\n    predictiveSearch(query: $query, limit: $limit, types: [PRODUCT]) {\n      products {\n        id\n        handle\n        title\n        featuredImage {\n          url\n          altText\n        }\n        priceRange {\n          minVariantPrice {\n            amount\n            currencyCode\n          }\n        }\n      }\n    }\n  }\n': {
     return: SouvenirPredictiveQuery;
     variables: SouvenirPredictiveQueryVariables;
   };
