@@ -556,6 +556,52 @@ export type SouvenirProductQuery = {
   >;
 };
 
+export type StorefrontDiagnosticQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type StorefrontDiagnosticQuery = {
+  shop: Pick<StorefrontAPI.Shop, 'name'> & {
+    primaryDomain: Pick<StorefrontAPI.Domain, 'url'>;
+  };
+  collections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'handle' | 'title'> & {
+        products: {
+          nodes: Array<
+            Pick<StorefrontAPI.Product, 'handle' | 'title'> & {
+              featuredImage?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.Image, 'url'>
+              >;
+              variants: {
+                nodes: Array<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'availableForSale'
+                  > & {
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                  }
+                >;
+              };
+            }
+          >;
+        };
+      }
+    >;
+  };
+  products: {
+    nodes: Array<
+      Pick<StorefrontAPI.Product, 'handle' | 'title'> & {
+        featuredImage?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Image, 'url'>>;
+      }
+    >;
+  };
+};
+
 export type PageQueryVariables = StorefrontAPI.Exact<{
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
@@ -627,6 +673,10 @@ interface GeneratedQueryTypes {
   '#graphql\n  fragment SouvenirProductMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SouvenirProductImage on Image {\n    id\n    url\n    altText\n    width\n    height\n  }\n  query SouvenirProduct(\n    $handle: String!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      handle\n      title\n      description\n      vendor\n      availableForSale\n      featuredImage {\n        ...SouvenirProductImage\n      }\n      images(first: 8) {\n        nodes {\n          ...SouvenirProductImage\n        }\n      }\n      options {\n        name\n        optionValues {\n          name\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          ...SouvenirProductMoney\n        }\n        maxVariantPrice {\n          ...SouvenirProductMoney\n        }\n      }\n      variants(first: 100) {\n        nodes {\n          id\n          title\n          availableForSale\n          quantityAvailable\n          price {\n            ...SouvenirProductMoney\n          }\n          compareAtPrice {\n            ...SouvenirProductMoney\n          }\n          selectedOptions {\n            name\n            value\n          }\n          image {\n            ...SouvenirProductImage\n          }\n        }\n      }\n      collections(first: 20) {\n        nodes {\n          handle\n          title\n        }\n      }\n      seo {\n        title\n        description\n      }\n    }\n  }\n': {
     return: SouvenirProductQuery;
     variables: SouvenirProductQueryVariables;
+  };
+  '#graphql\n  query StorefrontDiagnostic($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    shop {\n      name\n      primaryDomain {\n        url\n      }\n    }\n    collections(first: 250) {\n      nodes {\n        handle\n        title\n        products(first: 3) {\n          nodes {\n            handle\n            title\n            featuredImage {\n              url\n            }\n            variants(first: 1) {\n              nodes {\n                id\n                availableForSale\n                price {\n                  amount\n                  currencyCode\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n    products(first: 5) {\n      nodes {\n        handle\n        title\n        featuredImage {\n          url\n        }\n      }\n    }\n  }\n': {
+    return: StorefrontDiagnosticQuery;
+    variables: StorefrontDiagnosticQueryVariables;
   };
   '#graphql\n  query Page(\n    $language: LanguageCode,\n    $country: CountryCode,\n    $handle: String!\n  )\n  @inContext(language: $language, country: $country) {\n    page(handle: $handle) {\n      handle\n      id\n      title\n      body\n      seo {\n        description\n        title\n      }\n    }\n  }\n': {
     return: PageQuery;

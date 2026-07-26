@@ -213,7 +213,22 @@ export async function loadCollection(
       cache: storefront.CacheShort(),
     });
     const collection = data?.collection;
-    if (!collection) return null;
+    if (!collection) {
+      // A null collection is not an error, so nothing used to be logged and
+      // the fallback quietly hid a misconfigured store. Say it out loud —
+      // Oxygen log drains pick this up.
+      console.warn(
+        `[msc:collection] "${handle}" is not visible to the Storefront API ` +
+          `(missing, or not published to this sales channel)`,
+      );
+      return null;
+    }
+    if (!collection.products?.nodes?.length) {
+      console.warn(
+        `[msc:collection] "${handle}" resolved but returned 0 products ` +
+          `(products may not be published to this sales channel)`,
+      );
+    }
     return {
       id: collection.id,
       handle: collection.handle,
