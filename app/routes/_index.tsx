@@ -6,12 +6,10 @@ import {Reveal} from '~/components/Reveal';
 import {TownSearch} from '~/components/TownSearch';
 import {MarqueeStrip, TrustBar} from '~/components/Strips';
 import {RegionBrowse} from '~/components/RegionBrowse';
-import {RackGrid} from '~/components/TownRackCard';
 import {CollectLadder} from '~/components/CollectLadder';
 import {GuestBook, SpottedGrid} from '~/components/SocialProof';
 import {EmailCapture} from '~/components/EmailCapture';
 import {SouvenirGrid, SouvenirGridSkeleton} from '~/components/SouvenirCard';
-import {getMostOverlooked, getNewArrivals} from '~/lib/catalog';
 import {
   loadCollectionProducts,
   loadRegionStatus,
@@ -63,20 +61,11 @@ export async function loader({context}: Route.LoaderArgs) {
       UTILITY_COLLECTIONS.newArrivals,
       8,
     ),
-    // Local catalog stands in wherever the store answers with nothing.
-    newArrivals: getNewArrivals(),
-    mostOverlooked: getMostOverlooked(),
   };
 }
 
 export default function Homepage({loaderData}: Route.ComponentProps) {
-  const {
-    regionStatus,
-    nowOpen,
-    newArrivalProducts,
-    newArrivals,
-    mostOverlooked,
-  } = loaderData;
+  const {regionStatus, nowOpen, newArrivalProducts} = loaderData;
   const openCount = Object.values(regionStatus.open).filter(Boolean).length;
   return (
     <div className="home">
@@ -119,7 +108,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
               products.length > 0 ? (
                 <SouvenirGrid products={products} eagerCount={0} />
               ) : (
-                <RackGrid towns={mostOverlooked.slice(0, 4)} />
+                <RowFallback />
               )
             }
           </Await>
@@ -140,7 +129,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
               products.length > 0 ? (
                 <SouvenirGrid products={products} eagerCount={0} />
               ) : (
-                <RackGrid towns={newArrivals} />
+                <RowFallback />
               )
             }
           </Await>
@@ -156,22 +145,6 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </h2>
         <span className="msc-marker">we&rsquo;re fixing that, alphabetically.</span>
       </Reveal>
-
-      {/* MOST OVERLOOKED */}
-      <section
-        className="msc-section msc-page"
-        aria-labelledby="most-overlooked"
-      >
-        <Reveal>
-          <div className="msc-section-rule">
-            <h2 id="most-overlooked">Most overlooked</h2>
-            <span className="msc-section-note">
-              Towns of modest renown · Curated with care
-            </span>
-          </div>
-          <RackGrid towns={mostOverlooked} />
-        </Reveal>
-      </section>
 
       {/* POSTCARD INTERLUDE */}
       <section className="msc-section msc-page" aria-label="A note from the road">

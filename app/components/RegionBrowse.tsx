@@ -22,8 +22,14 @@ export function RegionBrowse({
   open?: Record<string, boolean>;
   live?: boolean;
 }) {
-  const isOpen = (region: Region) =>
-    live && region.slug in open ? open[region.slug] : region.status === 'open';
+  // When the store answered, trust it completely. When it did not, say
+  // nothing about status rather than falling back to the hand-maintained
+  // config — that config only ever listed British Columbia as open, which is
+  // how 62 regions with real stock ended up reading "in due time".
+  const statusFor = (region: Region): 'open' | 'closed' | 'unknown' => {
+    if (!live) return 'unknown';
+    return open[region.slug] ? 'open' : 'closed';
+  };
 
   return (
     <div className="region-browse">
@@ -31,13 +37,13 @@ export function RegionBrowse({
         label="Canada"
         countryHandle="canada"
         regions={getRegionsByCountry('Canada')}
-        isOpen={isOpen}
+        statusFor={statusFor}
       />
       <RegionGroup
         label="United States"
         countryHandle="united-states"
         regions={getRegionsByCountry('United States')}
-        isOpen={isOpen}
+        statusFor={statusFor}
       />
       <div className="region-grid" style={{marginTop: '16px'}}>
         <Link className="region-card region-card--request" to="/request-your-town" prefetch="intent">
@@ -53,14 +59,14 @@ function RegionGroup({
   label,
   countryHandle,
   regions,
-  isOpen,
+  statusFor,
 }: {
   label: string;
   countryHandle: string;
   regions: Region[];
-  isOpen: (region: Region) => boolean;
+  statusFor: (region: Region) => 'open' | 'closed' | 'unknown';
 }) {
-  const openCount = regions.filter(isOpen).length;
+  const openCount = regions.filter((r) => statusFor(r) === 'open').length;
   return (
     <section aria-label={label} style={{marginBottom: '28px'}}>
       <div className="region-group-head">
@@ -73,30 +79,40 @@ function RegionGroup({
       </div>
       <div className="region-grid">
         {regions.map((region) => (
-          <RegionCard key={region.slug} region={region} open={isOpen(region)} />
+          <RegionCard
+            key={region.slug}
+            region={region}
+            status={statusFor(region)}
+          />
         ))}
       </div>
     </section>
   );
 }
 
-function RegionCard({region, open}: {region: Region; open: boolean}) {
+function RegionCard({
+  region,
+  status,
+}: {
+  region: Region;
+  status: 'open' | 'closed' | 'unknown';
+}) {
   return (
     <Link
       className="region-card"
-      data-open={open || undefined}
+      data-open={status === 'open' || undefined}
       to={`/collections/${region.slug}`}
       prefetch="intent"
       title={`${region.name} — ${regionNote(region)}`}
     >
       <span className="region-card-name">{region.name}</span>
       <span className="region-card-count">
-        {open ? (
+        {status === 'open' ? (
           <span className="region-card-badge">Now open</span>
-        ) : region.status === 'next' ? (
-          'Up next'
-        ) : (
+        ) : status === 'closed' ? (
           'In due time'
+        ) : (
+          'View →'
         )}
       </span>
     </Link>

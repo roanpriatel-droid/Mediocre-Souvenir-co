@@ -10,11 +10,9 @@ import {
   COLLECTION_REDIRECTS,
   collectionGroupLabel,
   DISPLAY_PRICE,
-  getAllTowns,
   getCollection,
   getCollections,
   getCollectionTowns,
-  getNewArrivals,
   type Region,
 } from '~/lib/catalog';
 import {
@@ -23,7 +21,6 @@ import {
   loadCollection,
   loadRegionStatus,
   regionForCollectionHandle,
-  UTILITY_COLLECTIONS,
   type SouvenirCard,
 } from '~/lib/shopify-collections';
 import {regionDescription, regionTagline} from '~/lib/region-copy';
@@ -126,10 +123,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       heading: shopifyCollection.title,
       description: shopifyCollection.description,
       products,
-      // Two utility racks have a local equivalent. If the store answers with
-      // nothing, the town catalog fills the page rather than showing an empty
-      // shelf on a URL the nav links to from every page.
-      localTowns: products.length === 0 ? localFallbackTowns(handle) : [],
+      localTowns: [],
       siblings: [],
       groupLabel: null,
       origin,
@@ -167,42 +161,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     };
   }
 
-  // A utility handle the store has not created yet still renders from the
-  // catalog — these URLs are in the nav on every page.
-  const fallbackTowns = localFallbackTowns(handle);
-  if (fallbackTowns.length) {
-    return {
-      kind: 'local' as const,
-      handle,
-      region: null,
-      open: true,
-      heading: handle === 'new-arrivals' ? 'New arrivals' : 'All souvenirs',
-      description:
-        handle === 'new-arrivals'
-          ? 'The latest towns to be taken as seriously as they always should have been.'
-          : 'Every town we have drawn so far, on one rack.',
-      products: [],
-      localTowns: fallbackTowns,
-      siblings: [],
-      groupLabel: null,
-      origin,
-      seo: {
-        title: `${handle === 'new-arrivals' ? 'New Arrivals' : 'All Souvenirs'} | ${SITE_NAME}`,
-        description:
-          'Faux-vintage souvenir t-shirts for overlooked towns across Canada and the US.',
-        canonical: `${origin}/collections/${handle}`,
-      },
-    };
-  }
-
   throw new Response('No such collection', {status: 404});
-}
-
-/** Local stand-in content for the two utility racks that have one. */
-function localFallbackTowns(handle: string) {
-  if (handle === UTILITY_COLLECTIONS.newArrivals) return getNewArrivals();
-  if (handle === UTILITY_COLLECTIONS.allSouvenirs) return getAllTowns();
-  return [];
 }
 
 export default function CollectionPage() {
@@ -257,10 +216,10 @@ export default function CollectionPage() {
         )}
       </div>
 
-      {/* Local racks keep the town-catalog grid; Shopify racks get filters.
-          A Shopify rack that came back empty but has catalog stand-ins renders
-          those rather than an empty shelf. */}
-      {data.kind === 'local' || data.localTowns.length > 0 ? (
+      {/* Local curated racks (colorway/template/town-size) are the only ones
+          that render town artwork. Store-backed racks show store products or
+          an honest empty state — never catalog stand-ins. */}
+      {data.kind === 'local' ? (
         <LocalRack data={data} />
       ) : showWaitlist ? (
         <RegionWaitlist region={data.region as Region} />

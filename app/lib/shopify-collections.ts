@@ -132,19 +132,50 @@ export const COLLECTION_QUERY = `#graphql
 ` as const;
 
 /**
+ * Market-neutral variant of the collection query.
+ *
+ * `@inContext(country:)` scopes results to that market's catalog, so a product
+ * published only to the Canadian market returns nothing under a US context.
+ * When the contextual query comes back empty we retry with this one, which
+ * asks the shop's default catalog. Prices are then the shop default rather
+ * than market-localised — an acceptable trade for actually showing the product.
+ */
+export const COLLECTION_QUERY_NEUTRAL = `#graphql
+  query SouvenirCollectionNeutral($handle: String!, $first: Int!) {
+    collection(handle: $handle) {
+      id
+      handle
+      title
+      description
+      image {
+        url
+        altText
+        width
+        height
+      }
+      products(first: $first) {
+        nodes {
+          ...SouvenirCard
+        }
+      }
+    }
+  }
+  ${PRODUCT_CARD_FRAGMENT}
+` as const;
+
+/**
  * One query for the whole region grid.
  *
  * The Storefront API has no product-count field on Collection, so we ask for a
  * single product per collection — enough to answer the only question the grid
- * asks: is this region open, or is it a waitlist. 250 is the API's page
- * ceiling and comfortably covers 69 collections.
+ * asks: is this region open, or is it a waitlist.
+ *
+ * Deliberately has **no `@inContext`**. Whether a region has stock is not a
+ * per-market question for this grid's purposes, and scoping it to a market the
+ * catalog is not published to made all 63 regions read "in due time".
  */
 export const COLLECTIONS_STATUS_QUERY = `#graphql
-  query SouvenirCollectionsStatus(
-    $first: Int!
-    $country: CountryCode
-    $language: LanguageCode
-  ) @inContext(country: $country, language: $language) {
+  query SouvenirCollectionsStatus($first: Int!) {
     collections(first: $first) {
       nodes {
         id
@@ -223,19 +254,43 @@ export async function loadCollection(
       );
       return null;
     }
-    if (!collection.products?.nodes?.length) {
+
+    let products = (collection.products?.nodes ?? []) as SouvenirCard[];
+
+    // Empty under the buyer's market usually means the catalog is not
+    // published to that market, not that the rack is bare. Ask the shop's
+    // default catalog before believing it.
+    if (!products.length) {
       console.warn(
-        `[msc:collection] "${handle}" resolved but returned 0 products ` +
-          `(products may not be published to this sales channel)`,
+        `[msc:collection] "${handle}" returned 0 products in the buyer market; ` +
+          `retrying without market context`,
       );
+      try {
+        const neutral = await storefront.query(COLLECTION_QUERY_NEUTRAL, {
+          variables: {handle, first},
+          cache: storefront.CacheShort(),
+        });
+        const neutralProducts = (neutral?.collection?.products?.nodes ??
+          []) as SouvenirCard[];
+        if (neutralProducts.length) {
+          console.warn(
+            `[msc:collection] "${handle}" has ${neutralProducts.length} ` +
+              `products in the default catalog — the buyer market is missing them`,
+          );
+          products = neutralProducts;
+        }
+      } catch (error) {
+        console.error(`[msc:collection] "${handle}" neutral retry failed`, error);
+      }
     }
+
     return {
       id: collection.id,
       handle: collection.handle,
       title: collection.title,
       description: collection.description ?? '',
       image: collection.image ?? null,
-      products: (collection.products?.nodes ?? []) as SouvenirCard[],
+      products,
     };
   } catch (error) {
     console.error(`[msc:collection] "${handle}" failed to load`, error);

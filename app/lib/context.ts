@@ -24,6 +24,28 @@ declare global {
 }
 
 /**
+ * Buyer market, and why this is not hardcoded.
+ *
+ * Every Storefront query in this app carries `@inContext(country: $country)`,
+ * which scopes results to that market's *catalog*. The Hydrogen skeleton ships
+ * `country: 'US'`, and with a Canada-first store whose products are published
+ * to the Canadian market that returns **zero products for every collection** —
+ * the collections resolve, they just come back empty. That is indistinguishable
+ * from "we have not opened this region yet", so the whole site fell back to
+ * placeholder artwork and "in due time" while 1,600 real products sat there.
+ *
+ * Oxygen sets `oxygen-buyer-country` from the edge location. We trust it when
+ * present and default to CA — the store's home market — rather than US.
+ */
+function detectI18n(request: Request): {language: 'EN'; country: 'CA' | 'US'} {
+  const header = request.headers.get('oxygen-buyer-country')?.toUpperCase();
+  return {
+    language: 'EN',
+    country: header === 'US' ? 'US' : 'CA',
+  };
+}
+
+/**
  * Creates Hydrogen context for React Router 7.9.x
  * Returns HydrogenRouterContextProvider with hybrid access patterns
  * */
@@ -52,8 +74,7 @@ export async function createHydrogenRouterContext(
       cache,
       waitUntil,
       session,
-      // Or detect from URL path based on locale subpath, cookies, or any other strategy
-      i18n: {language: 'EN', country: 'US'},
+      i18n: detectI18n(request),
       cart: {
         queryFragment: CART_QUERY_FRAGMENT,
       },

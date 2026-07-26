@@ -468,10 +468,57 @@ export type SouvenirCollectionQuery = {
   >;
 };
 
+export type SouvenirCollectionNeutralQueryVariables = StorefrontAPI.Exact<{
+  handle: StorefrontAPI.Scalars['String']['input'];
+  first: StorefrontAPI.Scalars['Int']['input'];
+}>;
+
+export type SouvenirCollectionNeutralQuery = {
+  collection?: StorefrontAPI.Maybe<
+    Pick<
+      StorefrontAPI.Collection,
+      'id' | 'handle' | 'title' | 'description'
+    > & {
+      image?: StorefrontAPI.Maybe<
+        Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>
+      >;
+      products: {
+        nodes: Array<
+          Pick<
+            StorefrontAPI.Product,
+            'id' | 'handle' | 'title' | 'availableForSale' | 'tags'
+          > & {
+            featuredImage?: StorefrontAPI.Maybe<
+              Pick<
+                StorefrontAPI.Image,
+                'id' | 'url' | 'altText' | 'width' | 'height'
+              >
+            >;
+            priceRange: {
+              minVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+              maxVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+            };
+            compareAtPriceRange: {
+              minVariantPrice: Pick<
+                StorefrontAPI.MoneyV2,
+                'amount' | 'currencyCode'
+              >;
+            };
+          }
+        >;
+      };
+    }
+  >;
+};
+
 export type SouvenirCollectionsStatusQueryVariables = StorefrontAPI.Exact<{
   first: StorefrontAPI.Scalars['Int']['input'];
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
 }>;
 
 export type SouvenirCollectionsStatusQuery = {
@@ -602,6 +649,21 @@ export type StorefrontDiagnosticQuery = {
   };
 };
 
+export type StorefrontDiagnosticNeutralQueryVariables = StorefrontAPI.Exact<{
+  [key: string]: never;
+}>;
+
+export type StorefrontDiagnosticNeutralQuery = {
+  collections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'handle'> & {
+        products: {nodes: Array<Pick<StorefrontAPI.Product, 'handle'>>};
+      }
+    >;
+  };
+  products: {nodes: Array<Pick<StorefrontAPI.Product, 'handle'>>};
+};
+
 export type PageQueryVariables = StorefrontAPI.Exact<{
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
@@ -666,7 +728,11 @@ interface GeneratedQueryTypes {
     return: SouvenirCollectionQuery;
     variables: SouvenirCollectionQueryVariables;
   };
-  '#graphql\n  query SouvenirCollectionsStatus(\n    $first: Int!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    collections(first: $first) {\n      nodes {\n        id\n        handle\n        title\n        products(first: 1) {\n          nodes {\n            id\n          }\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  query SouvenirCollectionNeutral($handle: String!, $first: Int!) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(first: $first) {\n        nodes {\n          ...SouvenirCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
+    return: SouvenirCollectionNeutralQuery;
+    variables: SouvenirCollectionNeutralQueryVariables;
+  };
+  '#graphql\n  query SouvenirCollectionsStatus($first: Int!) {\n    collections(first: $first) {\n      nodes {\n        id\n        handle\n        title\n        products(first: 1) {\n          nodes {\n            id\n          }\n        }\n      }\n    }\n  }\n': {
     return: SouvenirCollectionsStatusQuery;
     variables: SouvenirCollectionsStatusQueryVariables;
   };
@@ -677,6 +743,10 @@ interface GeneratedQueryTypes {
   '#graphql\n  query StorefrontDiagnostic($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    shop {\n      name\n      primaryDomain {\n        url\n      }\n    }\n    collections(first: 250) {\n      nodes {\n        handle\n        title\n        products(first: 3) {\n          nodes {\n            handle\n            title\n            featuredImage {\n              url\n            }\n            variants(first: 1) {\n              nodes {\n                id\n                availableForSale\n                price {\n                  amount\n                  currencyCode\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n    products(first: 5) {\n      nodes {\n        handle\n        title\n        featuredImage {\n          url\n        }\n      }\n    }\n  }\n': {
     return: StorefrontDiagnosticQuery;
     variables: StorefrontDiagnosticQueryVariables;
+  };
+  '#graphql\n  query StorefrontDiagnosticNeutral {\n    collections(first: 250) {\n      nodes {\n        handle\n        products(first: 1) {\n          nodes {\n            handle\n          }\n        }\n      }\n    }\n    products(first: 5) {\n      nodes {\n        handle\n      }\n    }\n  }\n': {
+    return: StorefrontDiagnosticNeutralQuery;
+    variables: StorefrontDiagnosticNeutralQueryVariables;
   };
   '#graphql\n  query Page(\n    $language: LanguageCode,\n    $country: CountryCode,\n    $handle: String!\n  )\n  @inContext(language: $language, country: $country) {\n    page(handle: $handle) {\n      handle\n      id\n      title\n      body\n      seo {\n        description\n        title\n      }\n    }\n  }\n': {
     return: PageQuery;

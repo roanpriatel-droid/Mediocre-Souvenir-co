@@ -2,7 +2,6 @@ import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {getTownByHandle, TIER_LABELS} from '~/lib/catalog';
 import {cardPriceLabel, type SouvenirCard as CardData} from '~/lib/shopify-collections';
-import {ShirtMockup} from '~/components/ShirtMockup';
 
 /**
  * A Shopify product on the rack tag.
@@ -42,11 +41,14 @@ export function SouvenirProductCard({
             sizes="(min-width: 1100px) 260px, (min-width: 700px) 33vw, 50vw"
             loading={loading}
           />
-        ) : town ? (
-          <ShirtMockup town={town} />
         ) : (
-          <div className="rack-card-art-empty" aria-hidden="true">
-            <span>MSC</span>
+          /* A real product with no photograph shows as a real product with no
+             photograph. Substituting the catalog's generative artwork here
+             made live products look like placeholders and hid the fact that
+             the store was returning them at all. */
+          <div className="rack-card-art-empty">
+            <span>{product.title.slice(0, 2).toUpperCase()}</span>
+            <small>Photo coming</small>
           </div>
         )}
       </div>

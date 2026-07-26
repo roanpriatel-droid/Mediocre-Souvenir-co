@@ -64,6 +64,31 @@ const DIAGNOSTIC_QUERY = `#graphql
   }
 ` as const;
 
+/**
+ * Same shape, no `@inContext`. Comparing the two answers is how we tell a
+ * market-catalog problem (products exist, this market cannot see them) from a
+ * sales-channel problem (nothing is published at all).
+ */
+const NEUTRAL_QUERY = `#graphql
+  query StorefrontDiagnosticNeutral {
+    collections(first: 250) {
+      nodes {
+        handle
+        products(first: 1) {
+          nodes {
+            handle
+          }
+        }
+      }
+    }
+    products(first: 5) {
+      nodes {
+        handle
+      }
+    }
+  }
+` as const;
+
 export async function loader({context}: Route.LoaderArgs) {
   const storeDomain = context.env.PUBLIC_STORE_DOMAIN ?? '(not set)';
   const expected = [
@@ -151,6 +176,27 @@ export async function loader({context}: Route.LoaderArgs) {
     report.productsWithoutImages = sampleProducts.filter((p) => !p.hasImage)
       .length;
 
+    // Cross-check against the shop's default catalog.
+    try {
+      const neutral = await context.storefront.query(NEUTRAL_QUERY, {
+        cache: context.storefront.CacheNone(),
+      });
+      const neutralNodes: any[] = neutral?.collections?.nodes ?? [];
+      report.neutralContext = {
+        buyerCountryInUse: context.storefront.i18n?.country ?? null,
+        collectionsVisible: neutralNodes.length,
+        collectionsWithProducts: neutralNodes.filter(
+          (n) => (n.products?.nodes?.length ?? 0) > 0,
+        ).length,
+        productsVisible: (neutral?.products?.nodes ?? []).length,
+      };
+    } catch (error) {
+      report.neutralContext = {
+        failed: true,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+
     report.verdict = buildVerdict(report);
   } catch (error) {
     report.queryFailed = true;
@@ -179,6 +225,28 @@ function buildVerdict(report: Record<string, unknown>): string {
       'falls back to the local town catalog — which is exactly the BC placeholder ' +
       'artwork you are seeing. Fix: link the storefront so Oxygen injects ' +
       'PUBLIC_STORE_DOMAIN and PUBLIC_STOREFRONT_API_TOKEN.'
+    );
+  }
+
+  // A market mismatch is the highest-signal finding: the catalog is there,
+  // the buyer's market just cannot see it.
+  const neutral = report.neutralContext as
+    | {collectionsWithProducts?: number; buyerCountryInUse?: string}
+    | undefined;
+  const contextualWithProducts =
+    (report.collectionsWithAtLeastOneProduct as number) ?? 0;
+  if (
+    neutral?.collectionsWithProducts &&
+    neutral.collectionsWithProducts > contextualWithProducts
+  ) {
+    return (
+      `MARKET MISMATCH. Under the buyer market (${neutral.buyerCountryInUse}) ` +
+      `only ${contextualWithProducts} collections have products, but the shop's ` +
+      `default catalog has ${neutral.collectionsWithProducts}. The products are ` +
+      'not published to that market, so every @inContext query returns empty ' +
+      'and the site reads it as "not open yet". Fix: in Shopify admin → ' +
+      'Settings → Markets, publish the catalog to that market — or the site now ' +
+      'falls back to the default catalog automatically.'
     );
   }
 
