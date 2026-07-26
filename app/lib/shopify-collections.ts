@@ -54,6 +54,17 @@ export function isRegionCollection(handle: string): boolean {
   return regionByHandle.has(handle);
 }
 
+/**
+ * Handles that belong to a page that already exists. Shopify stores publish
+ * these URLs by convention and inbound links assume them.
+ */
+export const COLLECTION_REDIRECTS: Record<string, string> = {
+  all: '/collections/all-souvenirs',
+  'all-towns': '/collections/all-souvenirs',
+  new: '/collections/new-arrivals',
+  frontpage: '/',
+};
+
 export function countryCollectionHandle(country: Region['country']): string {
   return country === 'Canada'
     ? UTILITY_COLLECTIONS.canada

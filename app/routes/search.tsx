@@ -1,32 +1,21 @@
 import {Form, Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/search';
-import {RackGrid} from '~/components/TownRackCard';
+import {SouvenirGrid} from '~/components/SouvenirCard';
 import {Reveal} from '~/components/Reveal';
-import {
-  DISPLAY_PRICE,
-  getAllTowns,
-  getCollections,
-  getOpenRegions,
-  regionPath,
-  REGIONS,
-  TIER_LABELS,
-  type CatalogCollection,
-  type Region,
-  type TownProduct,
-} from '~/lib/catalog';
+import {regionPath, REGIONS, type Region} from '~/lib/catalog';
+import {searchProducts} from '~/lib/shopify-search';
+import {type SouvenirCard} from '~/lib/shopify-collections';
 import {ARTICLES, type Article} from '~/lib/journal';
 import {searchSitePages, type SitePage} from '~/lib/site-pages';
 import {SITE_NAME} from '~/lib/seo';
 
 /**
- * Site search over the local catalog.
+ * Site search.
  *
- * People arrive at this site looking for one specific place, so the town match
- * is the whole job and everything else is a courtesy. Searching runs
- * server-side over the in-memory catalog — no Storefront API round trip, and
- * it stays instant well past 200 SKUs. Ranking is deliberately blunt: an exact
- * town name beats a prefix, a prefix beats a substring, and a town beats
- * everything else on the page.
+ * Products come from the Storefront API — ranking, matching and stock are
+ * Shopify's job and it does them across the whole catalogue. Regions, guides,
+ * policies and journal articles are this site's own navigation and are matched
+ * locally, because that is where they actually live.
  */
 
 export const meta: Route.MetaFunction = ({data}) => {
@@ -40,46 +29,43 @@ export const meta: Route.MetaFunction = ({data}) => {
     {
       name: 'description',
       content:
-        'Search every overlooked town on the rack, plus regions, collections, ' +
-        'guides, and the journal.',
+        'Search every souvenir on the rack, plus regions, guides, and the ' +
+        'journal.',
     },
     // Result pages are thin and endless — follow the links, index none of them.
     {name: 'robots', content: 'noindex, follow'},
   ];
 };
 
-const MAX_TOWNS = 24;
+const MAX_RESULTS = 24;
 
-export async function loader({request}: Route.LoaderArgs) {
+export async function loader({request, context}: Route.LoaderArgs) {
   const term = (new URL(request.url).searchParams.get('q') ?? '').trim();
-  const totalTowns = getAllTowns().length;
 
   if (!term) {
     return {
       term: '',
-      towns: [] as TownProduct[],
+      products: [] as SouvenirCard[],
+      totalCount: 0,
       regions: [] as Region[],
-      collections: [] as CatalogCollection[],
       articles: [] as Article[],
       pages: [] as SitePage[],
       total: 0,
-      totalTowns,
     };
   }
 
   const q = term.toLowerCase();
-  const towns = rankTowns(q).slice(0, MAX_TOWNS);
+
+  // Products come from the store. Regions, guides and the journal are this
+  // site's own navigation and genuinely do live in the repo.
+  const [{products, totalCount}] = await Promise.all([
+    searchProducts(context.storefront, term, MAX_RESULTS),
+  ]);
+
   const regions = REGIONS.filter(
     (region) =>
       region.name.toLowerCase().includes(q) || region.abbrev.toLowerCase() === q,
   ).slice(0, 6);
-  const collections = getCollections()
-    .filter((collection) =>
-      `${collection.title} ${collection.navLabel} ${collection.blurb}`
-        .toLowerCase()
-        .includes(q),
-    )
-    .slice(0, 6);
   const articles = ARTICLES.filter((article) =>
     `${article.title} ${article.dek} ${article.body.join(' ')}`
       .toLowerCase()
@@ -89,65 +75,17 @@ export async function loader({request}: Route.LoaderArgs) {
 
   return {
     term,
-    towns,
+    products,
+    totalCount,
     regions,
-    collections,
     articles,
     pages,
-    total:
-      towns.length +
-      regions.length +
-      collections.length +
-      articles.length +
-      pages.length,
-    totalTowns,
+    total: products.length + regions.length + articles.length + pages.length,
   };
 }
 
-/** Exact name, then prefix, then substring, then anything the record mentions. */
-function rankTowns(q: string): TownProduct[] {
-  const exact: TownProduct[] = [];
-  const prefix: TownProduct[] = [];
-  const contains: TownProduct[] = [];
-  const loose: TownProduct[] = [];
-
-  for (const town of getAllTowns()) {
-    const city = town.city.toLowerCase();
-    if (city === q) {
-      exact.push(town);
-    } else if (city.startsWith(q)) {
-      prefix.push(town);
-    } else if (city.includes(q)) {
-      contains.push(town);
-    } else if (
-      [
-        town.provinceState,
-        town.provinceAbbrev,
-        town.knownFor,
-        town.slogan?.big ?? '',
-        town.slogan?.lead ?? '',
-        town.slogan?.tail ?? '',
-        TIER_LABELS[town.populationTier],
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(q)
-    ) {
-      loose.push(town);
-    }
-  }
-
-  const byName = (a: TownProduct, b: TownProduct) => a.city.localeCompare(b.city);
-  return [
-    ...exact,
-    ...prefix.sort(byName),
-    ...contains.sort(byName),
-    ...loose.sort(byName),
-  ];
-}
-
 export default function SearchPage() {
-  const {term, towns, regions, collections, articles, pages, total, totalTowns} =
+  const {term, products, totalCount, regions, articles, pages, total} =
     useLoaderData<typeof loader>();
 
   return (
@@ -156,8 +94,8 @@ export default function SearchPage() {
         <span className="msc-kicker">The card catalog</span>
         <h1>Search</h1>
         <p className="province-copy">
-          {totalTowns} towns, every region, and everything written about them.
-          Type a place — yours, ideally.
+          Every souvenir in the shop, every region, and everything written
+          about them. Type a place — yours, ideally.
         </p>
 
         <Form
@@ -199,15 +137,17 @@ export default function SearchPage() {
             </span>
           </div>
 
-          {towns.length > 0 && (
+          {products.length > 0 && (
             <section className="search-section">
               <h2 className="search-section-head">
-                Towns
+                Souvenirs
                 <span>
-                  {towns.length} on the rack · {DISPLAY_PRICE} each
+                  {totalCount > products.length
+                    ? `showing ${products.length} of ${totalCount}`
+                    : `${products.length} on the rack`}
                 </span>
               </h2>
-              <RackGrid towns={towns} />
+              <SouvenirGrid products={products} eagerCount={4} />
             </section>
           )}
 
@@ -219,19 +159,6 @@ export default function SearchPage() {
                   to={regionPath(region)}
                   title={region.name}
                   meta={REGION_STATUS_NOTE[region.status]}
-                />
-              ))}
-            </ResultList>
-          )}
-
-          {collections.length > 0 && (
-            <ResultList title="Collections">
-              {collections.map((collection) => (
-                <ResultRow
-                  key={collection.handle}
-                  to={`/collections/${collection.handle}`}
-                  title={collection.title}
-                  meta={collection.metaDescription}
                 />
               ))}
             </ResultList>
@@ -305,7 +232,7 @@ function EmptyPrompt() {
         ))}
       </div>
       <p style={{marginTop: '18px', maxWidth: '52ch'}}>
-        Or start from the <Link to="/shop">full rack</Link>, the{' '}
+        Or start from the <Link to="/collections/all-souvenirs">full rack</Link>, the{' '}
         <Link to="/collections">collections</Link>, or{' '}
         <Link to="/provinces">the map of where we have gotten to</Link>.
       </p>
@@ -330,8 +257,8 @@ function NoResults({term}: {term: string}) {
         >
           Request {term}
         </Link>
-        <Link className="msc-button msc-button--ghost" to="/shop">
-          Browse all towns
+        <Link className="msc-button msc-button--ghost" to="/collections/all-souvenirs">
+          Browse all souvenirs
         </Link>
       </div>
     </div>

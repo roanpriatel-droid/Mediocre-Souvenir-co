@@ -2,8 +2,8 @@ import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/journal.$slug';
 import {useNonce} from '@shopify/hydrogen';
 import {getArticle} from '~/lib/journal';
-import {getTownByHandle} from '~/lib/catalog';
-import {RackGrid} from '~/components/TownRackCard';
+import {productsByHandle} from '~/lib/shopify-search';
+import {SouvenirGrid} from '~/components/SouvenirCard';
 import {SITE_NAME} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = ({data}) => {
@@ -19,12 +19,16 @@ export const meta: Route.MetaFunction = ({data}) => {
   ];
 };
 
-export async function loader({params, request}: Route.LoaderArgs) {
+export async function loader({params, request, context}: Route.LoaderArgs) {
   const article = getArticle(params.slug ?? '');
   if (!article) throw new Response(null, {status: 404});
-  const related = article.relatedHandles
-    .map(getTownByHandle)
-    .filter((t) => t !== undefined);
+
+  // Articles name towns; only the ones the store actually carries become
+  // links, so editorial can mention a place without promising a product.
+  const related = await productsByHandle(
+    context.storefront,
+    article.relatedHandles,
+  );
   return {article, related, origin: new URL(request.url).origin};
 }
 
@@ -62,11 +66,11 @@ export default function JournalArticle() {
         <section className="msc-section msc-page" aria-labelledby="mentioned">
           <div className="msc-section-rule">
             <h2 id="mentioned">Mentioned in this dispatch</h2>
-            <Link className="msc-section-note" to="/shop">
+            <Link className="msc-section-note" to="/collections/all-souvenirs">
               The whole rack →
             </Link>
           </div>
-          <RackGrid towns={related} />
+          <SouvenirGrid products={related} eagerCount={0} />
         </section>
       )}
       <div style={{height: '56px'}} />

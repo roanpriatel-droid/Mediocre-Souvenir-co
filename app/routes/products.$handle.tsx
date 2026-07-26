@@ -1,11 +1,9 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import {Link, useLoaderData} from 'react-router';
+import {Link, redirect, useLoaderData} from 'react-router';
 import type {Route} from './+types/products.$handle';
 import {Analytics, Image, useNonce} from '@shopify/hydrogen';
 import {AddToCartButton} from '~/components/AddToCartButton';
-import {ShirtMockup} from '~/components/ShirtMockup';
 import {ProductLadderStrip} from '~/components/CollectLadder';
-import {RackGrid} from '~/components/TownRackCard';
 import {SouvenirGrid} from '~/components/SouvenirCard';
 import {SizeTable} from '~/components/SizeGuide';
 import {useAside} from '~/components/Aside';
@@ -14,10 +12,8 @@ import {
   DISPLAY_PRICE,
   getRegion,
   getTownByHandle,
-  getTownsByRegion,
   localeFor,
   PRICE,
-  PURCHASABLE_STANDIN_QUERY,
   SIZES,
   TIER_LABELS,
   type TownProduct,
@@ -74,21 +70,23 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
   const {handle} = params;
   if (!handle) throw new Error('Expected product handle to be defined');
 
-  const town = getTownByHandle(handle);
   const live = await loadProduct(context.storefront, handle);
+  const town = getTownByHandle(handle);
 
-  // A handle we know nothing about in either source genuinely does not exist.
-  if (!town && !live) {
-    throw new Response(null, {status: 404});
-  }
-
-  // The stand-in variant is only needed when there is no real product yet.
-  let standInVariant = null;
+  // A product page must be a real, purchasable product. There is no stand-in
+  // any more: this used to check out against a mock.shop variant, which meant
+  // a page could look buyable while being attached to nothing.
   if (!live) {
-    const {product} = await context.storefront.query(PURCHASABLE_STANDIN_QUERY, {
-      cache: context.storefront.CacheLong(),
-    });
-    standInVariant = product?.variants.nodes[0] ?? null;
+    // A handle we recognise as a town but the store does not carry sends the
+    // reader to that region rather than a dead end.
+    if (town) {
+      const fallbackRegion = getRegion(town.provinceSlug);
+      throw redirect(
+        fallbackRegion ? `/collections/${fallbackRegion.slug}` : '/collections/all-souvenirs',
+        302,
+      );
+    }
+    throw new Response(null, {status: 404});
   }
 
   // "More from [region]" — the region collection when we can identify it,
@@ -110,14 +108,8 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
     handle,
     town: town ?? null,
     live,
-    standInVariant,
     region: region ?? null,
     moreFromRegion,
-    neighbours: town
-      ? getTownsByRegion(town.provinceSlug)
-          .filter((t) => t.handle !== town.handle)
-          .slice(0, 4)
-      : [],
     origin: new URL(request.url).origin,
   };
 }
@@ -127,10 +119,8 @@ export default function ProductPage() {
     handle,
     town,
     live,
-    standInVariant,
     region,
     moreFromRegion,
-    neighbours,
     origin,
   } = useLoaderData<typeof loader>();
 
@@ -140,9 +130,9 @@ export default function ProductPage() {
   const optionsRef = useRef<HTMLDivElement>(null);
 
   // Live sizes when the store defines them; the catalog's S–3XL otherwise.
-  const optionName = live ? sizeOptionName(live) : null;
+  const optionName = sizeOptionName(live);
   const sizes: string[] = useMemo(() => {
-    if (live && optionName) {
+    if (optionName) {
       const option = live.options.find((o) => o.name === optionName);
       if (option?.values.length) return option.values;
     }
@@ -150,47 +140,39 @@ export default function ProductPage() {
   }, [live, optionName]);
 
   const [size, setSize] = useState<string | null>(null);
-  const selectedVariant = live && size ? variantForSize(live, optionName, size) : undefined;
+  const selectedVariant = size ? variantForSize(live, optionName, size) : undefined;
 
   // Price follows the selection: a chosen variant's real price, else the
   // product's from-price, else the catalog's flat display price.
   const priceLabel = selectedVariant
     ? formatMoney(selectedVariant.price)
-    : live
-      ? formatMoney(live.priceRange.minVariantPrice)
-      : DISPLAY_PRICE;
+    : formatMoney(live.priceRange.minVariantPrice);
   const compareAt = selectedVariant?.compareAtPrice;
   const onSale =
     compareAt && Number(compareAt.amount) > Number(selectedVariant!.price.amount);
 
-  const merchandiseId = selectedVariant?.id ?? standInVariant?.id ?? null;
-  const purchasable = live
-    ? selectedVariant
-      ? selectedVariant.availableForSale
-      : live.availableForSale
-    : Boolean(standInVariant?.availableForSale);
+  const merchandiseId = selectedVariant?.id ?? null;
+  const purchasable = selectedVariant
+    ? selectedVariant.availableForSale
+    : live.availableForSale;
 
-  const displayTitle = town ? townH1(town) : live?.title ?? 'Souvenir';
-  const shortName = town?.city ?? live?.title ?? 'This souvenir';
+  const displayTitle = town ? townH1(town) : live.title;
+  const shortName = town?.city ?? live.title;
 
-  // Line attributes still carry the town on stand-in checkouts; a real variant
-  // already encodes size, so we only add what the variant does not say.
+  // The variant carries size, colour and price. Town attributes are kept only
+  // as order-desk context, never as the thing being bought.
   const cartLines =
-    merchandiseId && (size || !live)
+    merchandiseId && size
       ? [
           {
             merchandiseId,
             quantity: 1,
-            attributes: [
-              ...(town
-                ? [
-                    {key: 'Town', value: town.city},
-                    {key: 'Province', value: town.provinceState},
-                    {key: 'Colorway', value: COLORWAY_LABELS[town.colorway]},
-                  ]
-                : []),
-              ...(!selectedVariant && size ? [{key: 'Size', value: size}] : []),
-            ],
+            attributes: town
+              ? [
+                  {key: 'Town', value: town.city},
+                  {key: 'Province', value: town.provinceState},
+                ]
+              : [],
           },
         ]
       : [];
@@ -385,7 +367,7 @@ export default function ProductPage() {
       </div>
 
       {/* MORE FROM [REGION] */}
-      {(moreFromRegion.length > 0 || neighbours.length > 0) && (
+      {moreFromRegion.length > 0 && (
         <section className="msc-section msc-page" aria-labelledby="more-from">
           <div className="msc-section-rule">
             <h2 id="more-from">
@@ -398,11 +380,7 @@ export default function ProductPage() {
               All {region?.name ?? 'souvenirs'} →
             </Link>
           </div>
-          {moreFromRegion.length > 0 ? (
-            <SouvenirGrid products={moreFromRegion} eagerCount={0} />
-          ) : (
-            <RackGrid towns={neighbours} />
-          )}
+          <SouvenirGrid products={moreFromRegion} eagerCount={0} />
           <p
             className="msc-kicker msc-kicker--navy"
             style={{marginTop: '18px', textAlign: 'center'}}
@@ -481,17 +459,17 @@ export default function ProductPage() {
         />
       )}
 
-      {(selectedVariant || standInVariant) && (
+      {selectedVariant && (
         <Analytics.ProductView
           data={{
             products: [
               {
-                id: selectedVariant?.id ?? standInVariant!.id,
+                id: live.id,
                 title: displayTitle,
-                price: selectedVariant?.price.amount ?? PRICE.amount,
-                vendor: live?.vendor || 'Mediocre Souvenir Co.',
-                variantId: selectedVariant?.id ?? standInVariant!.id,
-                variantTitle: selectedVariant?.title ?? shortName,
+                price: selectedVariant.price.amount,
+                vendor: live.vendor || 'Mediocre Souvenir Co.',
+                variantId: selectedVariant.id,
+                variantTitle: selectedVariant.title,
                 quantity: 1,
               },
             ],
@@ -555,12 +533,18 @@ function ProductGallery({
           ),
         });
       });
-    } else if (town) {
-      out.push({key: 'front', label: 'Front', node: <ShirtMockup town={town} />});
+    } else {
       out.push({
-        key: 'detail',
-        label: 'Print detail',
-        node: <ShirtMockup town={town} view="detail" />,
+        key: 'pending',
+        label: 'Front',
+        node: (
+          <div className="product-photo-pending">
+            <span>Photograph coming</span>
+            <small>
+              The shirt exists. The photograph of it is running late.
+            </small>
+          </div>
+        ),
       });
     }
 

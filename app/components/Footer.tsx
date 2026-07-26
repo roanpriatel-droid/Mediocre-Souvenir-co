@@ -52,7 +52,7 @@ export function Footer() {
               <Link to="/provinces">All 63 regions</Link>
             </li>
             <li>
-              <Link to="/shop">Town index</Link>
+              <Link to="/collections">All collections</Link>
             </li>
             <li>
               <Link to="/search">Search</Link>

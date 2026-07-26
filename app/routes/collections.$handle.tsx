@@ -5,18 +5,10 @@ import type {Route} from './+types/collections.$handle';
 import {SouvenirProductCard} from '~/components/SouvenirCard';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {RegionWaitlist} from '~/components/RegionWaitlist';
-import {RackGrid} from '~/components/TownRackCard';
 import {Reveal} from '~/components/Reveal';
+import {DISPLAY_PRICE, type Region} from '~/lib/catalog';
 import {
   COLLECTION_REDIRECTS,
-  collectionGroupLabel,
-  DISPLAY_PRICE,
-  getCollection,
-  getCollections,
-  getCollectionTowns,
-  type Region,
-} from '~/lib/catalog';
-import {
   countryCollectionHandle,
   isRegionOpen,
   loadCollectionPage,
@@ -84,7 +76,6 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   if (redirectTo) throw redirect(redirectTo, 301);
 
   const region = regionForCollectionHandle(handle);
-  const localCollection = getCollection(handle);
 
   // Sort and availability are resolved by the API. With 1,600 products a
   // client-side sort would only reorder the page you happen to be on.
@@ -124,9 +115,6 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       heading: shopifyCollection?.title || `${region.name}`,
       description,
       products,
-      localTowns: [],
-      siblings: [],
-      groupLabel: null,
       origin,
       seo: {
         title,
@@ -149,40 +137,12 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       heading: shopifyCollection.title,
       description: shopifyCollection.description,
       products,
-      localTowns: [],
-      siblings: [],
-      groupLabel: null,
       origin,
       seo: {
         title: `${shopifyCollection.title} — ${products.length} Souvenir T-Shirts | ${SITE_NAME}`,
         description:
           shopifyCollection.description ||
           `${shopifyCollection.title} — faux-vintage souvenir t-shirts for overlooked towns, ${DISPLAY_PRICE} each.`,
-        canonical: `${origin}/collections/${handle}`,
-      },
-    };
-  }
-
-  // ── Local curated rack ───────────────────────────────────────────────
-  if (localCollection) {
-    return {
-      kind: 'local' as const,
-      connection: null,
-      handle,
-      region: null,
-      open: true,
-      heading: localCollection.title,
-      description: localCollection.blurb,
-      products: [],
-      localTowns: getCollectionTowns(handle),
-      siblings: getCollections()
-        .filter((c) => c.group === localCollection.group && c.handle !== handle)
-        .map((c) => ({handle: c.handle, navLabel: c.navLabel})),
-      groupLabel: collectionGroupLabel(localCollection.group),
-      origin,
-      seo: {
-        title: `${localCollection.navLabel} Souvenir T-Shirts | ${SITE_NAME}`,
-        description: localCollection.metaDescription,
         canonical: `${origin}/collections/${handle}`,
       },
     };
@@ -221,13 +181,7 @@ export default function CollectionPage() {
 
       <div className="province-header">
         <span className="msc-kicker">
-          {isRegion
-            ? data.open
-              ? 'Now open'
-              : 'Coming in due time'
-            : data.kind === 'local'
-              ? data.groupLabel
-              : 'The rack'}
+          {isRegion ? (data.open ? 'Now open' : 'Coming in due time') : 'The rack'}
         </span>
         <h1>{data.heading}</h1>
         {data.description && (
@@ -241,12 +195,7 @@ export default function CollectionPage() {
         )}
       </div>
 
-      {/* Local curated racks (colorway/template/town-size) are the only ones
-          that render town artwork. Store-backed racks show store products or
-          an honest empty state — never catalog stand-ins. */}
-      {data.kind === 'local' ? (
-        <LocalRack data={data} />
-      ) : showWaitlist ? (
+      {showWaitlist ? (
         <RegionWaitlist region={data.region as Region} />
       ) : visible.length > 0 ? (
         <>
@@ -395,38 +344,6 @@ function Breadcrumbs({
         </>
       )}
     </nav>
-  );
-}
-
-function LocalRack({data}: {data: {handle: string; localTowns: any[]; siblings: {handle: string; navLabel: string}[]; groupLabel: string | null}}) {
-  return (
-    <>
-      {data.localTowns.length > 0 ? (
-        <RackGrid towns={data.localTowns} />
-      ) : (
-        <EmptyRack handle={data.handle} filtered={false} />
-      )}
-      {data.siblings.length > 0 && (
-        <Reveal>
-          <section className="collection-siblings">
-            <span className="msc-kicker msc-kicker--navy">
-              {data.groupLabel}
-            </span>
-            <div className="collection-chip-row">
-              {data.siblings.map((sibling) => (
-                <Link
-                  key={sibling.handle}
-                  className="collection-chip"
-                  to={`/collections/${sibling.handle}`}
-                >
-                  {sibling.navLabel}
-                </Link>
-              ))}
-            </div>
-          </section>
-        </Reveal>
-      )}
-    </>
   );
 }
 

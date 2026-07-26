@@ -2,7 +2,6 @@ import type {CartLineUpdateInput} from '@shopify/hydrogen/storefront-api-types';
 import type {CartLayout, LineItemChildrenMap} from '~/components/CartMain';
 import {CartForm, Image, type OptimisticCartLine} from '@shopify/hydrogen';
 import {useVariantUrl} from '~/lib/variants';
-import {getAllTowns} from '~/lib/catalog';
 import {Link} from 'react-router';
 import {ProductPrice} from './ProductPrice';
 import {useAside} from './Aside';
@@ -31,11 +30,10 @@ export function CartLineItem({
   const {id, merchandise} = line;
   const {product, title, image, selectedOptions} = merchandise;
   const variantUrl = useVariantUrl(product.handle, selectedOptions);
-  // town tees ride on a stand-in variant; their identity lives in attributes
-  const townAttr = line.attributes?.find((a) => a.key === 'Town')?.value;
-  const town = townAttr ? getAllTowns().find((t) => t.city === townAttr) : undefined;
-  const lineItemUrl = town ? `/products/${town.handle}` : variantUrl;
-  const displayTitle = town ? `${town.city} T-Shirt` : product.title;
+  // Lines carry real products now. Relabelling them from a Town attribute was
+  // a workaround for the stand-in variant and would misname a real product.
+  const lineItemUrl = variantUrl;
+  const displayTitle = product.title;
   const {close} = useAside();
   const lineItemChildren = childrenMap[id];
   const childrenLabelId = `cart-line-children-${id}`;

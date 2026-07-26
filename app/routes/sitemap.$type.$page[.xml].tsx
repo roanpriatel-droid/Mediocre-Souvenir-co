@@ -1,16 +1,24 @@
-import {redirect} from 'react-router';
+import type {Route} from './+types/sitemap.$type.$page[.xml]';
+import {getSitemap} from '@shopify/hydrogen';
 
 /**
- * Shopify's paginated sitemap shards (/sitemap/products/1.xml).
- *
- * The catalog is local, so `getSitemap` has nothing to read and the real
- * sitemap is the single catalog-driven /sitemap.xml — which comfortably fits
- * the whole catalog well past 200 SKUs. This route stays only to forward the
- * conventional URLs rather than error on them.
- *
- * If the catalog ever moves into Shopify and outgrows one file, restore the
- * `getSitemap` implementation from git history and index the shards here.
+ * Generated sitemaps for store resources — products above all, of which there
+ * are far too many for the hand-built /sitemap.xml. Hydrogen pages these
+ * straight from the Storefront API.
  */
-export async function loader() {
-  return redirect('/sitemap.xml', 301);
+export async function loader({
+  request,
+  params,
+  context: {storefront},
+}: Route.LoaderArgs) {
+  const response = await getSitemap({
+    storefront,
+    request,
+    params,
+    locales: ['EN-CA', 'EN-US'],
+    getLink: ({type, baseUrl, handle}) => `${baseUrl}/${type}/${handle}`,
+  });
+
+  response.headers.set('Cache-Control', `max-age=${60 * 60 * 24}`);
+  return response;
 }

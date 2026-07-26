@@ -3,25 +3,6 @@
 /* eslint-disable */
 import type * as StorefrontAPI from '@shopify/hydrogen/storefront-api-types';
 
-export type PurchasableStandinQueryVariables = StorefrontAPI.Exact<{
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
-}>;
-
-export type PurchasableStandinQuery = {
-  product?: StorefrontAPI.Maybe<
-    Pick<StorefrontAPI.Product, 'id' | 'title'> & {
-      variants: {
-        nodes: Array<
-          Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
-            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
-          }
-        >;
-      };
-    }
-  >;
-};
-
 export type MoneyFragment = Pick<
   StorefrontAPI.MoneyV2,
   'currencyCode' | 'amount'
@@ -670,6 +651,173 @@ export type SouvenirProductQuery = {
   >;
 };
 
+export type SearchMoneyFragment = Pick<
+  StorefrontAPI.MoneyV2,
+  'amount' | 'currencyCode'
+>;
+
+export type SearchCardFragment = Pick<
+  StorefrontAPI.Product,
+  'id' | 'handle' | 'title' | 'availableForSale' | 'tags'
+> & {
+  featuredImage?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
+  >;
+  priceRange: {
+    minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+    maxVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+  };
+  compareAtPriceRange: {
+    minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+  };
+};
+
+export type SouvenirSearchQueryVariables = StorefrontAPI.Exact<{
+  query: StorefrontAPI.Scalars['String']['input'];
+  first: StorefrontAPI.Scalars['Int']['input'];
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type SouvenirSearchQuery = {
+  search: Pick<StorefrontAPI.SearchResultItemConnection, 'totalCount'> & {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'availableForSale' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+      }
+    >;
+  };
+};
+
+export type SouvenirSearchNeutralQueryVariables = StorefrontAPI.Exact<{
+  query: StorefrontAPI.Scalars['String']['input'];
+  first: StorefrontAPI.Scalars['Int']['input'];
+}>;
+
+export type SouvenirSearchNeutralQuery = {
+  search: Pick<StorefrontAPI.SearchResultItemConnection, 'totalCount'> & {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'availableForSale' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+      }
+    >;
+  };
+};
+
+export type SouvenirProductsByHandleQueryVariables = StorefrontAPI.Exact<{
+  query: StorefrontAPI.Scalars['String']['input'];
+  first: StorefrontAPI.Scalars['Int']['input'];
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type SouvenirProductsByHandleQuery = {
+  products: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'availableForSale' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+      }
+    >;
+  };
+};
+
+export type SouvenirPredictiveQueryVariables = StorefrontAPI.Exact<{
+  query: StorefrontAPI.Scalars['String']['input'];
+  limit: StorefrontAPI.Scalars['Int']['input'];
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type SouvenirPredictiveQuery = {
+  predictiveSearch?: StorefrontAPI.Maybe<{
+    products: Array<
+      Pick<StorefrontAPI.Product, 'id' | 'handle' | 'title'> & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.Image, 'url' | 'altText'>
+        >;
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+      }
+    >;
+  }>;
+};
+
 export type StorefrontDiagnosticQueryVariables = StorefrontAPI.Exact<{
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
@@ -779,10 +927,6 @@ export type PolicyQuery = {
 };
 
 interface GeneratedQueryTypes {
-  '#graphql\n  query PurchasableStandin($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    product(handle: "men-t-shirt") {\n      id\n      title\n      variants(first: 1) {\n        nodes {\n          id\n          availableForSale\n          price {\n            amount\n            currencyCode\n          }\n        }\n      }\n    }\n  }\n': {
-    return: PurchasableStandinQuery;
-    variables: PurchasableStandinQueryVariables;
-  };
   '#graphql\n  fragment Shop on Shop {\n    id\n    name\n    description\n    primaryDomain {\n      url\n    }\n    brand {\n      logo {\n        image {\n          url\n        }\n      }\n    }\n  }\n  query Header(\n    $country: CountryCode\n    $headerMenuHandle: String!\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    shop {\n      ...Shop\n    }\n    menu(handle: $headerMenuHandle) {\n      ...Menu\n    }\n  }\n  #graphql\n  fragment MenuItem on MenuItem {\n    id\n    resourceId\n    tags\n    title\n    type\n    url\n  }\n  fragment ChildMenuItem on MenuItem {\n    ...MenuItem\n  }\n  fragment ParentMenuItem on MenuItem {\n    ...MenuItem\n    items {\n      ...ChildMenuItem\n    }\n  }\n  fragment Menu on Menu {\n    id\n    items {\n      ...ParentMenuItem\n    }\n  }\n\n': {
     return: HeaderQuery;
     variables: HeaderQueryVariables;
@@ -810,6 +954,22 @@ interface GeneratedQueryTypes {
   '#graphql\n  fragment SouvenirProductMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SouvenirProductImage on Image {\n    id\n    url\n    altText\n    width\n    height\n  }\n  query SouvenirProduct(\n    $handle: String!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      handle\n      title\n      description\n      vendor\n      availableForSale\n      featuredImage {\n        ...SouvenirProductImage\n      }\n      images(first: 8) {\n        nodes {\n          ...SouvenirProductImage\n        }\n      }\n      options {\n        name\n        optionValues {\n          name\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          ...SouvenirProductMoney\n        }\n        maxVariantPrice {\n          ...SouvenirProductMoney\n        }\n      }\n      variants(first: 100) {\n        nodes {\n          id\n          title\n          availableForSale\n          quantityAvailable\n          price {\n            ...SouvenirProductMoney\n          }\n          compareAtPrice {\n            ...SouvenirProductMoney\n          }\n          selectedOptions {\n            name\n            value\n          }\n          image {\n            ...SouvenirProductImage\n          }\n        }\n      }\n      collections(first: 20) {\n        nodes {\n          handle\n          title\n        }\n      }\n      seo {\n        title\n        description\n      }\n    }\n  }\n': {
     return: SouvenirProductQuery;
     variables: SouvenirProductQueryVariables;
+  };
+  '#graphql\n  query SouvenirSearch(\n    $query: String!\n    $first: Int!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    search(query: $query, first: $first, types: PRODUCT) {\n      totalCount\n      nodes {\n        ...on Product {\n          ...SearchCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n  }\n\n': {
+    return: SouvenirSearchQuery;
+    variables: SouvenirSearchQueryVariables;
+  };
+  '#graphql\n  query SouvenirSearchNeutral($query: String!, $first: Int!) {\n    search(query: $query, first: $first, types: PRODUCT) {\n      totalCount\n      nodes {\n        ...on Product {\n          ...SearchCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n  }\n\n': {
+    return: SouvenirSearchNeutralQuery;
+    variables: SouvenirSearchNeutralQueryVariables;
+  };
+  '#graphql\n  query SouvenirProductsByHandle(\n    $query: String!\n    $first: Int!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    products(first: $first, query: $query) {\n      nodes {\n        ...SearchCard\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n  }\n\n': {
+    return: SouvenirProductsByHandleQuery;
+    variables: SouvenirProductsByHandleQueryVariables;
+  };
+  '#graphql\n  query SouvenirPredictive(\n    $query: String!\n    $limit: Int!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    predictiveSearch(query: $query, limit: $limit, types: [PRODUCT]) {\n      products {\n        id\n        handle\n        title\n        featuredImage {\n          url\n          altText\n        }\n        priceRange {\n          minVariantPrice {\n            amount\n            currencyCode\n          }\n        }\n      }\n    }\n  }\n': {
+    return: SouvenirPredictiveQuery;
+    variables: SouvenirPredictiveQueryVariables;
   };
   '#graphql\n  query StorefrontDiagnostic($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    shop {\n      name\n      primaryDomain {\n        url\n      }\n    }\n    collections(first: 250) {\n      nodes {\n        handle\n        title\n        products(first: 3) {\n          nodes {\n            handle\n            title\n            featuredImage {\n              url\n            }\n            variants(first: 1) {\n              nodes {\n                id\n                availableForSale\n                price {\n                  amount\n                  currencyCode\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n    products(first: 5) {\n      nodes {\n        handle\n        title\n        featuredImage {\n          url\n        }\n      }\n    }\n  }\n': {
     return: StorefrontDiagnosticQuery;

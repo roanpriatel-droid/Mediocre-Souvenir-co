@@ -82,5 +82,6 @@ Disallow: /request-your-town?*
 Disallow: /search
 Allow: /search/
 Disallow: /search/?*
-${sitemapUrl ? `Sitemap: ${sitemapUrl}` : ''}`;
+${sitemapUrl ? `Sitemap: ${sitemapUrl}` : ''}
+${sitemapUrl ? `Sitemap: ${sitemapUrl.replace('/sitemap.xml', '/sitemap/products/1.xml')}` : ''}`;
 }

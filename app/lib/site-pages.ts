@@ -50,18 +50,10 @@ const CORE_PAGES: SitePage[] = [
     group: 'The Co.',
   },
   {
-    path: '/shop',
-    title: 'Town index',
-    summary:
-      'Every town we have drawn, filterable by region, town size, design template, and colorway.',
-    keywords: ['index', 'a-z', 'towns', 'filter', 'colorway', 'template'],
-    group: 'The Co.',
-  },
-  {
     path: '/collections',
     title: 'Collections',
     summary:
-      'The catalog filed the way a gift shop files it — by template, by colorway, by size of the place.',
+      'Every rack in the shop: all souvenirs, new arrivals, what is open now, and one per region.',
     keywords: ['racks', 'curated', 'filed', 'categories'],
     group: 'The Co.',
   },

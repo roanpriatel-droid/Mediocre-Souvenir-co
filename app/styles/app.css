@@ -3577,3 +3577,67 @@ select:focus-visible,
 .collection-pagination a:empty {
   display: none;
 }
+
+/* ---------- missing-photography states ---------- */
+
+/* A real product with no photograph says so, rather than borrowing artwork
+   from a different system and looking like a placeholder. */
+.rack-card-art-empty {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--msc-cream);
+  border: 2px dashed var(--msc-navy);
+}
+
+.rack-card-art-empty span {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--msc-navy);
+  opacity: 0.55;
+  letter-spacing: 3px;
+}
+
+.rack-card-art-empty small {
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--msc-navy);
+  opacity: 0.7;
+}
+
+.product-photo-pending {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 24px;
+  background: var(--msc-cream-deep);
+  border: 2px dashed var(--msc-navy);
+}
+
+.product-photo-pending span {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 3vw, 28px);
+  color: var(--msc-navy);
+}
+
+.product-photo-pending small {
+  font-size: 14px;
+  max-width: 28ch;
+  opacity: 0.8;
+}
+
+/* "See everything for …" row at the foot of the typeahead */
+.town-search-result--all {
+  border-top: 2px dashed var(--msc-navy);
+  font-weight: 700;
+}

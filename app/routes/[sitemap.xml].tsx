@@ -1,22 +1,15 @@
 import type {Route} from './+types/[sitemap.xml]';
-import {
-  getAllTowns,
-  getCollections,
-  getOpenRegions,
-  REGIONS,
-} from '~/lib/catalog';
+import {getOpenRegions, REGIONS} from '~/lib/catalog';
 import {UTILITY_COLLECTIONS} from '~/lib/shopify-collections';
 import {ARTICLES} from '~/lib/journal';
 import {sitemapPagePaths} from '~/lib/site-pages';
 
 /**
- * Catalog-driven sitemap. Every town product page, region page, collection,
- * article, and static page is listed the moment it exists — the static list
- * lives in app/lib/site-pages.ts, which site search reads from too, so a new
- * page cannot be searchable but unlisted (or the reverse).
+ * Pages, collections and journal articles — everything this repo knows about.
  *
- * No Shopify sitemap dependency while the catalog is local. (The mock.shop
- * sitemap.$type.$page route still exists but nothing links to it.)
+ * Products are NOT here. There are ~1,600 of them and they live in Shopify, so
+ * they get their own generated sitemap at /sitemap/products/1.xml (see
+ * sitemap.$type.$page[.xml].tsx). robots.txt points crawlers at both.
  */
 export async function loader({request}: Route.LoaderArgs) {
   const origin = new URL(request.url).origin;
@@ -43,17 +36,6 @@ export async function loader({request}: Route.LoaderArgs) {
         ? 'weekly'
         : 'monthly',
       priority: region.status === 'open' ? '0.9' : '0.6',
-    })),
-    // Locally curated racks (template, colorway, town size).
-    ...getCollections().map((collection) => ({
-      path: `/collections/${collection.handle}`,
-      changefreq: 'weekly',
-      priority: '0.7',
-    })),
-    ...getAllTowns().map((town) => ({
-      path: `/products/${town.handle}`,
-      changefreq: 'weekly',
-      priority: '0.9',
     })),
     ...ARTICLES.map((article) => ({
       path: `/journal/${article.slug}`,

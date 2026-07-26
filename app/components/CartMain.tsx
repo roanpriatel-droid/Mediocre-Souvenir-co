@@ -1,11 +1,14 @@
+import {useEffect} from 'react';
 import {useOptimisticCart, type OptimisticCart} from '@shopify/hydrogen';
-import {Link} from 'react-router';
+import {Link, useFetcher} from 'react-router';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
 import {CartLineItem, type CartLine} from '~/components/CartLineItem';
 import {CartSummary} from './CartSummary';
-import {ShirtMockup} from '~/components/ShirtMockup';
-import {DISPLAY_PRICE, getAllTowns, getMostOverlooked} from '~/lib/catalog';
+import {
+  cardPriceLabel,
+  type SouvenirCard as SouvenirCardData,
+} from '~/lib/shopify-collections';
 
 export type CartLayout = 'page' | 'aside';
 
@@ -90,20 +93,31 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
 }
 
 /**
- * One honest upsell: a town not already in the cart, framed by the real
- * ladder discount. Links to the PDP (size still needs choosing there).
+ * One honest upsell, drawn from the store rather than the local catalog —
+ * suggesting a town we could not actually sell was the old behaviour.
  */
 function CartUpsell({cart}: {cart: OptimisticCart<CartApiQueryFragment | null>}) {
   const {close} = useAside();
-  const inCart = new Set(
-    (cart?.lines?.nodes ?? [])
-      .map((line) => line.attributes?.find((a) => a.key === 'Town')?.value)
-      .filter(Boolean),
-  );
-  const suggestion =
-    getMostOverlooked().find((t) => !inCart.has(t.city)) ??
-    getAllTowns().find((t) => !inCart.has(t.city));
+  const fetcher = useFetcher<{suggestion: SouvenirCardData | null}>();
+
+  const inCart = (cart?.lines?.nodes ?? [])
+    .map((line) =>
+      line.merchandise && 'product' in line.merchandise
+        ? line.merchandise.product?.handle
+        : undefined,
+    )
+    .filter(Boolean) as string[];
+
+  const key = inCart.join(',');
+  useEffect(() => {
+    void fetcher.load(`/api/upsell?exclude=${encodeURIComponent(key)}`);
+    // fetcher identity changes every render; depending on it would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  const suggestion = fetcher.data?.suggestion;
   if (!suggestion) return null;
+
   const qty = cart?.totalQuantity ?? 0;
   const line =
     qty === 1
@@ -119,14 +133,25 @@ function CartUpsell({cart}: {cart: OptimisticCart<CartApiQueryFragment | null>})
       onClick={close}
       prefetch="intent"
     >
-      <ShirtMockup town={suggestion} className="cart-upsell-art" />
+      {suggestion.featuredImage ? (
+        <img
+          className="cart-upsell-art"
+          src={suggestion.featuredImage.url}
+          alt={suggestion.featuredImage.altText || suggestion.title}
+          loading="lazy"
+          width={72}
+          height={72}
+        />
+      ) : (
+        <div className="cart-upsell-art rack-card-art-empty" aria-hidden="true">
+          <span>{suggestion.title.slice(0, 2).toUpperCase()}</span>
+        </div>
+      )}
       <div className="cart-upsell-copy">
         <span className="msc-kicker">Add another town you&rsquo;ll never visit</span>
-        <strong>
-          {suggestion.city}, {suggestion.provinceAbbrev}
-        </strong>
+        <strong>{suggestion.title}</strong>
         <span className="cart-upsell-price">
-          {DISPLAY_PRICE} · {line}
+          {cardPriceLabel(suggestion)} · {line}
         </span>
       </div>
     </Link>

@@ -2,7 +2,9 @@ import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/lookbook';
 import {Reveal} from '~/components/Reveal';
 import {ShirtMockup} from '~/components/ShirtMockup';
-import {DISPLAY_PRICE, getTownByHandle, TIER_LABELS} from '~/lib/catalog';
+import {getTownByHandle, TIER_LABELS} from '~/lib/catalog';
+import {productsByHandle} from '~/lib/shopify-search';
+import {cardPriceLabel} from '~/lib/shopify-collections';
 import {SITE_NAME} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => [
@@ -49,10 +51,19 @@ const STOPS: {handle: string; km: string; note: string}[] = [
   },
 ];
 
-export async function loader(_args: Route.LoaderArgs) {
+export async function loader({context}: Route.LoaderArgs) {
+  // The road trip is editorial and the towns are real, but a stop only becomes
+  // a shoppable link when the store actually carries that shirt.
+  const products = await productsByHandle(
+    context.storefront,
+    STOPS.map((stop) => stop.handle),
+  );
+  const byHandle = new Map(products.map((product) => [product.handle, product]));
+
   const stops = STOPS.map((stop) => ({
     ...stop,
     town: getTownByHandle(stop.handle),
+    product: byHandle.get(stop.handle) ?? null,
   })).filter((s) => s.town !== undefined);
   return {stops};
 }
@@ -92,12 +103,18 @@ export default function Lookbook() {
                   {stop.town!.estYear}
                 </span>
                 <span className="msc-marker">{stop.note}</span>
-                <Link
-                  className="msc-button"
-                  to={`/products/${stop.town!.handle}`}
-                >
-                  This stop · {DISPLAY_PRICE}
-                </Link>
+                {stop.product ? (
+                  <Link className="msc-button" to={`/products/${stop.product.handle}`}>
+                    This stop · {cardPriceLabel(stop.product)}
+                  </Link>
+                ) : (
+                  <Link
+                    className="msc-button msc-button--ghost"
+                    to="/collections/british-columbia"
+                  >
+                    See the BC rack
+                  </Link>
+                )}
               </div>
             </Reveal>
           </div>
