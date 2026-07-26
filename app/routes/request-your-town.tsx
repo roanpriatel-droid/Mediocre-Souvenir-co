@@ -1,4 +1,4 @@
-import {Form, useActionData, useNavigation} from 'react-router';
+import {Form, useActionData, useNavigation, useSearchParams} from 'react-router';
 import type {Route} from './+types/request-your-town';
 import {getSubmissionStore, isValidEmail} from '~/lib/submissions';
 import {SITE_NAME} from '~/lib/seo';
@@ -52,6 +52,10 @@ export default function RequestYourTown() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submitting = navigation.state !== 'idle';
+  // A search that found nothing links here with ?town= — carry it over rather
+  // than making someone type their own town twice.
+  const [searchParams] = useSearchParams();
+  const prefilledTown = searchParams.get('town') ?? '';
 
   if (actionData?.ok) {
     return (
@@ -93,6 +97,7 @@ export default function RequestYourTown() {
               id="town"
               name="town"
               required
+              defaultValue={prefilledTown}
               placeholder="e.g. Moose Jaw"
             />
           </div>

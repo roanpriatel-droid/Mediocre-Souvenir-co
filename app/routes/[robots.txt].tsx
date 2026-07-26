@@ -49,8 +49,15 @@ Crawl-delay: 1
 }
 
 /**
- * This function generates disallow rules that generally follow what Shopify's
- * Online Store has as defaults for their robots.txt
+ * Disallow rules, mostly following Shopify Online Store defaults.
+ *
+ * Two deliberate departures from the Shopify baseline:
+ *  - /policies/ is crawlable. Shopify blocks it because its policy pages are
+ *    boilerplate; ours are locally authored and carry trust signals worth
+ *    indexing.
+ *  - /shop's filter and sort params are blocked. Each filtered view has a
+ *    canonical, linkable equivalent under /collections, so the query-string
+ *    variants would only compete with it.
  */
 function generalDisallowRules({sitemapUrl}: {sitemapUrl?: string}) {
   return `Disallow: /cart
@@ -70,7 +77,8 @@ Disallow: /blogs/*%2b*
 Disallow: /*/blogs/*+*
 Disallow: /*/blogs/*%2B*
 Disallow: /*/blogs/*%2b*
-Disallow: /policies/
+Disallow: /shop?*
+Disallow: /request-your-town?*
 Disallow: /search
 Allow: /search/
 Disallow: /search/?*

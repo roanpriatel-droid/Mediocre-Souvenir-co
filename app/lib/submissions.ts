@@ -24,15 +24,35 @@ export interface Subscriber {
   submittedAt: string;
 }
 
+/** Subjects on the contact form — routed by whoever reads the inbox. */
+export type MessageTopic =
+  | 'order'
+  | 'sizing'
+  | 'town-correction'
+  | 'wholesale'
+  | 'other';
+
+export interface ContactMessage {
+  name: string;
+  email: string;
+  topic: MessageTopic;
+  /** Order number, when the topic is an existing order. */
+  orderNumber?: string;
+  message: string;
+  submittedAt: string;
+}
+
 export interface SubmissionStore {
   addTownRequest(request: TownRequest): Promise<void>;
   addSubscriber(subscriber: Subscriber): Promise<void>;
+  addMessage(message: ContactMessage): Promise<void>;
   listTownRequests(): Promise<TownRequest[]>;
 }
 
 function makeStore(): SubmissionStore {
   const townRequests: TownRequest[] = [];
   const subscribers: Subscriber[] = [];
+  const messages: ContactMessage[] = [];
   return {
     addTownRequest(request) {
       townRequests.push(request);
@@ -42,6 +62,11 @@ function makeStore(): SubmissionStore {
     addSubscriber(subscriber) {
       subscribers.push(subscriber);
       console.log(`[msc:subscriber] ${JSON.stringify(subscriber)}`);
+      return Promise.resolve();
+    },
+    addMessage(message) {
+      messages.push(message);
+      console.log(`[msc:message] ${JSON.stringify(message)}`);
       return Promise.resolve();
     },
     listTownRequests() {

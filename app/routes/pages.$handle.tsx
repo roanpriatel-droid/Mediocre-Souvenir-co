@@ -1,68 +1,107 @@
-import {useLoaderData} from 'react-router';
+import {Link, redirect, useLoaderData} from 'react-router';
 import type {Route} from './+types/pages.$handle';
+import {Reveal} from '~/components/Reveal';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-
-export const meta: Route.MetaFunction = ({data}) => {
-  return [{title: `Hydrogen | ${data?.page.title ?? ''}`}];
-};
-
-export async function loader(args: Route.LoaderArgs) {
-  // Start fetching non-critical data without blocking time to first byte
-  const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
-  const criticalData = await loadCriticalData(args);
-
-  return {...deferredData, ...criticalData};
-}
+import {SITE_NAME} from '~/lib/seo';
 
 /**
- * Load data necessary for rendering content above the fold. This is the critical data
- * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
+ * Shopify CMS pages.
+ *
+ * Every page this store actually has is a real route with real components, so
+ * the common /pages/* handles forward to their local equivalent rather than
+ * duplicating the content in Shopify admin. The Storefront query stays as a
+ * fallback: if someone does publish a page in admin later, it renders here in
+ * brand styling instead of 404ing.
  */
-async function loadCriticalData({context, request, params}: Route.LoaderArgs) {
-  if (!params.handle) {
-    throw new Error('Missing page handle');
+
+/** Conventional Shopify handles → the page that actually holds that content. */
+const LOCAL_EQUIVALENTS: Record<string, string> = {
+  about: '/about',
+  'about-us': '/about',
+  contact: '/contact',
+  'contact-us': '/contact',
+  faq: '/faq',
+  faqs: '/faq',
+  'frequently-asked-questions': '/faq',
+  'size-guide': '/size-guide',
+  sizing: '/size-guide',
+  'size-chart': '/size-guide',
+  care: '/care',
+  'care-guide': '/care',
+  materials: '/materials',
+  fabric: '/materials',
+  lookbook: '/lookbook',
+  journal: '/journal',
+  blog: '/journal',
+  shipping: '/policies/shipping-policy',
+  'shipping-policy': '/policies/shipping-policy',
+  returns: '/policies/refund-policy',
+  'return-policy': '/policies/refund-policy',
+  privacy: '/policies/privacy-policy',
+  terms: '/policies/terms-of-service',
+  accessibility: '/policies/accessibility',
+  'request-your-town': '/request-your-town',
+  search: '/search',
+};
+
+export const meta: Route.MetaFunction = ({data}) => [
+  {title: `${data?.page.title ?? 'Page'} | ${SITE_NAME}`},
+  ...(data?.page.seo?.description
+    ? [{name: 'description', content: data.page.seo.description}]
+    : []),
+];
+
+export async function loader({context, request, params}: Route.LoaderArgs) {
+  const handle = params.handle;
+  if (!handle) {
+    throw new Response('Missing page handle', {status: 404});
   }
 
-  const [{page}] = await Promise.all([
-    context.storefront.query(PAGE_QUERY, {
-      variables: {
-        handle: params.handle,
-      },
-    }),
-    // Add other queries here, so that they are loaded in parallel
-  ]);
+  const local = LOCAL_EQUIVALENTS[handle];
+  if (local) {
+    throw redirect(local, 301);
+  }
+
+  const {page} = await context.storefront.query(PAGE_QUERY, {
+    variables: {handle},
+  });
 
   if (!page) {
     throw new Response('Not Found', {status: 404});
   }
 
-  redirectIfHandleIsLocalized(request, {handle: params.handle, data: page});
+  redirectIfHandleIsLocalized(request, {handle, data: page});
 
-  return {
-    page,
-  };
-}
-
-/**
- * Load data for rendering content below the fold. This data is deferred and will be
- * fetched after the initial page load. If it's unavailable, the page should still 200.
- * Make sure to not throw any errors here, as it will cause the page to 500.
- */
-function loadDeferredData({context}: Route.LoaderArgs) {
-  return {};
+  return {page};
 }
 
 export default function Page() {
   const {page} = useLoaderData<typeof loader>();
 
   return (
-    <div className="page">
-      <header>
+    <div>
+      <header className="article-header">
+        <span className="msc-kicker">From the shop</span>
         <h1>{page.title}</h1>
       </header>
-      <main dangerouslySetInnerHTML={{__html: page.body}} />
+      <div className="article-body">
+        <Reveal>
+          <div
+            className="msc-prose policy-body"
+            dangerouslySetInnerHTML={{__html: page.body}}
+          />
+        </Reveal>
+        <Reveal>
+          <div className="policy-footer">
+            <nav className="policy-nav" aria-label="Elsewhere on the site">
+              <Link to="/shop">Shop</Link>
+              <Link to="/about">About</Link>
+              <Link to="/faq">FAQ</Link>
+              <Link to="/contact">Contact</Link>
+            </nav>
+          </div>
+        </Reveal>
+      </div>
     </div>
   );
 }

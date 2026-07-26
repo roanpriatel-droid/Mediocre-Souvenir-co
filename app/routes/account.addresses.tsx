@@ -17,6 +17,7 @@ import {
   DELETE_ADDRESS_MUTATION,
   CREATE_ADDRESS_MUTATION,
 } from '~/graphql/customer-account/CustomerAddressMutations';
+import {SITE_NAME} from '~/lib/seo';
 
 export type ActionResponse = {
   addressId?: string | null;
@@ -27,9 +28,10 @@ export type ActionResponse = {
   updatedAddress?: AddressFragment;
 };
 
-export const meta: Route.MetaFunction = () => {
-  return [{title: 'Addresses'}];
-};
+export const meta: Route.MetaFunction = () => [
+  {title: `Your addresses | ${SITE_NAME}`},
+  {name: 'robots', content: 'noindex, nofollow'},
+];
 
 export async function loader({context}: Route.LoaderArgs) {
   await context.customerAccount.handleAuthStatus();
@@ -263,6 +265,10 @@ export default function Addresses() {
   return (
     <div className="account-addresses">
       <h2>Addresses</h2>
+      <p className="account-lead">
+        Where the shirts go. We print exactly what is written here, so it is
+        worth reading twice.
+      </p>
       <br />
       <div>
         <div>
@@ -273,7 +279,7 @@ export default function Addresses() {
         <hr />
         <br />
         {!addresses.nodes.length ? (
-          <p>You have no addresses saved.</p>
+          <p>Nothing saved yet. The first order will offer to keep one.</p>
         ) : (
           <ExistingAddresses
             addresses={addresses}

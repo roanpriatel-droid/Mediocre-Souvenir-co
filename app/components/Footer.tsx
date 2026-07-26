@@ -40,7 +40,13 @@ export function Footer() {
               <Link to="/new-arrivals">New arrivals</Link>
             </li>
             <li>
+              <Link to="/collections">Collections</Link>
+            </li>
+            <li>
               <Link to="/provinces">All regions</Link>
+            </li>
+            <li>
+              <Link to="/search">Search</Link>
             </li>
           </ul>
         </div>
@@ -99,6 +105,9 @@ export function Footer() {
             </li>
             <li>
               <Link to="/policies/terms-of-service">Terms</Link>
+            </li>
+            <li>
+              <Link to="/policies/accessibility">Accessibility</Link>
             </li>
           </ul>
         </div>

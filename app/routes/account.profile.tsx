@@ -9,15 +9,17 @@ import {
   useOutletContext,
 } from 'react-router';
 import type {Route} from './+types/account.profile';
+import {SITE_NAME} from '~/lib/seo';
 
 export type ActionResponse = {
   error: string | null;
   customer: CustomerFragment | null;
 };
 
-export const meta: Route.MetaFunction = () => {
-  return [{title: 'Profile'}];
-};
+export const meta: Route.MetaFunction = () => [
+  {title: `Your profile | ${SITE_NAME}`},
+  {name: 'robots', content: 'noindex, nofollow'},
+];
 
 export async function loader({context}: Route.LoaderArgs) {
   await context.customerAccount.handleAuthStatus();
@@ -87,7 +89,10 @@ export default function AccountProfile() {
 
   return (
     <div className="account-profile">
-      <h2>My profile</h2>
+      <h2>Your profile</h2>
+      <p className="account-lead">
+        A name for the packing slip, and nothing we do not need.
+      </p>
       <br />
       <Form method="PUT">
         <legend>Personal information</legend>

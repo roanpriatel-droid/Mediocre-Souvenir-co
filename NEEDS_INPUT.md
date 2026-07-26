@@ -21,13 +21,25 @@ placeholders/omissions resolve.
    researched approximations; verify per town before printing certificates.
 8. **Email marketing backend** — submissions store is in-memory + Oxygen
    logs (see `app/lib/submissions.ts`); wire Klaviyo/Shopify before relying
-   on the 10% welcome offer.
-9. **Analytics destination** — `app/lib/analytics.ts` pushes events to
+   on the 10% welcome offer. The `/contact` form posts through the same
+   store, so messages are logs-only until it is swapped — the email address
+   stays on the page for exactly that reason.
+9. **Legal review of the policies** — `app/lib/policies.ts` (shipping,
+   refund, privacy, terms, accessibility) is written to be accurate to how
+   the store actually operates and is not lawyer-reviewed. Specifically
+   confirm: the seven-year order-retention period, the BC governing-law
+   clause, and the GDPR/CCPA/PIPEDA rights summary. Once reviewed, paste
+   into Shopify admin and the routes prefer that copy automatically.
+10. **Support inbox routing** — the contact form files messages under a
+    topic (order / sizing / town-correction / wholesale / other). Whoever
+    reads `hello@mediocresouvenir.co` needs a rule per topic, and the
+    two-business-day reply promise on the page needs someone behind it.
+11. **Analytics destination** — `app/lib/analytics.ts` pushes events to
    `window.dataLayer` (view_item, add_to_cart, begin_checkout,
    newsletter_signup). Connect GTM / a pixel to consume them.
-10. **Self-hosted fonts (perf)** — Alfa Slab One / Archivo Narrow /
+12. **Self-hosted fonts (perf)** — Alfa Slab One / Archivo Narrow /
     Permanent Marker still load from Google Fonts with `display=swap`.
     Self-host the WOFF2s to shave the third-party connection off LCP.
-11. **Per-article OG images** — journal + product pages currently share the
+13. **Per-article OG images** — journal + product pages currently share the
     default OG card. Bespoke per-town/per-article cards would lift social
     click-through (the OG renderer in git history can be templated).

@@ -1,161 +1,166 @@
-import {redirect, useLoaderData} from 'react-router';
+import {Link, redirect, useLoaderData} from 'react-router';
+import {useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/collections.$handle';
-import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
-import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
-import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import {ProductItem} from '~/components/ProductItem';
-import type {ProductItemFragment} from 'storefrontapi.generated';
-
-export const meta: Route.MetaFunction = ({data}) => {
-  return [{title: `Hydrogen | ${data?.collection.title ?? ''} Collection`}];
-};
-
-export async function loader(args: Route.LoaderArgs) {
-  // Start fetching non-critical data without blocking time to first byte
-  const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
-  const criticalData = await loadCriticalData(args);
-
-  return {...deferredData, ...criticalData};
-}
+import {RackGrid} from '~/components/TownRackCard';
+import {Reveal} from '~/components/Reveal';
+import {
+  COLLECTION_REDIRECTS,
+  collectionGroupLabel,
+  DISPLAY_PRICE,
+  getCollection,
+  getCollections,
+  getCollectionTowns,
+} from '~/lib/catalog';
+import {SITE_NAME} from '~/lib/seo';
 
 /**
- * Load data necessary for rendering content above the fold. This is the critical data
- * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
+ * A curated rack. Collections are derived from the local catalog
+ * (app/lib/catalog/collections.ts), not from Shopify — the towns are the
+ * product, so the filing system belongs with them. When the real store is
+ * linked these can stay as they are; Shopify collections would only duplicate
+ * them.
  */
-async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
-  const {handle} = params;
-  const {storefront} = context;
-  const paginationVariables = getPaginationVariables(request, {
-    pageBy: 8,
-  });
 
-  if (!handle) {
-    throw redirect('/collections');
+export const meta: Route.MetaFunction = ({data}) => {
+  if (!data) return [{title: `Collections | ${SITE_NAME}`}];
+  const {collection, towns, origin} = data;
+  return [
+    {
+      title: `${collection.navLabel} Souvenir T-Shirts — ${towns.length} Towns | ${SITE_NAME}`,
+    },
+    {
+      name: 'description',
+      content: `${collection.metaDescription} ${towns.length} towns on the rack, ${DISPLAY_PRICE} each.`,
+    },
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: `${origin}/collections/${collection.handle}`,
+    },
+  ];
+};
+
+export async function loader({params, request}: Route.LoaderArgs) {
+  const handle = params.handle ?? '';
+
+  const redirectTo = COLLECTION_REDIRECTS[handle];
+  if (redirectTo) {
+    throw redirect(redirectTo, 301);
   }
 
-  const [{collection}] = await Promise.all([
-    storefront.query(COLLECTION_QUERY, {
-      variables: {handle, ...paginationVariables},
-      // Add other queries here, so that they are loaded in parallel
-    }),
-  ]);
-
+  const collection = getCollection(handle);
   if (!collection) {
-    throw new Response(`Collection ${handle} not found`, {
-      status: 404,
-    });
+    throw new Response('No such collection', {status: 404});
   }
 
-  // The API handle might be localized, so redirect to the localized handle
-  redirectIfHandleIsLocalized(request, {handle, data: collection});
+  const towns = getCollectionTowns(handle);
+  const siblings = getCollections().filter(
+    (other) => other.group === collection.group && other.handle !== handle,
+  );
 
   return {
     collection,
+    towns,
+    siblings,
+    origin: new URL(request.url).origin,
   };
 }
 
-/**
- * Load data for rendering content below the fold. This data is deferred and will be
- * fetched after the initial page load. If it's unavailable, the page should still 200.
- * Make sure to not throw any errors here, as it will cause the page to 500.
- */
-function loadDeferredData({context}: Route.LoaderArgs) {
-  return {};
-}
-
-export default function Collection() {
-  const {collection} = useLoaderData<typeof loader>();
+export default function CollectionPage() {
+  const {collection, towns, siblings, origin} = useLoaderData<typeof loader>();
+  const nonce = useNonce();
 
   return (
-    <div className="collection">
-      <h1>{collection.title}</h1>
-      <p className="collection-description">{collection.description}</p>
-      <PaginatedResourceSection<ProductItemFragment>
-        connection={collection.products}
-        resourcesClassName="products-grid"
-      >
-        {({node: product, index}) => (
-          <ProductItem
-            key={product.id}
-            product={product}
-            loading={index < 8 ? 'eager' : undefined}
-          />
-        )}
-      </PaginatedResourceSection>
-      <Analytics.CollectionView
-        data={{
-          collection: {
-            id: collection.id,
-            handle: collection.handle,
-          },
+    <div className="msc-page" style={{paddingBottom: '88px'}}>
+      <nav className="msc-breadcrumb" aria-label="Breadcrumb">
+        <Link to="/shop">Shop</Link>
+        <span aria-hidden="true">·</span>
+        <Link to="/collections">Collections</Link>
+        <span aria-hidden="true">·</span>
+        <span aria-current="page">{collection.navLabel}</span>
+      </nav>
+
+      <div className="province-header">
+        <span className="msc-kicker">{collection.kicker}</span>
+        <h1>{collection.title}</h1>
+        <p className="province-copy">{collection.blurb}</p>
+        <span className="msc-kicker msc-kicker--navy">
+          {towns.length} {towns.length === 1 ? 'town' : 'towns'} ·{' '}
+          {DISPLAY_PRICE} each · collect 2 and save 15%
+        </span>
+      </div>
+
+      {towns.length > 0 ? (
+        <RackGrid towns={towns} />
+      ) : (
+        <div className="guest-book-empty">
+          <h3>Nothing is filed here yet.</h3>
+          <p>
+            The rack is built and waiting on towns that qualify. The{' '}
+            <Link to="/shop">full rack</Link> is not empty, and neither is the{' '}
+            <Link to="/request-your-town">waitlist</Link>.
+          </p>
+        </div>
+      )}
+
+      {siblings.length > 0 && (
+        <Reveal>
+          <section className="collection-siblings">
+            <span className="msc-kicker msc-kicker--navy">
+              {collectionGroupLabel(collection.group)}
+            </span>
+            <div className="collection-chip-row">
+              {siblings.map((sibling) => (
+                <Link
+                  key={sibling.handle}
+                  className="collection-chip"
+                  to={`/collections/${sibling.handle}`}
+                >
+                  {sibling.navLabel}
+                </Link>
+              ))}
+            </div>
+            <p style={{marginTop: '16px', fontSize: '15px'}}>
+              Or file the whole catalog yourself on the{' '}
+              <Link
+                to={
+                  collection.shopParams
+                    ? `/shop?${collection.shopParams}`
+                    : '/shop'
+                }
+              >
+                shop page
+              </Link>
+              , which filters by region, size, template, and colorway at once.
+            </p>
+          </section>
+        </Reveal>
+      )}
+
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: collection.title,
+            description: collection.metaDescription,
+            url: `${origin}/collections/${collection.handle}`,
+            isPartOf: {'@type': 'WebSite', name: SITE_NAME, url: origin},
+            mainEntity: {
+              '@type': 'ItemList',
+              numberOfItems: towns.length,
+              itemListElement: towns.map((town, i) => ({
+                '@type': 'ListItem',
+                position: i + 1,
+                name: `${town.city} T-Shirt`,
+                url: `${origin}/products/${town.handle}`,
+              })),
+            },
+          }),
         }}
       />
     </div>
   );
 }
-
-const PRODUCT_ITEM_FRAGMENT = `#graphql
-  fragment MoneyProductItem on MoneyV2 {
-    amount
-    currencyCode
-  }
-  fragment ProductItem on Product {
-    id
-    handle
-    title
-    featuredImage {
-      id
-      altText
-      url
-      width
-      height
-    }
-    priceRange {
-      minVariantPrice {
-        ...MoneyProductItem
-      }
-      maxVariantPrice {
-        ...MoneyProductItem
-      }
-    }
-  }
-` as const;
-
-// NOTE: https://shopify.dev/docs/api/storefront/2022-04/objects/collection
-const COLLECTION_QUERY = `#graphql
-  ${PRODUCT_ITEM_FRAGMENT}
-  query Collection(
-    $handle: String!
-    $country: CountryCode
-    $language: LanguageCode
-    $first: Int
-    $last: Int
-    $startCursor: String
-    $endCursor: String
-  ) @inContext(country: $country, language: $language) {
-    collection(handle: $handle) {
-      id
-      handle
-      title
-      description
-      products(
-        first: $first,
-        last: $last,
-        before: $startCursor,
-        after: $endCursor
-      ) {
-        nodes {
-          ...ProductItem
-        }
-        pageInfo {
-          hasPreviousPage
-          hasNextPage
-          endCursor
-          startCursor
-        }
-      }
-    }
-  }
-` as const;

@@ -1,426 +1,363 @@
-import {useLoaderData} from 'react-router';
+import {Form, Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/search';
-import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
-import {SearchForm} from '~/components/SearchForm';
-import {SearchResults} from '~/components/SearchResults';
+import {RackGrid} from '~/components/TownRackCard';
+import {Reveal} from '~/components/Reveal';
 import {
-  type RegularSearchReturn,
-  type PredictiveSearchReturn,
-  getEmptyPredictiveSearchResult,
-} from '~/lib/search';
-import type {
-  RegularSearchQuery,
-  PredictiveSearchQuery,
-} from 'storefrontapi.generated';
-
-export const meta: Route.MetaFunction = () => {
-  return [{title: `Hydrogen | Search`}];
-};
-
-export async function loader({request, context}: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const isPredictive = url.searchParams.has('predictive');
-  const searchPromise: Promise<PredictiveSearchReturn | RegularSearchReturn> =
-    isPredictive
-      ? predictiveSearch({request, context})
-      : regularSearch({request, context});
-
-  searchPromise.catch((error: Error) => {
-    console.error(error);
-    return {term: '', result: null, error: error.message};
-  });
-
-  return await searchPromise;
-}
+  DISPLAY_PRICE,
+  getAllTowns,
+  getCollections,
+  getOpenRegions,
+  regionPath,
+  REGIONS,
+  TIER_LABELS,
+  type CatalogCollection,
+  type Region,
+  type TownProduct,
+} from '~/lib/catalog';
+import {ARTICLES, type Article} from '~/lib/journal';
+import {searchSitePages, type SitePage} from '~/lib/site-pages';
+import {SITE_NAME} from '~/lib/seo';
 
 /**
- * Renders the /search route
+ * Site search over the local catalog.
+ *
+ * People arrive at this site looking for one specific place, so the town match
+ * is the whole job and everything else is a courtesy. Searching runs
+ * server-side over the in-memory catalog — no Storefront API round trip, and
+ * it stays instant well past 200 SKUs. Ranking is deliberately blunt: an exact
+ * town name beats a prefix, a prefix beats a substring, and a town beats
+ * everything else on the page.
  */
+
+export const meta: Route.MetaFunction = ({data}) => {
+  const term = data?.term;
+  return [
+    {
+      title: term
+        ? `Search: ${term} | ${SITE_NAME}`
+        : `Search — Find Your Town | ${SITE_NAME}`,
+    },
+    {
+      name: 'description',
+      content:
+        'Search every overlooked town on the rack, plus regions, collections, ' +
+        'guides, and the journal.',
+    },
+    // Result pages are thin and endless — follow the links, index none of them.
+    {name: 'robots', content: 'noindex, follow'},
+  ];
+};
+
+const MAX_TOWNS = 24;
+
+export async function loader({request}: Route.LoaderArgs) {
+  const term = (new URL(request.url).searchParams.get('q') ?? '').trim();
+  const totalTowns = getAllTowns().length;
+
+  if (!term) {
+    return {
+      term: '',
+      towns: [] as TownProduct[],
+      regions: [] as Region[],
+      collections: [] as CatalogCollection[],
+      articles: [] as Article[],
+      pages: [] as SitePage[],
+      total: 0,
+      totalTowns,
+    };
+  }
+
+  const q = term.toLowerCase();
+  const towns = rankTowns(q).slice(0, MAX_TOWNS);
+  const regions = REGIONS.filter(
+    (region) =>
+      region.name.toLowerCase().includes(q) || region.abbrev.toLowerCase() === q,
+  ).slice(0, 6);
+  const collections = getCollections()
+    .filter((collection) =>
+      `${collection.title} ${collection.navLabel} ${collection.blurb}`
+        .toLowerCase()
+        .includes(q),
+    )
+    .slice(0, 6);
+  const articles = ARTICLES.filter((article) =>
+    `${article.title} ${article.dek} ${article.body.join(' ')}`
+      .toLowerCase()
+      .includes(q),
+  ).slice(0, 4);
+  const pages = searchSitePages(term);
+
+  return {
+    term,
+    towns,
+    regions,
+    collections,
+    articles,
+    pages,
+    total:
+      towns.length +
+      regions.length +
+      collections.length +
+      articles.length +
+      pages.length,
+    totalTowns,
+  };
+}
+
+/** Exact name, then prefix, then substring, then anything the record mentions. */
+function rankTowns(q: string): TownProduct[] {
+  const exact: TownProduct[] = [];
+  const prefix: TownProduct[] = [];
+  const contains: TownProduct[] = [];
+  const loose: TownProduct[] = [];
+
+  for (const town of getAllTowns()) {
+    const city = town.city.toLowerCase();
+    if (city === q) {
+      exact.push(town);
+    } else if (city.startsWith(q)) {
+      prefix.push(town);
+    } else if (city.includes(q)) {
+      contains.push(town);
+    } else if (
+      [
+        town.provinceState,
+        town.provinceAbbrev,
+        town.knownFor,
+        town.slogan?.big ?? '',
+        town.slogan?.lead ?? '',
+        town.slogan?.tail ?? '',
+        TIER_LABELS[town.populationTier],
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(q)
+    ) {
+      loose.push(town);
+    }
+  }
+
+  const byName = (a: TownProduct, b: TownProduct) => a.city.localeCompare(b.city);
+  return [
+    ...exact,
+    ...prefix.sort(byName),
+    ...contains.sort(byName),
+    ...loose.sort(byName),
+  ];
+}
+
 export default function SearchPage() {
-  const {type, term, result, error} = useLoaderData<typeof loader>();
-  if (type === 'predictive') return null;
+  const {term, towns, regions, collections, articles, pages, total, totalTowns} =
+    useLoaderData<typeof loader>();
 
   return (
-    <div className="search">
-      <h1>Search</h1>
-      <SearchForm>
-        {({inputRef}) => (
-          <>
+    <div className="msc-page" style={{paddingBottom: '88px'}}>
+      <div className="province-header">
+        <span className="msc-kicker">The card catalog</span>
+        <h1>Search</h1>
+        <p className="province-copy">
+          {totalTowns} towns, every region, and everything written about them.
+          Type a place — yours, ideally.
+        </p>
+
+        <Form
+          method="get"
+          action="/search"
+          className="search-page-form"
+          role="search"
+        >
+          <label className="msc-label" htmlFor="q">
+            Search the shop
+          </label>
+          <div className="search-page-field">
             <input
-              defaultValue={term}
+              className="msc-input"
+              id="q"
               name="q"
-              placeholder="Search…"
-              ref={inputRef}
               type="search"
+              defaultValue={term}
+              placeholder="Trail, Hope, sage, size chart…"
+              autoComplete="off"
             />
-            &nbsp;
-            <button type="submit">Search</button>
-          </>
-        )}
-      </SearchForm>
-      {error && <p style={{color: 'red'}}>{error}</p>}
-      {!term || !result?.total ? (
-        <SearchResults.Empty />
+            <button className="msc-button" type="submit">
+              Find it
+            </button>
+          </div>
+        </Form>
+      </div>
+
+      {!term ? (
+        <EmptyPrompt />
+      ) : total === 0 ? (
+        <NoResults term={term} />
       ) : (
-        <SearchResults result={result} term={term}>
-          {({articles, pages, products, term}) => (
-            <div>
-              <SearchResults.Products products={products} term={term} />
-              <SearchResults.Pages pages={pages} term={term} />
-              <SearchResults.Articles articles={articles} term={term} />
-            </div>
+        <>
+          <div className="shop-count">
+            <span className="msc-kicker msc-kicker--navy">
+              {total} {total === 1 ? 'result' : 'results'} for &ldquo;{term}
+              &rdquo;
+            </span>
+          </div>
+
+          {towns.length > 0 && (
+            <section className="search-section">
+              <h2 className="search-section-head">
+                Towns
+                <span>
+                  {towns.length} on the rack · {DISPLAY_PRICE} each
+                </span>
+              </h2>
+              <RackGrid towns={towns} />
+            </section>
           )}
-        </SearchResults>
+
+          {regions.length > 0 && (
+            <ResultList title="Regions">
+              {regions.map((region) => (
+                <ResultRow
+                  key={region.slug}
+                  to={regionPath(region)}
+                  title={region.name}
+                  meta={REGION_STATUS_NOTE[region.status]}
+                />
+              ))}
+            </ResultList>
+          )}
+
+          {collections.length > 0 && (
+            <ResultList title="Collections">
+              {collections.map((collection) => (
+                <ResultRow
+                  key={collection.handle}
+                  to={`/collections/${collection.handle}`}
+                  title={collection.title}
+                  meta={collection.metaDescription}
+                />
+              ))}
+            </ResultList>
+          )}
+
+          {pages.length > 0 && (
+            <ResultList title="Guides & pages">
+              {pages.map((page) => (
+                <ResultRow
+                  key={page.path}
+                  to={page.path}
+                  title={page.title}
+                  meta={page.summary}
+                />
+              ))}
+            </ResultList>
+          )}
+
+          {articles.length > 0 && (
+            <ResultList title="From the Journal">
+              {articles.map((article) => (
+                <ResultRow
+                  key={article.slug}
+                  to={`/journal/${article.slug}`}
+                  title={article.title}
+                  meta={article.dek}
+                />
+              ))}
+            </ResultList>
+          )}
+
+          <Reveal>
+            <div className="search-footer">
+              <p>
+                Looking for a town that is not here? That is what the waitlist
+                is for — it decides what gets printed next.
+              </p>
+              <Link className="msc-button" to="/request-your-town">
+                Request your town
+              </Link>
+            </div>
+          </Reveal>
+        </>
       )}
-      <Analytics.SearchView data={{searchTerm: term, searchResults: result}} />
     </div>
   );
 }
 
-/**
- * Regular search query and fragments
- * (adjust as needed)
- */
-const SEARCH_PRODUCT_FRAGMENT = `#graphql
-  fragment SearchProduct on Product {
-    __typename
-    handle
-    id
-    publishedAt
-    title
-    trackingParameters
-    vendor
-    selectedOrFirstAvailableVariant(
-      selectedOptions: []
-      ignoreUnknownOptions: true
-      caseInsensitiveMatch: true
-    ) {
-      id
-      image {
-        url
-        altText
-        width
-        height
-      }
-      price {
-        amount
-        currencyCode
-      }
-      compareAtPrice {
-        amount
-        currencyCode
-      }
-      selectedOptions {
-        name
-        value
-      }
-      product {
-        handle
-        title
-      }
-    }
-  }
-` as const;
+const REGION_STATUS_NOTE: Record<Region['status'], string> = {
+  open: 'Open — towns on the rack now',
+  next: 'Next on the route',
+  someday: 'On the route, further out',
+};
 
-const SEARCH_PAGE_FRAGMENT = `#graphql
-  fragment SearchPage on Page {
-     __typename
-     handle
-    id
-    title
-    trackingParameters
-  }
-` as const;
-
-const SEARCH_ARTICLE_FRAGMENT = `#graphql
-  fragment SearchArticle on Article {
-    __typename
-    handle
-    id
-    title
-    trackingParameters
-  }
-` as const;
-
-const PAGE_INFO_FRAGMENT = `#graphql
-  fragment PageInfoFragment on PageInfo {
-    hasNextPage
-    hasPreviousPage
-    startCursor
-    endCursor
-  }
-` as const;
-
-// NOTE: https://shopify.dev/docs/api/storefront/latest/queries/search
-export const SEARCH_QUERY = `#graphql
-  query RegularSearch(
-    $country: CountryCode
-    $endCursor: String
-    $first: Int
-    $language: LanguageCode
-    $last: Int
-    $term: String!
-    $startCursor: String
-  ) @inContext(country: $country, language: $language) {
-    articles: search(
-      query: $term,
-      types: [ARTICLE],
-      first: $first,
-    ) {
-      nodes {
-        ...on Article {
-          ...SearchArticle
-        }
-      }
-    }
-    pages: search(
-      query: $term,
-      types: [PAGE],
-      first: $first,
-    ) {
-      nodes {
-        ...on Page {
-          ...SearchPage
-        }
-      }
-    }
-    products: search(
-      after: $endCursor,
-      before: $startCursor,
-      first: $first,
-      last: $last,
-      query: $term,
-      sortKey: RELEVANCE,
-      types: [PRODUCT],
-      unavailableProducts: HIDE,
-    ) {
-      nodes {
-        ...on Product {
-          ...SearchProduct
-        }
-      }
-      pageInfo {
-        ...PageInfoFragment
-      }
-    }
-  }
-  ${SEARCH_PRODUCT_FRAGMENT}
-  ${SEARCH_PAGE_FRAGMENT}
-  ${SEARCH_ARTICLE_FRAGMENT}
-  ${PAGE_INFO_FRAGMENT}
-` as const;
-
-/**
- * Regular search fetcher
- */
-async function regularSearch({
-  request,
-  context,
-}: Pick<
-  Route.LoaderArgs,
-  'request' | 'context'
->): Promise<RegularSearchReturn> {
-  const {storefront} = context;
-  const url = new URL(request.url);
-  const variables = getPaginationVariables(request, {pageBy: 8});
-  const term = String(url.searchParams.get('q') || '');
-
-  // Search articles, pages, and products for the `q` term
-  const {
-    errors,
-    ...items
-  }: {errors?: Array<{message: string}>} & RegularSearchQuery =
-    await storefront.query(SEARCH_QUERY, {
-      variables: {...variables, term},
-    });
-
-  if (!items) {
-    throw new Error('No search data returned from Shopify API');
-  }
-
-  const total = Object.values(items).reduce(
-    (acc: number, {nodes}: {nodes: Array<unknown>}) => acc + nodes.length,
-    0,
+function EmptyPrompt() {
+  const examples = [
+    {label: 'Trail', to: '/search?q=Trail'},
+    {label: 'Hope', to: '/search?q=Hope'},
+    {label: 'Sage', to: '/search?q=sage'},
+    {label: 'Size chart', to: '/search?q=size'},
+    {label: 'Returns', to: '/search?q=returns'},
+  ];
+  return (
+    <div className="search-empty-prompt">
+      <span className="msc-kicker msc-kicker--navy">Try</span>
+      <div className="collection-chip-row">
+        {examples.map((example) => (
+          <Link key={example.label} className="collection-chip" to={example.to}>
+            {example.label}
+          </Link>
+        ))}
+      </div>
+      <p style={{marginTop: '18px', maxWidth: '52ch'}}>
+        Or start from the <Link to="/shop">full rack</Link>, the{' '}
+        <Link to="/collections">collections</Link>, or{' '}
+        <Link to="/provinces">the map of where we have gotten to</Link>.
+      </p>
+    </div>
   );
-
-  const error = errors
-    ? errors.map(({message}: {message: string}) => message).join(', ')
-    : undefined;
-
-  return {type: 'regular', term, error, result: {total, items}};
 }
 
-/**
- * Predictive search query and fragments
- * (adjust as needed)
- */
-const PREDICTIVE_SEARCH_ARTICLE_FRAGMENT = `#graphql
-  fragment PredictiveArticle on Article {
-    __typename
-    id
-    title
-    handle
-    blog {
-      handle
-    }
-    image {
-      url
-      altText
-      width
-      height
-    }
-    trackingParameters
-  }
-` as const;
-
-const PREDICTIVE_SEARCH_COLLECTION_FRAGMENT = `#graphql
-  fragment PredictiveCollection on Collection {
-    __typename
-    id
-    title
-    handle
-    image {
-      url
-      altText
-      width
-      height
-    }
-    trackingParameters
-  }
-` as const;
-
-const PREDICTIVE_SEARCH_PAGE_FRAGMENT = `#graphql
-  fragment PredictivePage on Page {
-    __typename
-    id
-    title
-    handle
-    trackingParameters
-  }
-` as const;
-
-const PREDICTIVE_SEARCH_PRODUCT_FRAGMENT = `#graphql
-  fragment PredictiveProduct on Product {
-    __typename
-    id
-    title
-    handle
-    trackingParameters
-    selectedOrFirstAvailableVariant(
-      selectedOptions: []
-      ignoreUnknownOptions: true
-      caseInsensitiveMatch: true
-    ) {
-      id
-      image {
-        url
-        altText
-        width
-        height
-      }
-      price {
-        amount
-        currencyCode
-      }
-    }
-  }
-` as const;
-
-const PREDICTIVE_SEARCH_QUERY_FRAGMENT = `#graphql
-  fragment PredictiveQuery on SearchQuerySuggestion {
-    __typename
-    text
-    styledText
-    trackingParameters
-  }
-` as const;
-
-// NOTE: https://shopify.dev/docs/api/storefront/latest/queries/predictiveSearch
-const PREDICTIVE_SEARCH_QUERY = `#graphql
-  query PredictiveSearch(
-    $country: CountryCode
-    $language: LanguageCode
-    $limit: Int!
-    $limitScope: PredictiveSearchLimitScope!
-    $term: String!
-    $types: [PredictiveSearchType!]
-  ) @inContext(country: $country, language: $language) {
-    predictiveSearch(
-      limit: $limit,
-      limitScope: $limitScope,
-      query: $term,
-      types: $types,
-    ) {
-      articles {
-        ...PredictiveArticle
-      }
-      collections {
-        ...PredictiveCollection
-      }
-      pages {
-        ...PredictivePage
-      }
-      products {
-        ...PredictiveProduct
-      }
-      queries {
-        ...PredictiveQuery
-      }
-    }
-  }
-  ${PREDICTIVE_SEARCH_ARTICLE_FRAGMENT}
-  ${PREDICTIVE_SEARCH_COLLECTION_FRAGMENT}
-  ${PREDICTIVE_SEARCH_PAGE_FRAGMENT}
-  ${PREDICTIVE_SEARCH_PRODUCT_FRAGMENT}
-  ${PREDICTIVE_SEARCH_QUERY_FRAGMENT}
-` as const;
-
-/**
- * Predictive search fetcher
- */
-async function predictiveSearch({
-  request,
-  context,
-}: Pick<
-  Route.ActionArgs,
-  'request' | 'context'
->): Promise<PredictiveSearchReturn> {
-  const {storefront} = context;
-  const url = new URL(request.url);
-  const term = String(url.searchParams.get('q') || '').trim();
-  const limit = Number(url.searchParams.get('limit') || 10);
-  const type = 'predictive';
-
-  if (!term) return {type, term, result: getEmptyPredictiveSearchResult()};
-
-  // Predictively search articles, collections, pages, products, and queries (suggestions)
-  const {
-    predictiveSearch: items,
-    errors,
-  }: PredictiveSearchQuery & {errors?: Array<{message: string}>} =
-    await storefront.query(PREDICTIVE_SEARCH_QUERY, {
-      variables: {
-        // customize search options as needed
-        limit,
-        limitScope: 'EACH',
-        term,
-      },
-    });
-
-  if (errors) {
-    throw new Error(
-      `Shopify API errors: ${errors.map(({message}: {message: string}) => message).join(', ')}`,
-    );
-  }
-
-  if (!items) {
-    throw new Error('No predictive search data returned from Shopify API');
-  }
-
-  const total = Object.values(items).reduce(
-    (acc: number, item: Array<unknown>) => acc + item.length,
-    0,
+function NoResults({term}: {term: string}) {
+  return (
+    <div className="guest-book-empty">
+      <h3>Nothing for &ldquo;{term}&rdquo;. Yet.</h3>
+      <p style={{maxWidth: '50ch', margin: '0 auto'}}>
+        If that was a town, it is not on the rack — which is the normal
+        condition of most towns, and the entire reason this company exists. Put
+        it on the waitlist and it moves up the queue every time a neighbour does
+        the same.
+      </p>
+      <div className="route-error-actions">
+        <Link
+          className="msc-button"
+          to={`/request-your-town?town=${encodeURIComponent(term)}`}
+        >
+          Request {term}
+        </Link>
+        <Link className="msc-button msc-button--ghost" to="/shop">
+          Browse all towns
+        </Link>
+      </div>
+    </div>
   );
+}
 
-  return {type, term, result: {items, total}};
+function ResultList({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="search-section">
+      <h2 className="search-section-head">{title}</h2>
+      <div className="search-result-list">{children}</div>
+    </section>
+  );
+}
+
+function ResultRow({to, title, meta}: {to: string; title: string; meta: string}) {
+  return (
+    <Link className="search-result-row" to={to} prefetch="intent">
+      <span className="search-result-title">{title}</span>
+      <span className="search-result-meta">{meta}</span>
+    </Link>
+  );
 }

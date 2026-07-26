@@ -2,21 +2,25 @@ import {useEffect} from 'react';
 import {useFetcher} from 'react-router';
 import {trackEvent} from '~/lib/analytics';
 
-/** "Postcards from us." Email capture, posts to /api/subscribe. */
-export function EmailCapture() {
+/**
+ * "Postcards from us." Email capture, posts to /api/subscribe.
+ * `source` records where the signup came from — it reaches both the analytics
+ * event and the stored subscriber, so the two never disagree.
+ */
+export function EmailCapture({source = 'postcards-footer'}: {source?: string}) {
   const fetcher = useFetcher<{ok: boolean; error?: string}>();
   const done = fetcher.data?.ok;
 
   useEffect(() => {
     if (done) {
-      trackEvent('newsletter_signup', {source: 'footer'});
+      trackEvent('newsletter_signup', {source});
       try {
         localStorage.setItem('msc-subscribed', '1');
       } catch {
         // fine
       }
     }
-  }, [done]);
+  }, [done, source]);
 
   return (
     <section className="email-capture">
@@ -43,7 +47,7 @@ export function EmailCapture() {
             placeholder="you@somewhere-unremarkable.ca"
             aria-label="Email address"
           />
-          <input type="hidden" name="source" value="postcards-footer" />
+          <input type="hidden" name="source" value={source} />
           <button type="submit" disabled={fetcher.state !== 'idle'}>
             {fetcher.state === 'idle' ? 'Sign me up' : 'One sec…'}
           </button>

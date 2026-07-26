@@ -1,39 +1,58 @@
 import type {Route} from './+types/[sitemap.xml]';
-import {getAllTowns, getOpenRegions, regionPath} from '~/lib/catalog';
+import {
+  getAllTowns,
+  getCollections,
+  getOpenRegions,
+  regionPath,
+} from '~/lib/catalog';
 import {ARTICLES} from '~/lib/journal';
+import {sitemapPagePaths} from '~/lib/site-pages';
 
 /**
- * Catalog-driven sitemap. Every town product page and every open province
- * page is listed the moment it exists in the catalog — no Shopify sitemap
- * dependency while the catalog is local. (The mock.shop-driven
+ * Catalog-driven sitemap. Every town product page, region page, collection,
+ * article, and static page is listed the moment it exists — the static list
+ * lives in app/lib/site-pages.ts, which site search reads from too, so a new
+ * page cannot be searchable but unlisted (or the reverse).
+ *
+ * No Shopify sitemap dependency while the catalog is local. (The mock.shop
  * sitemap.$type.$page route still exists but nothing links to it.)
  */
 export async function loader({request}: Route.LoaderArgs) {
   const origin = new URL(request.url).origin;
 
-  const staticPaths = [
-    '/',
-    '/shop',
-    '/new-arrivals',
-    '/provinces',
-    '/request-your-town',
-    '/contact',
-    '/about',
-    '/lookbook',
-    '/materials',
-    '/size-guide',
-    '/care',
-    '/faq',
-    '/journal',
+  /** Rough priority signal: products and regions earn crawl budget first. */
+  const entries: {path: string; changefreq: string; priority: string}[] = [
+    ...sitemapPagePaths().map((path) => ({
+      path,
+      changefreq: 'weekly',
+      priority: path === '/' ? '1.0' : '0.7',
+    })),
+    ...getOpenRegions().map((region) => ({
+      path: regionPath(region),
+      changefreq: 'weekly',
+      priority: '0.8',
+    })),
+    ...getCollections().map((collection) => ({
+      path: `/collections/${collection.handle}`,
+      changefreq: 'weekly',
+      priority: '0.7',
+    })),
+    ...getAllTowns().map((town) => ({
+      path: `/products/${town.handle}`,
+      changefreq: 'weekly',
+      priority: '0.9',
+    })),
+    ...ARTICLES.map((article) => ({
+      path: `/journal/${article.slug}`,
+      changefreq: 'monthly',
+      priority: '0.5',
+    })),
   ];
-  const regionPaths = getOpenRegions().map(regionPath);
-  const townPaths = getAllTowns().map((t) => `/products/${t.handle}`);
-  const articlePaths = ARTICLES.map((a) => `/journal/${a.slug}`);
 
-  const urls = [...staticPaths, ...regionPaths, ...townPaths, ...articlePaths]
+  const urls = entries
     .map(
-      (path) =>
-        `  <url><loc>${origin}${path}</loc><changefreq>weekly</changefreq></url>`,
+      ({path, changefreq, priority}) =>
+        `  <url><loc>${origin}${path}</loc><changefreq>${changefreq}</changefreq><priority>${priority}</priority></url>`,
     )
     .join('\n');
 

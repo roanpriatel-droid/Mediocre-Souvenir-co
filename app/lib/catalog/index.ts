@@ -1,8 +1,14 @@
+import {
+  getCollection,
+  getCollections,
+  townsInCollection,
+} from './collections';
 import {britishColumbiaTowns} from './data.british-columbia';
 import {REGIONS, regionPath} from './regions';
 import type {Region, TownProduct} from './types';
 
 export * from './types';
+export * from './collections';
 export {REGIONS, regionPath};
 
 /**
@@ -51,6 +57,26 @@ export function getNewArrivals(): TownProduct[] {
 
 export function getMostOverlooked(): TownProduct[] {
   return ALL_TOWNS.filter((t) => t.mostOverlooked);
+}
+
+/** Every town filed into a curated collection, A–Z. */
+export function getCollectionTowns(handle: string): TownProduct[] {
+  const collection = getCollection(handle);
+  return collection ? townsInCollection(collection, ALL_TOWNS) : [];
+}
+
+/** Collection handle → how many towns are on that rack. Drives the index page. */
+export function getCollectionCounts(): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const collection of getCollections()) {
+    counts[collection.handle] = ALL_TOWNS.filter(collection.includes).length;
+  }
+  return counts;
+}
+
+/** The collections a single town appears in — cross-links on the product page. */
+export function getCollectionsForTown(town: TownProduct) {
+  return getCollections().filter((collection) => collection.includes(town));
 }
 
 /** Simple prefix/substring town search — the hero's "Find your town". */

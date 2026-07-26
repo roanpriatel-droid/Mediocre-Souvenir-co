@@ -18,6 +18,7 @@ import {
   type OrderFilterParams,
 } from '~/lib/orderFilters';
 import {CUSTOMER_ORDERS_QUERY} from '~/graphql/customer-account/CustomerOrdersQuery';
+import {SITE_NAME} from '~/lib/seo';
 import type {
   CustomerOrdersFragment,
   OrderItemFragment,
@@ -29,9 +30,10 @@ type OrdersLoaderData = {
   filters: OrderFilterParams;
 };
 
-export const meta: Route.MetaFunction = () => {
-  return [{title: 'Orders'}];
-};
+export const meta: Route.MetaFunction = () => [
+  {title: `Your orders | ${SITE_NAME}`},
+  {name: 'robots', content: 'noindex, nofollow'},
+];
 
 export async function loader({request, context}: Route.LoaderArgs) {
   const {customerAccount} = context;
@@ -93,25 +95,38 @@ function OrdersTable({
 }
 
 function EmptyOrders({hasFilters = false}: {hasFilters?: boolean}) {
+  if (hasFilters) {
+    return (
+      <div className="guest-book-empty">
+        <h3>No orders match that search.</h3>
+        <p>
+          Order numbers look like MSC-1042, and confirmation numbers are on the
+          email we sent when the shirt went to press.
+        </p>
+        <div className="route-error-actions">
+          <Link className="msc-button msc-button--ghost" to="/account/orders">
+            Clear the filters
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {hasFilters ? (
-        <>
-          <p>No orders found matching your search.</p>
-          <br />
-          <p>
-            <Link to="/account/orders">Clear filters →</Link>
-          </p>
-        </>
-      ) : (
-        <>
-          <p>You haven&apos;t placed any orders yet.</p>
-          <br />
-          <p>
-            <Link to="/collections">Start Shopping →</Link>
-          </p>
-        </>
-      )}
+    <div className="guest-book-empty">
+      <h3>The guest book is open.</h3>
+      <p>
+        Nothing collected yet. When you order, everything shows up here — what
+        town, what size, and where it is on the road.
+      </p>
+      <div className="route-error-actions">
+        <Link className="msc-button" to="/shop">
+          Browse the towns
+        </Link>
+        <Link className="msc-button msc-button--ghost" to="/new-arrivals">
+          See what is new
+        </Link>
+      </div>
     </div>
   );
 }

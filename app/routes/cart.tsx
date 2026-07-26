@@ -3,10 +3,13 @@ import type {Route} from './+types/cart';
 import type {CartQueryDataReturn} from '@shopify/hydrogen';
 import {CartForm} from '@shopify/hydrogen';
 import {CartMain} from '~/components/CartMain';
+import {SITE_NAME} from '~/lib/seo';
 
-export const meta: Route.MetaFunction = () => {
-  return [{title: `Hydrogen | Cart`}];
-};
+export const meta: Route.MetaFunction = () => [
+  // "Your souvenirs" is the fixed cart string in BRAND.md.
+  {title: `Your souvenirs | ${SITE_NAME}`},
+  {name: 'robots', content: 'noindex, nofollow'},
+];
 
 export const headers: HeadersFunction = ({actionHeaders}) => actionHeaders;
 

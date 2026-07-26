@@ -7,6 +7,7 @@ import {
 } from 'react-router';
 import type {Route} from './+types/account';
 import {CUSTOMER_DETAILS_QUERY} from '~/graphql/customer-account/CustomerDetailsQuery';
+import {SITE_NAME} from '~/lib/seo';
 
 export function shouldRevalidate() {
   return true;
@@ -34,55 +35,49 @@ export async function loader({context}: Route.LoaderArgs) {
   );
 }
 
+export const meta: Route.MetaFunction = () => [
+  {title: `Your account | ${SITE_NAME}`},
+  // Account pages are private by definition.
+  {name: 'robots', content: 'noindex, nofollow'},
+];
+
 export default function AccountLayout() {
   const {customer} = useLoaderData<typeof loader>();
 
-  const heading = customer
-    ? customer.firstName
-      ? `Welcome, ${customer.firstName}`
-      : `Welcome to your account.`
-    : 'Account Details';
+  const heading = customer?.firstName
+    ? `Hello, ${customer.firstName}.`
+    : 'Your account.';
 
   return (
     <div className="account">
+      <span className="msc-kicker">The guest book</span>
       <h1>{heading}</h1>
-      <br />
+      <p className="account-lead">
+        Orders, addresses, and the details we need to send a shirt to the right
+        place. Nothing else is kept here.
+      </p>
       <AccountMenu />
-      <br />
-      <br />
-      <Outlet context={{customer}} />
+      <div className="account-panel">
+        <Outlet context={{customer}} />
+      </div>
     </div>
   );
 }
 
-function AccountMenu() {
-  function isActiveStyle({
-    isActive,
-    isPending,
-  }: {
-    isActive: boolean;
-    isPending: boolean;
-  }) {
-    return {
-      fontWeight: isActive ? 'bold' : undefined,
-      color: isPending ? 'grey' : 'black',
-    };
-  }
+const ACCOUNT_TABS = [
+  {to: '/account/orders', label: 'Orders'},
+  {to: '/account/profile', label: 'Profile'},
+  {to: '/account/addresses', label: 'Addresses'},
+];
 
+function AccountMenu() {
   return (
-    <nav role="navigation">
-      <NavLink to="/account/orders" style={isActiveStyle}>
-        Orders &nbsp;
-      </NavLink>
-      &nbsp;|&nbsp;
-      <NavLink to="/account/profile" style={isActiveStyle}>
-        &nbsp; Profile &nbsp;
-      </NavLink>
-      &nbsp;|&nbsp;
-      <NavLink to="/account/addresses" style={isActiveStyle}>
-        &nbsp; Addresses &nbsp;
-      </NavLink>
-      &nbsp;|&nbsp;
+    <nav className="account-menu" role="navigation" aria-label="Account">
+      {ACCOUNT_TABS.map((tab) => (
+        <NavLink key={tab.to} to={tab.to} className="account-tab">
+          {tab.label}
+        </NavLink>
+      ))}
       <Logout />
     </nav>
   );
@@ -91,7 +86,9 @@ function AccountMenu() {
 function Logout() {
   return (
     <Form className="account-logout" method="POST" action="/account/logout">
-      &nbsp;<button type="submit">Sign out</button>
+      <button className="account-tab account-tab--signout" type="submit">
+        Sign out
+      </button>
     </Form>
   );
 }

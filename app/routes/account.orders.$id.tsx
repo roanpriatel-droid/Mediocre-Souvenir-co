@@ -6,10 +6,12 @@ import type {
   OrderQuery,
 } from 'customer-accountapi.generated';
 import {CUSTOMER_ORDER_QUERY} from '~/graphql/customer-account/CustomerOrderQuery';
+import {SITE_NAME} from '~/lib/seo';
 
-export const meta: Route.MetaFunction = ({data}) => {
-  return [{title: `Order ${data?.order?.name}`}];
-};
+export const meta: Route.MetaFunction = ({data}) => [
+  {title: `Order ${data?.order?.name ?? ''} | ${SITE_NAME}`},
+  {name: 'robots', content: 'noindex, nofollow'},
+];
 
 export async function loader({params, context}: Route.LoaderArgs) {
   const {customerAccount} = context;
