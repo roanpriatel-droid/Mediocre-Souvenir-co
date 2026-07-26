@@ -1,5 +1,7 @@
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
+import {AddToCartButton} from '~/components/AddToCartButton';
+import {useAside} from '~/components/Aside';
 import {getTownByHandle, TIER_LABELS} from '~/lib/catalog';
 import {cardPriceLabel, type SouvenirCard as CardData} from '~/lib/shopify-collections';
 
@@ -63,6 +65,55 @@ export function SouvenirProductCard({
 }
 
 /**
+ * Quick add.
+ *
+ * A tee has sizes, and guessing somebody's size is worse than one more click —
+ * so quick-add only adds outright when the product genuinely has a single
+ * variant. Everything else is a labelled link to the size picker, which is
+ * honest about what it does rather than opening a modal that pretends.
+ */
+function QuickAdd({product}: {product: CardData}) {
+  const {open} = useAside();
+  const variants = product.variants?.nodes ?? [];
+  const single = variants.length === 1 ? variants[0] : undefined;
+
+  if (!product.availableForSale) {
+    return (
+      <span className="rack-card-quickadd rack-card-quickadd--out">
+        Off the rack
+      </span>
+    );
+  }
+
+  if (single?.availableForSale) {
+    return (
+      <AddToCartButton
+        lines={[{merchandiseId: single.id, quantity: 1}]}
+        onClick={() => open('cart')}
+        analytics={{
+          products: [
+            {
+              id: product.id,
+              title: product.title,
+              price: product.priceRange.minVariantPrice.amount,
+              quantity: 1,
+            },
+          ],
+        }}
+      >
+        Quick add
+      </AddToCartButton>
+    );
+  }
+
+  return (
+    <Link className="rack-card-quickadd" to={`/products/${product.handle}`}>
+      Pick a size →
+    </Link>
+  );
+}
+
+/**
  * Store titles tend to read "Trail T-Shirt — Mediocre Souvenir Co."; the rack
  * only has room for the town. Falls back to the full title when we cannot do
  * better than the store did.
@@ -82,11 +133,13 @@ export function SouvenirGrid({
   return (
     <div className="rack-grid">
       {products.map((product, i) => (
-        <SouvenirProductCard
-          key={product.id}
-          product={product}
-          loading={i < eagerCount ? 'eager' : 'lazy'}
-        />
+        <div className="rack-cell" key={product.id}>
+          <SouvenirProductCard
+            product={product}
+            loading={i < eagerCount ? 'eager' : 'lazy'}
+          />
+          <QuickAdd product={product} />
+        </div>
       ))}
     </div>
   );

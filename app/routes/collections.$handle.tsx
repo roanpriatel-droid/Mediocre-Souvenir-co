@@ -24,7 +24,11 @@ import {
   productsForRegion,
   productsInOpenRegions,
 } from '~/lib/shopify-catalog';
-import {regionDescription, regionTagline} from '~/lib/region-copy';
+import {
+  regionDescription,
+  regionMetaDescription,
+  regionMetaTitle,
+} from '~/lib/region-copy';
 import {SITE_NAME} from '~/lib/seo';
 
 /**
@@ -122,9 +126,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
         : isRegionOpen(region, await loadRegionStatus(context.storefront));
 
     const description = regionDescription(region, open);
-    const title = open
-      ? `${region.name} Souvenir T-Shirts — ${regionProducts.length} Overlooked Towns | ${SITE_NAME}`
-      : `${region.name} — Coming In Due Time | ${SITE_NAME}`;
+    const title = `${regionMetaTitle(region, open)} | ${SITE_NAME}`;
 
     return {
       kind: 'region' as const,
@@ -138,9 +140,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       origin,
       seo: {
         title,
-        description: open
-          ? `${regionTagline(region)} Faux-vintage souvenir tees, ${DISPLAY_PRICE} each — collect 2 and save 15%.`
-          : `${region.name} has no souvenir yet. Join the waitlist and we will tell you the day it opens.`,
+        description: regionMetaDescription(region, open, regionProducts.length),
         canonical: `${origin}/collections/${handle}`,
       },
     };
@@ -365,7 +365,7 @@ export default function CollectionPage() {
           <p className="collection-footnote">
             Every shirt here is a real town where people live full lives, mostly
             without incident. Not seeing yours?{' '}
-            <Link to="/request-your-town">Put it on the list</Link>.
+            <Link to="/request-a-town">Put it on the list</Link>.
           </p>
         </Reveal>
       )}

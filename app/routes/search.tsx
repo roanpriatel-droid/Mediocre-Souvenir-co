@@ -196,7 +196,7 @@ export default function SearchPage() {
                 Looking for a town that is not here? That is what the waitlist
                 is for — it decides what gets printed next.
               </p>
-              <Link className="msc-button" to="/request-your-town">
+              <Link className="msc-button" to="/request-a-town">
                 Request your town
               </Link>
             </div>
@@ -253,7 +253,7 @@ function NoResults({term}: {term: string}) {
       <div className="route-error-actions">
         <Link
           className="msc-button"
-          to={`/request-your-town?town=${encodeURIComponent(term)}`}
+          to={`/request-a-town?town=${encodeURIComponent(term)}`}
         >
           Request {term}
         </Link>

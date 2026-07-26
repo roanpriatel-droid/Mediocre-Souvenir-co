@@ -46,7 +46,7 @@ export function RegionBrowse({
         statusFor={statusFor}
       />
       <div className="region-grid" style={{marginTop: '16px'}}>
-        <Link className="region-card region-card--request" to="/request-your-town" prefetch="intent">
+        <Link className="region-card region-card--request" to="/request-a-town" prefetch="intent">
           <span className="region-card-name">Somewhere else?</span>
           <span className="region-card-count">Name your town →</span>
         </Link>

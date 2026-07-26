@@ -40,7 +40,7 @@ const LOCAL_EQUIVALENTS: Record<string, string> = {
   privacy: '/policies/privacy-policy',
   terms: '/policies/terms-of-service',
   accessibility: '/policies/accessibility',
-  'request-your-town': '/request-your-town',
+  'request-your-town': '/request-a-town',
   search: '/search',
 };
 

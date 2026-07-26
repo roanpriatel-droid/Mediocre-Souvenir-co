@@ -110,6 +110,14 @@ export const PRODUCT_CARD_FRAGMENT = `#graphql
         ...SouvenirMoney
       }
     }
+    # Two is enough to answer "is this a one-variant product?" — which decides
+    # whether quick-add can add it outright or has to send you to the PDP.
+    variants(first: 2) {
+      nodes {
+        id
+        availableForSale
+      }
+    }
   }
   ${MONEY_FRAGMENT}
 ` as const;
@@ -274,6 +282,7 @@ export interface SouvenirCard {
   compareAtPriceRange: {
     minVariantPrice: {amount: string; currencyCode: string};
   };
+  variants?: {nodes: {id: string; availableForSale: boolean}[]};
 }
 
 export interface LoadedCollection {

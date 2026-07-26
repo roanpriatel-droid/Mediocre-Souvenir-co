@@ -116,7 +116,16 @@ export default function Contact() {
         We read everything, slowly and with care.
       </p>
 
-      <Form method="post" className="msc-form">
+      {/* The form is a motel comment card: perforated top, ruled fields, the
+          management thanking you for your candour in advance. */}
+      <Form method="post" className="msc-form comment-card">
+        <div className="comment-card-head" aria-hidden="true">
+          <span>GUEST COMMENT CARD</span>
+          <span>NO. 1978-C</span>
+        </div>
+        <p className="comment-card-intro">
+          Your candour helps us serve you at approximately the current level.
+        </p>
         <div className="msc-form-row">
           <div>
             <label className="msc-label" htmlFor="name">
@@ -201,8 +210,11 @@ export default function Contact() {
         )}
 
         <button className="msc-button" type="submit" disabled={submitting}>
-          {submitting ? 'Filing…' : 'Send it'}
+          {submitting ? 'Filing…' : 'Leave it at the desk'}
         </button>
+        <p className="comment-card-foot" aria-hidden="true">
+          Management reads every card. Management is one person.
+        </p>
       </Form>
 
       <Reveal>
@@ -238,7 +250,7 @@ export default function Contact() {
             shipping, returns, sizing, and the discount ladder.{' '}
             <Link to="/policies/refund-policy">Returns</Link> are 30 days, no
             interrogation. Want a town added? That goes through{' '}
-            <Link to="/request-your-town">the waitlist</Link>, not this form —
+            <Link to="/request-a-town">the waitlist</Link>, not this form —
             it is the only thing that decides what gets printed next.
           </p>
         </div>

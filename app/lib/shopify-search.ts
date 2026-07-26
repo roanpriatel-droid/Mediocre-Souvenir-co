@@ -42,6 +42,12 @@ const SEARCH_CARD_FRAGMENT = `#graphql
         ...SearchMoney
       }
     }
+    variants(first: 2) {
+      nodes {
+        id
+        availableForSale
+      }
+    }
   }
 ` as const;
 

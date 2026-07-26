@@ -131,7 +131,7 @@ export default function Lookbook() {
             <Link className="msc-button" to="/provinces/british-columbia">
               The full BC collection
             </Link>
-            <Link className="msc-button msc-button--ghost" to="/request-your-town">
+            <Link className="msc-button msc-button--ghost" to="/request-a-town">
               Request your town
             </Link>
           </div>

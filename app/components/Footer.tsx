@@ -1,13 +1,39 @@
 import {Link} from 'react-router';
-import {getOpenRegions, getTownsByRegion} from '~/lib/catalog';
+import {getRegionsByCountry} from '~/lib/catalog';
 import {MSCMonogram} from '~/components/Brand';
+import {EmailCapture} from '~/components/EmailCapture';
 
 /**
- * Static brand footer. The browse-by-region link list is the SEO spine —
- * every open province and state page is one hop from every page on the site.
+ * The fat footer — five columns and the site's densest internal-link surface.
+ *
+ * All thirteen Canadian regions fit, so all thirteen are here. Fifty US states
+ * do not, so the USA column links The Towns directory first and then the ten
+ * states people actually search for; the directory carries the other forty.
+ * Between this and the region grid, every one of the 69 collection pages is
+ * within two hops of any page on the site, which is what gets them crawled.
  */
+
+/** Highest-search-volume state names, not the ten biggest states. */
+const HEADLINE_STATES = [
+  'ohio',
+  'pennsylvania',
+  'michigan',
+  'illinois',
+  'indiana',
+  'new-york',
+  'texas',
+  'california',
+  'florida',
+  'wisconsin',
+];
+
 export function Footer() {
-  const openRegions = getOpenRegions();
+  const canada = getRegionsByCountry('Canada');
+  const states = getRegionsByCountry('United States');
+  const headline = HEADLINE_STATES.map((slug) =>
+    states.find((region) => region.slug === slug),
+  ).filter((region) => region !== undefined);
+
   return (
     <footer className="footer">
       <div className="footer-inner">
@@ -17,65 +43,73 @@ export function Footer() {
           <div className="footer-tagline">
             Genuine merch for overlooked places
           </div>
-          <p style={{fontSize: '14px', maxWidth: '38ch', opacity: 0.8}}>
+          <p className="footer-brand-copy">
             Commemorating the places other souvenirs forgot. Every garment
             honors a real town where people live full lives, mostly without
             incident.
           </p>
         </div>
+
         <div className="footer-col">
-          <h4>Browse</h4>
+          <h4>Shop Canada</h4>
           <ul>
-            <li>
-              <Link to="/collections/all-souvenirs">All souvenirs</Link>
-            </li>
-            <li>
-              <Link to="/collections/canada">Canada</Link>
-            </li>
-            <li>
-              <Link to="/collections/united-states">United States</Link>
-            </li>
-            {openRegions.map((region) => (
+            {canada.map((region) => (
               <li key={region.slug}>
-                <Link to={`/collections/${region.slug}`}>
-                  {region.name} ({getTownsByRegion(region.slug).length})
-                </Link>
+                <Link to={`/collections/${region.slug}`}>{region.name}</Link>
               </li>
             ))}
             <li>
-              <Link to="/collections/new-arrivals">New arrivals</Link>
-            </li>
-            <li>
-              <Link to="/collections/now-open">Now open</Link>
-            </li>
-            <li>
-              <Link to="/provinces">All 63 regions</Link>
-            </li>
-            <li>
-              <Link to="/collections">All collections</Link>
-            </li>
-            <li>
-              <Link to="/search">Search</Link>
+              <Link to="/collections/canada">
+                <strong>All of Canada →</strong>
+              </Link>
             </li>
           </ul>
         </div>
+
         <div className="footer-col">
-          <h4>The Co.</h4>
+          <h4>Shop USA</h4>
           <ul>
             <li>
-              <Link to="/about">About</Link>
+              <Link to="/towns">
+                <strong>All 50 states → The Towns</strong>
+              </Link>
+            </li>
+            {headline.map((region) => (
+              <li key={region.slug}>
+                <Link to={`/collections/${region.slug}`}>{region.name}</Link>
+              </li>
+            ))}
+            <li>
+              <Link to="/collections/united-states">
+                <strong>All of the USA →</strong>
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        <div className="footer-col">
+          <h4>The Brand</h4>
+          <ul>
+            <li>
+              <Link to="/our-story">Our story</Link>
             </li>
             <li>
-              <Link to="/lookbook">Lookbook</Link>
+              <Link to="/certificate">Certificate of Authenticity</Link>
             </li>
             <li>
-              <Link to="/journal">The Journal</Link>
+              <Link to="/postcards">Postcards From Nowhere</Link>
             </li>
             <li>
-              <Link to="/request-your-town">Request your town</Link>
+              <Link to="/request-a-town">Request a town</Link>
             </li>
             <li>
-              <Link to="/contact">Contact</Link>
+              <Link to="/towns">The Towns directory</Link>
+            </li>
+            <li>
+              <Link to="/lookbook">The lookbook</Link>
+            </li>
+            <li>
+              <Link to="/materials">Materials &amp; construction</Link>
             </li>
             <li>
               <a
@@ -88,11 +122,15 @@ export function Footer() {
             </li>
           </ul>
         </div>
+
         <div className="footer-col">
-          <h4>Guides &amp; fine print</h4>
+          <h4>Help</h4>
           <ul>
             <li>
-              <Link to="/materials">Materials &amp; construction</Link>
+              <Link to="/faq">FAQ</Link>
+            </li>
+            <li>
+              <Link to="/shipping-returns">Shipping &amp; returns</Link>
             </li>
             <li>
               <Link to="/size-guide">Size &amp; fit guide</Link>
@@ -101,19 +139,22 @@ export function Footer() {
               <Link to="/care">Care guide</Link>
             </li>
             <li>
-              <Link to="/faq">FAQ</Link>
+              <Link to="/contact">Contact</Link>
             </li>
             <li>
-              <Link to="/policies/shipping-policy">Shipping</Link>
+              <Link to="/search">Search</Link>
             </li>
             <li>
-              <Link to="/policies/refund-policy">Returns</Link>
+              <Link to="/policies/shipping-policy">Shipping policy</Link>
+            </li>
+            <li>
+              <Link to="/policies/refund-policy">Refund policy</Link>
             </li>
             <li>
               <Link to="/policies/privacy-policy">Privacy</Link>
             </li>
             <li>
-              <Link to="/policies/terms-of-service">Terms</Link>
+              <Link to="/policies/terms-of-service">Terms of service</Link>
             </li>
             <li>
               <Link to="/policies/accessibility">Accessibility</Link>
@@ -121,9 +162,24 @@ export function Footer() {
           </ul>
         </div>
       </div>
+
+      <div className="footer-newsletter">
+        <EmailCapture source="footer" />
+      </div>
+
       <div className="footer-bottom">
-        <span>© {new Date().getFullYear()} Mediocre Souvenir Co. · Est. 2026</span>
-        <span>You were somewhere.</span>
+        <span>
+          © {new Date().getFullYear()} Mediocre Souvenir Co. Souvenirs from
+          places you&rsquo;ve technically been.
+        </span>
+        <span className="footer-payments" aria-label="Payment methods accepted">
+          <i>VISA</i>
+          <i>MC</i>
+          <i>AMEX</i>
+          <i>PAYPAL</i>
+          <i>SHOP PAY</i>
+          <i>APPLE PAY</i>
+        </span>
       </div>
     </footer>
   );

@@ -143,7 +143,7 @@ export function TownSearch({autoFocus = false}: {autoFocus?: boolean}) {
         <div className="town-search-results">
           <div className="town-search-empty">
             Not on the rack yet.{' '}
-            <Link to="/request-your-town" onClick={() => setOpen(false)}>
+            <Link to="/request-a-town" onClick={() => setOpen(false)}>
               Request your town
             </Link>{' '}
             — that&rsquo;s how towns get here.

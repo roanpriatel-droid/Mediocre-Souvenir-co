@@ -164,3 +164,25 @@ export function regionsWithBespokeCopy(): string[] {
     (region) => region.slug,
   );
 }
+
+/** Title tag for a region collection. Town-specific, in voice. */
+export function regionMetaTitle(region: Region, open: boolean): string {
+  return open
+    ? `${region.name} Souvenir T-Shirts — Bland, Proud, Available In Cotton`
+    : `${region.name} Souvenirs — Coming In Due Time`;
+}
+
+/** Meta description for a region collection, built from its own one true thing. */
+export function regionMetaDescription(
+  region: Region,
+  open: boolean,
+  count: number,
+): string {
+  const note = regionNote(region);
+  return open
+    ? `Bland, proud, and available in cotton: ${region.name}. ` +
+        `${count} faux-vintage souvenir tees for towns known, if at all, for ` +
+        `${note}. Garment-dyed heavyweight, printed to order.`
+    : `${region.name} has ${note} and not one souvenir to show for it. ` +
+        `Join the waitlist and we will write the day it opens.`;
+}

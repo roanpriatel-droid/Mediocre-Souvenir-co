@@ -38,7 +38,7 @@ export async function loader({request}: Route.LoaderArgs) {
       priority: region.status === 'open' ? '0.9' : '0.6',
     })),
     ...ARTICLES.map((article) => ({
-      path: `/journal/${article.slug}`,
+      path: `/postcards/${article.slug}`,
       changefreq: 'monthly',
       priority: '0.5',
     })),

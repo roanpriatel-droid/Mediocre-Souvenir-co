@@ -1,9 +1,33 @@
 /** The horizontal furniture: announcement bar, marquee, trust bar. */
 
+const ANNOUNCEMENTS = [
+  'FREE SHIPPING OVER $75 · CANADA & USA',
+  'NEW TOWNS IN DUE TIME',
+  'NOW OPEN: THE GREAT LAKES · TOLEDO, PITTSBURGH, DETROIT, GARY, ROCKFORD',
+  'COLLECT 2 SAVE 15% · COLLECT 3 SAVE 20%',
+];
+
+/**
+ * Rotating announcement bar.
+ *
+ * All lines render into the DOM and CSS cycles them, so there is no layout
+ * shift, no hydration mismatch from a random first frame, and the whole set is
+ * available to a screen reader at once rather than one line at a time.
+ */
 export function AnnouncementBar() {
   return (
     <div className="announcement-bar">
-      GENUINE SOUVENIRS · FREE SHIPPING OVER $75 · CANADA &amp; USA
+      <div className="announcement-rotator">
+        {ANNOUNCEMENTS.map((line, i) => (
+          <span
+            key={line}
+            className="announcement-line"
+            style={{animationDelay: `${i * 4}s`}}
+          >
+            {line}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

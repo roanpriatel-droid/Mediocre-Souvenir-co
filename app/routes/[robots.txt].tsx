@@ -78,7 +78,7 @@ Disallow: /*/blogs/*+*
 Disallow: /*/blogs/*%2B*
 Disallow: /*/blogs/*%2b*
 Disallow: /shop?*
-Disallow: /request-your-town?*
+Disallow: /request-a-town?*
 Disallow: /search
 Allow: /search/
 Disallow: /search/?*

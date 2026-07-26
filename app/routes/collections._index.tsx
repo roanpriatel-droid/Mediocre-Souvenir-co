@@ -141,7 +141,7 @@ export default function CollectionsIndex() {
             roadmap. We do not pick by market size. We pick by who asked.
           </p>
           <div className="route-error-actions">
-            <Link className="msc-button" to="/request-your-town">
+            <Link className="msc-button" to="/request-a-town">
               Name your town
             </Link>
             <Link className="msc-button msc-button--ghost" to="/provinces">

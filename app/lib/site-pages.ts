@@ -50,6 +50,46 @@ const CORE_PAGES: SitePage[] = [
     group: 'The Co.',
   },
   {
+    path: '/towns',
+    title: 'The Towns',
+    summary:
+      'The full A–Z directory of all 63 provinces and states, set like a motel letterboard.',
+    keywords: ['directory', 'a-z', 'index', 'all towns', 'regions', 'board', 'list'],
+    group: 'The Co.',
+  },
+  {
+    path: '/our-story',
+    title: 'Our story',
+    summary:
+      'Every town deserves a souvenir, even the ones that don’t. Why any of this exists.',
+    keywords: ['about', 'story', 'founded', 'why', 'mission', 'history'],
+    group: 'The Co.',
+  },
+  {
+    path: '/certificate',
+    title: 'Certificate of Mediocre Authenticity',
+    summary:
+      'The document that ships with every order and declines to overstate a single thing.',
+    keywords: ['certificate', 'authenticity', 'card', 'included', 'coa'],
+    group: 'The Co.',
+  },
+  {
+    path: '/postcards',
+    title: 'Postcards From Nowhere',
+    summary:
+      'Short dispatches from the towns we print — Toledo, Gary, Rockford and the rest.',
+    keywords: ['blog', 'postcards', 'writing', 'travel', 'editorial', 'journal', 'stories'],
+    group: 'The Co.',
+  },
+  {
+    path: '/shipping-returns',
+    title: 'Shipping & returns',
+    summary:
+      'We ship everywhere, even places nicer than the ones on our shirts. 30-day returns.',
+    keywords: ['shipping', 'returns', 'delivery', 'how long', 'exchange', 'refund', 'free shipping'],
+    group: 'Guides',
+  },
+  {
     path: '/collections',
     title: 'Collections',
     summary:
@@ -81,22 +121,7 @@ const CORE_PAGES: SitePage[] = [
     group: 'The Co.',
   },
   {
-    path: '/journal',
-    title: 'The Journal',
-    summary: 'Field notes on towns, cotton, water towers, and the ethics of souvenirs.',
-    keywords: ['blog', 'articles', 'writing', 'notes', 'stories'],
-    group: 'The Co.',
-  },
-  {
-    path: '/about',
-    title: 'About — why we exist',
-    summary:
-      'Genuine merch for overlooked places, and the rules we work by. Never mean toward the towns.',
-    keywords: ['story', 'who we are', 'mission', 'company', 'est 2026'],
-    group: 'The Co.',
-  },
-  {
-    path: '/request-your-town',
+    path: '/request-a-town',
     title: 'Request your town',
     summary:
       'Tell us your hometown and join its waitlist. Requests decide which town gets printed next.',

@@ -51,7 +51,7 @@ export default function ProvincesIndex() {
           We do not pick regions by market size. We pick them by who asked.
         </p>
         <div className="route-error-actions">
-          <Link className="msc-button" to="/request-your-town">
+          <Link className="msc-button" to="/request-a-town">
             Name your town
           </Link>
           <Link className="msc-button msc-button--ghost" to="/collections/now-open">

@@ -96,7 +96,7 @@ export function RegionWaitlist({region}: {region: Region}) {
         </Link>
         <Link
           className="msc-button msc-button--ghost"
-          to={`/request-your-town?provinceState=${encodeURIComponent(region.name)}`}
+          to={`/request-a-town?provinceState=${encodeURIComponent(region.name)}`}
         >
           Name your town
         </Link>

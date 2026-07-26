@@ -411,6 +411,11 @@ export type SouvenirAllProductsQuery = {
             'amount' | 'currencyCode'
           >;
         };
+        variants: {
+          nodes: Array<
+            Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>
+          >;
+        };
       }
     >;
     pageInfo: Pick<StorefrontAPI.PageInfo, 'hasNextPage' | 'endCursor'>;
@@ -450,6 +455,11 @@ export type SouvenirNewestProductsQuery = {
             'amount' | 'currencyCode'
           >;
         };
+        variants: {
+          nodes: Array<
+            Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>
+          >;
+        };
       }
     >;
   };
@@ -473,6 +483,9 @@ export type SouvenirCardFragment = Pick<
   };
   compareAtPriceRange: {
     minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+  };
+  variants: {
+    nodes: Array<Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>>;
   };
 };
 
@@ -516,6 +529,11 @@ export type SouvenirCollectionQuery = {
               minVariantPrice: Pick<
                 StorefrontAPI.MoneyV2,
                 'amount' | 'currencyCode'
+              >;
+            };
+            variants: {
+              nodes: Array<
+                Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>
               >;
             };
           }
@@ -579,6 +597,11 @@ export type SouvenirCollectionPageQuery = {
                 'amount' | 'currencyCode'
               >;
             };
+            variants: {
+              nodes: Array<
+                Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>
+              >;
+            };
           }
         >;
         pageInfo: Pick<
@@ -630,6 +653,11 @@ export type SouvenirCollectionNeutralQuery = {
               minVariantPrice: Pick<
                 StorefrontAPI.MoneyV2,
                 'amount' | 'currencyCode'
+              >;
+            };
+            variants: {
+              nodes: Array<
+                Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>
               >;
             };
           }
@@ -742,6 +770,9 @@ export type SearchCardFragment = Pick<
   compareAtPriceRange: {
     minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
   };
+  variants: {
+    nodes: Array<Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>>;
+  };
 };
 
 export type SouvenirSearchQueryVariables = StorefrontAPI.Exact<{
@@ -776,6 +807,11 @@ export type SouvenirSearchQuery = {
           minVariantPrice: Pick<
             StorefrontAPI.MoneyV2,
             'amount' | 'currencyCode'
+          >;
+        };
+        variants: {
+          nodes: Array<
+            Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>
           >;
         };
       }
@@ -817,6 +853,11 @@ export type SouvenirSearchNeutralQuery = {
             'amount' | 'currencyCode'
           >;
         };
+        variants: {
+          nodes: Array<
+            Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>
+          >;
+        };
       }
     >;
   };
@@ -854,6 +895,11 @@ export type SouvenirProductsByHandleQuery = {
           minVariantPrice: Pick<
             StorefrontAPI.MoneyV2,
             'amount' | 'currencyCode'
+          >;
+        };
+        variants: {
+          nodes: Array<
+            Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>
           >;
         };
       }
@@ -1001,23 +1047,23 @@ interface GeneratedQueryTypes {
     return: FooterQuery;
     variables: FooterQueryVariables;
   };
-  '#graphql\n  query SouvenirAllProducts($first: Int!, $after: String) {\n    products(first: $first, after: $after, sortKey: TITLE) {\n      nodes {\n        ...SouvenirCard\n      }\n      pageInfo {\n        hasNextPage\n        endCursor\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
+  '#graphql\n  query SouvenirAllProducts($first: Int!, $after: String) {\n    products(first: $first, after: $after, sortKey: TITLE) {\n      nodes {\n        ...SouvenirCard\n      }\n      pageInfo {\n        hasNextPage\n        endCursor\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    # Two is enough to answer "is this a one-variant product?" — which decides\n    # whether quick-add can add it outright or has to send you to the PDP.\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
     return: SouvenirAllProductsQuery;
     variables: SouvenirAllProductsQueryVariables;
   };
-  '#graphql\n  query SouvenirNewestProducts($first: Int!) {\n    products(first: $first, sortKey: CREATED_AT, reverse: true) {\n      nodes {\n        ...SouvenirCard\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
+  '#graphql\n  query SouvenirNewestProducts($first: Int!) {\n    products(first: $first, sortKey: CREATED_AT, reverse: true) {\n      nodes {\n        ...SouvenirCard\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    # Two is enough to answer "is this a one-variant product?" — which decides\n    # whether quick-add can add it outright or has to send you to the PDP.\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
     return: SouvenirNewestProductsQuery;
     variables: SouvenirNewestProductsQueryVariables;
   };
-  '#graphql\n  query SouvenirCollection($handle: String!, $first: Int!) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(first: $first) {\n        nodes {\n          ...SouvenirCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
+  '#graphql\n  query SouvenirCollection($handle: String!, $first: Int!) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(first: $first) {\n        nodes {\n          ...SouvenirCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    # Two is enough to answer "is this a one-variant product?" — which decides\n    # whether quick-add can add it outright or has to send you to the PDP.\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
     return: SouvenirCollectionQuery;
     variables: SouvenirCollectionQueryVariables;
   };
-  '#graphql\n  query SouvenirCollectionPage(\n    $handle: String!\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n    $sortKey: ProductCollectionSortKeys\n    $reverse: Boolean\n    $filters: [ProductFilter!]\n  ) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(\n        first: $first\n        last: $last\n        before: $startCursor\n        after: $endCursor\n        sortKey: $sortKey\n        reverse: $reverse\n        filters: $filters\n      ) {\n        nodes {\n          ...SouvenirCard\n        }\n        pageInfo {\n          hasNextPage\n          hasPreviousPage\n          startCursor\n          endCursor\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
+  '#graphql\n  query SouvenirCollectionPage(\n    $handle: String!\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n    $sortKey: ProductCollectionSortKeys\n    $reverse: Boolean\n    $filters: [ProductFilter!]\n  ) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(\n        first: $first\n        last: $last\n        before: $startCursor\n        after: $endCursor\n        sortKey: $sortKey\n        reverse: $reverse\n        filters: $filters\n      ) {\n        nodes {\n          ...SouvenirCard\n        }\n        pageInfo {\n          hasNextPage\n          hasPreviousPage\n          startCursor\n          endCursor\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    # Two is enough to answer "is this a one-variant product?" — which decides\n    # whether quick-add can add it outright or has to send you to the PDP.\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
     return: SouvenirCollectionPageQuery;
     variables: SouvenirCollectionPageQueryVariables;
   };
-  '#graphql\n  query SouvenirCollectionNeutral($handle: String!, $first: Int!) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(first: $first) {\n        nodes {\n          ...SouvenirCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
+  '#graphql\n  query SouvenirCollectionNeutral($handle: String!, $first: Int!) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(first: $first) {\n        nodes {\n          ...SouvenirCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    # Two is enough to answer "is this a one-variant product?" — which decides\n    # whether quick-add can add it outright or has to send you to the PDP.\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
     return: SouvenirCollectionNeutralQuery;
     variables: SouvenirCollectionNeutralQueryVariables;
   };
@@ -1029,15 +1075,15 @@ interface GeneratedQueryTypes {
     return: SouvenirProductQuery;
     variables: SouvenirProductQueryVariables;
   };
-  '#graphql\n  query SouvenirSearch($query: String!, $first: Int!) {\n    search(query: $query, first: $first, types: PRODUCT) {\n      totalCount\n      nodes {\n        ...on Product {\n          ...SearchCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n  }\n\n': {
+  '#graphql\n  query SouvenirSearch($query: String!, $first: Int!) {\n    search(query: $query, first: $first, types: PRODUCT) {\n      totalCount\n      nodes {\n        ...on Product {\n          ...SearchCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n\n': {
     return: SouvenirSearchQuery;
     variables: SouvenirSearchQueryVariables;
   };
-  '#graphql\n  query SouvenirSearchNeutral($query: String!, $first: Int!) {\n    search(query: $query, first: $first, types: PRODUCT) {\n      totalCount\n      nodes {\n        ...on Product {\n          ...SearchCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n  }\n\n': {
+  '#graphql\n  query SouvenirSearchNeutral($query: String!, $first: Int!) {\n    search(query: $query, first: $first, types: PRODUCT) {\n      totalCount\n      nodes {\n        ...on Product {\n          ...SearchCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n\n': {
     return: SouvenirSearchNeutralQuery;
     variables: SouvenirSearchNeutralQueryVariables;
   };
-  '#graphql\n  query SouvenirProductsByHandle($query: String!, $first: Int!) {\n    products(first: $first, query: $query) {\n      nodes {\n        ...SearchCard\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n  }\n\n': {
+  '#graphql\n  query SouvenirProductsByHandle($query: String!, $first: Int!) {\n    products(first: $first, query: $query) {\n      nodes {\n        ...SearchCard\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n\n': {
     return: SouvenirProductsByHandleQuery;
     variables: SouvenirProductsByHandleQueryVariables;
   };

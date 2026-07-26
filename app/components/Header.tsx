@@ -25,10 +25,12 @@ type Viewport = 'desktop' | 'mobile';
 export const NAV_ITEMS = [
   {title: 'Shop All', to: '/collections/all-souvenirs'},
   {title: 'Canada', to: '/collections/canada'},
-  {title: 'United States', to: '/collections/united-states'},
-  {title: 'New Arrivals', to: '/collections/new-arrivals'},
+  {title: 'USA', to: '/collections/united-states'},
+  {title: 'The Towns', to: '/towns'},
   {title: 'Now Open', to: '/collections/now-open'},
-  {title: 'Regions', to: '/provinces'},
+  {title: 'New Arrivals', to: '/collections/new-arrivals'},
+  {title: 'Postcards', to: '/postcards'},
+  {title: 'Our Story', to: '/our-story'},
 ];
 
 export function Header({cart}: HeaderProps) {
