@@ -3,7 +3,7 @@ import type {Route} from './+types/certificate';
 import {Reveal} from '~/components/Reveal';
 import {SITE_NAME} from '~/lib/seo';
 
-export const meta: Route.MetaFunction = () => [
+export const meta: Route.MetaFunction = ({data}) => [
   {title: `Certificate of Mediocre Authenticity | ${SITE_NAME}`},
   {
     name: 'description',
@@ -17,6 +17,7 @@ export const meta: Route.MetaFunction = () => [
     property: 'og:description',
     content: 'A formal document that declines to overstate anything.',
   },
+  {tagName: 'link', rel: 'canonical', href: `${data?.origin ?? ''}/certificate`},
 ];
 
 const CLAUSES = [
@@ -43,6 +44,10 @@ const CLAUSES = [
     detail: 'The management, who have not visited, and say so.',
   },
 ];
+
+export async function loader({request}: Route.LoaderArgs) {
+  return {origin: new URL(request.url).origin};
+}
 
 export default function CertificatePage() {
   return (

@@ -30,13 +30,7 @@ import {
   regionForCollectionHandle,
   type SouvenirCard,
 } from '~/lib/shopify-collections';
-import {
-  townDescription,
-  townH1,
-  townJsonLd,
-  townPitch,
-  townTitle,
-} from '~/lib/seo';
+import {townDescription, townH1, townPitch, townTitle} from '~/lib/seo';
 
 /**
  * The product page.
@@ -309,6 +303,17 @@ export default function ProductPage() {
             </AddToCartButton>
           </div>
 
+          {live.rating && (
+            <p className="product-rating" aria-label={`Rated ${live.rating.value} out of 5`}>
+              <span className="product-rating-stars" aria-hidden="true">
+                {'★'.repeat(Math.round(live.rating.value))}
+                {'☆'.repeat(Math.max(0, 5 - Math.round(live.rating.value)))}
+              </span>
+              {live.rating.value.toFixed(1)} · {live.rating.count}{' '}
+              {live.rating.count === 1 ? 'review' : 'reviews'}
+            </p>
+          )}
+
           <ProductLadderStrip />
           <TrustRow />
 
@@ -450,15 +455,43 @@ export default function ProductPage() {
         </p>
       </dialog>
 
-      {town && (
-        <script
-          type="application/ld+json"
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(townJsonLd(town, origin)),
-          }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: displayTitle,
+            description: town ? townDescription(town) : live.description,
+            sku: live.handle,
+            brand: {'@type': 'Brand', name: 'Mediocre Souvenir Co.'},
+            ...(live.featuredImage ? {image: live.featuredImage.url} : {}),
+            offers: {
+              '@type': 'AggregateOffer',
+              priceCurrency: live.priceRange.minVariantPrice.currencyCode,
+              lowPrice: live.priceRange.minVariantPrice.amount,
+              highPrice: live.priceRange.maxVariantPrice.amount,
+              offerCount: live.variants.length,
+              availability: live.availableForSale
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/OutOfStock',
+              url: `${origin}/products/${live.handle}`,
+            },
+            // Only ever present when a reviews app has written real
+            // aggregates. No reviews, no rating markup.
+            ...(live.rating
+              ? {
+                  aggregateRating: {
+                    '@type': 'AggregateRating',
+                    ratingValue: live.rating.value,
+                    reviewCount: live.rating.count,
+                  },
+                }
+              : {}),
+          }),
+        }}
+      />
 
       {selectedVariant && (
         <Analytics.ProductView

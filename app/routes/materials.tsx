@@ -3,7 +3,7 @@ import type {Route} from './+types/materials';
 import {Reveal} from '~/components/Reveal';
 import {SITE_NAME} from '~/lib/seo';
 
-export const meta: Route.MetaFunction = () => [
+export const meta: Route.MetaFunction = ({data}) => [
   {title: `Materials & Construction — Comfort Colors 1717 | ${SITE_NAME}`},
   {
     name: 'description',
@@ -12,6 +12,7 @@ export const meta: Route.MetaFunction = () => [
       'heavyweight 100% ring-spun cotton, garment-dyed so the fade is ' +
       'structural. Fabric weight, construction, and why both matter.',
   },
+  {tagName: 'link', rel: 'canonical', href: `${data?.origin ?? ''}/materials`},
 ];
 
 const SPECS = [
@@ -25,6 +26,10 @@ const SPECS = [
   ['Fit', 'Unisex, true to size, relaxes ~half a size with wear'],
   ['Print', 'Screen-print aesthetic, slogans run at 88% ink density'],
 ];
+
+export async function loader({request}: Route.LoaderArgs) {
+  return {origin: new URL(request.url).origin};
+}
 
 export default function Materials() {
   return (

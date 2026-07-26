@@ -4,7 +4,7 @@ import {useNonce} from '@shopify/hydrogen';
 import {Reveal} from '~/components/Reveal';
 import {SITE_NAME} from '~/lib/seo';
 
-export const meta: Route.MetaFunction = () => [
+export const meta: Route.MetaFunction = ({data}) => [
   {title: `FAQ — Shipping, Returns, Sizing | ${SITE_NAME}`},
   {
     name: 'description',
@@ -12,16 +12,17 @@ export const meta: Route.MetaFunction = () => [
       'Answers on shipping, returns, sizing, materials, and how towns get ' +
       'added to the Mediocre Souvenir Co. catalog.',
   },
+  {tagName: 'link', rel: 'canonical', href: `${data?.origin ?? ''}/faq`},
 ];
 
 const FAQS = [
   {
-    q: 'How long does shipping take?',
-    a: 'Every shirt is printed when you order it — allow 5–10 business days for printing plus transit. Genuine takes time. Shipping is free in Canada and the US on orders over $75.',
+    q: 'How long does shipping take? Honestly?',
+    a: 'Longer than you would like, and we are sorry about that. Every shirt is printed after you order it, so allow 5–10 business days before it even moves, then transit on top. We could hold stock and ship it tomorrow; we would then be a warehouse with a landfill problem. Free over $75 in Canada and the US, which does not make the wait shorter but does make it cheaper.',
   },
   {
-    q: 'What is your return policy?',
-    a: 'Thirty days, no interrogation. If the shirt is not right, send it back in wearable condition and we refund it. Exchanges for size work the same way.',
+    q: 'What if I do not like it?',
+    a: 'That is a completely reasonable outcome and we have planned for it. Thirty days, no interrogation, no restocking fee, no form asking you to rate your disappointment out of five. Send it back in wearable condition and we refund it. Size exchanges work the same way.',
   },
   {
     q: 'How does the collect-more discount work?',
@@ -36,16 +37,16 @@ const FAQS = [
     a: 'Unisex, true to size, S–3XL. The cotton relaxes about half a size as it breaks in. Full measurements and a find-my-size flow are on the Size & Fit Guide.',
   },
   {
-    q: 'My town isn’t on the rack. How does it get there?',
-    a: 'Submit it through Request Your Town. The waitlist decides the print order — enough requests and your town gets researched, drawn, and shelved with the rest. This is the whole system; there is no other system.',
+    q: 'My town isn’t here. Why not?',
+    a: 'Because we have not gotten to it yet, which is our fault rather than your town’s. There are 63 regions and we are two people working through them in the order people ask. Nominate it on Request A Town and it moves up every time a neighbour does the same. That is the whole system. We are sorry it is not faster.',
   },
   {
     q: 'Can I wear a town I’ve never been to?',
     a: 'Yes. A souvenir commemorates a place, not your attendance record. Nobody interrogates a person in a NASA shirt about their spacewalks.',
   },
   {
-    q: 'Where do you ship from?',
-    a: 'Shirts are printed to order in North America and dispatched from somewhere unremarkable, which we consider on-brand.',
+    q: 'Where does it actually come from?',
+    a: 'Somewhere unremarkable in North America. We would tell you the town but it is not on the rack yet either, which we recognise is a little embarrassing given the entire premise.',
   },
 ];
 
@@ -61,9 +62,10 @@ export default function FAQ() {
       <header className="article-header">
         <span className="msc-kicker">The front desk</span>
         <h1>Frequently asked questions.</h1>
-        <p style={{fontSize: '18px', maxWidth: '52ch'}}>
-          Everything people ask, answered plainly. If yours is missing,{' '}
-          the <a href="/contact">contact page</a> works.
+        <p style={{fontSize: '18px', maxWidth: '54ch'}}>
+          Everything people ask, answered plainly and with a certain amount of
+          apologising. If yours is missing, that is an oversight on our part —{' '}
+          <a href="/contact">the contact page</a> reaches a person.
         </p>
       </header>
       <div className="article-body">

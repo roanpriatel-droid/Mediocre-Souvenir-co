@@ -4442,3 +4442,22 @@ select:focus-visible,
     padding: 9px 8px;
   }
 }
+
+/* ---------- product rating (only rendered when reviews are real) ---------- */
+
+.product-rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--msc-navy);
+}
+
+.product-rating-stars {
+  color: var(--msc-mustard);
+  font-size: 16px;
+  letter-spacing: 2px;
+}

@@ -3,7 +3,7 @@ import type {Route} from './+types/care';
 import {Reveal} from '~/components/Reveal';
 import {SITE_NAME} from '~/lib/seo';
 
-export const meta: Route.MetaFunction = () => [
+export const meta: Route.MetaFunction = ({data}) => [
   {title: `Care Guide — Keep the Fade Honest | ${SITE_NAME}`},
   {
     name: 'description',
@@ -11,6 +11,7 @@ export const meta: Route.MetaFunction = () => [
       'How to care for a garment-dyed heavyweight cotton tee: cold wash, ' +
       'inside out, hang dry if you love it. The shirt has seen worse.',
   },
+  {tagName: 'link', rel: 'canonical', href: `${data?.origin ?? ''}/care`},
 ];
 
 const CARE_RULES = [
@@ -35,6 +36,10 @@ const CARE_RULES = [
     body: 'A small hole in year six is seniority, not failure. Any dry cleaner can bar-tack it. A shirt with a repair outranks a new one at every reunion.',
   },
 ];
+
+export async function loader({request}: Route.LoaderArgs) {
+  return {origin: new URL(request.url).origin};
+}
 
 export default function CareGuide() {
   return (

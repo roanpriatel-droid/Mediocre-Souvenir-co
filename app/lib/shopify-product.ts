@@ -83,6 +83,15 @@ export const PRODUCT_QUERY = `#graphql
           title
         }
       }
+      # Review aggregates, as written by Judge.me / Okendo / Loox / Yotpo.
+      # Absent until a reviews app is installed, which is the point: the
+      # markup below only ever describes ratings that actually exist.
+      ratingValue: metafield(namespace: "reviews", key: "rating") {
+        value
+      }
+      ratingCount: metafield(namespace: "reviews", key: "rating_count") {
+        value
+      }
       seo {
         title
         description
@@ -102,6 +111,11 @@ export interface LiveVariant {
   image?: {url: string; altText?: string | null} | null;
 }
 
+export interface ProductRating {
+  value: number;
+  count: number;
+}
+
 export interface LiveProduct {
   id: string;
   handle: string;
@@ -118,6 +132,8 @@ export interface LiveProduct {
   };
   variants: LiveVariant[];
   collections: {handle: string; title: string}[];
+  /** Null until a reviews app has written real aggregates. Never invented. */
+  rating: ProductRating | null;
 }
 
 export async function loadProduct(
@@ -148,6 +164,7 @@ export async function loadProduct(
       priceRange: product.priceRange,
       variants: product.variants?.nodes ?? [],
       collections: product.collections?.nodes ?? [],
+      rating: parseRating(product.ratingValue, product.ratingCount),
     };
   } catch (error) {
     console.error(`[msc:product] "${handle}" failed to load`, error);
@@ -192,4 +209,34 @@ export function formatMoney(money: {
   } catch {
     return `$${amount}`;
   }
+}
+
+/**
+ * Reviews apps store the rating either as a bare number or as a Shopify
+ * rating JSON object ({"value":"4.6","scale_min":"1","scale_max":"5"}).
+ * Returns null unless we have both a usable value and a non-zero count —
+ * emitting aggregateRating without real reviews is a structured-data
+ * violation and, more to the point, a lie.
+ */
+function parseRating(
+  valueField: {value: string} | null | undefined,
+  countField: {value: string} | null | undefined,
+): ProductRating | null {
+  if (!valueField?.value || !countField?.value) return null;
+
+  let value = Number(valueField.value);
+  if (Number.isNaN(value)) {
+    try {
+      const parsed = JSON.parse(valueField.value) as {value?: string};
+      value = Number(parsed?.value);
+    } catch {
+      return null;
+    }
+  }
+
+  const count = Number(countField.value);
+  if (!Number.isFinite(value) || !Number.isFinite(count) || count <= 0) {
+    return null;
+  }
+  return {value, count};
 }

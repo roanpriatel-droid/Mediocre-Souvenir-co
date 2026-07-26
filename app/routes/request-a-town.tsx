@@ -1,6 +1,7 @@
 import {Form, useActionData, useNavigation, useSearchParams} from 'react-router';
 import type {Route} from './+types/request-a-town';
 import {getSubmissionStore, isValidEmail} from '~/lib/submissions';
+import {getRegion, REGIONS} from '~/lib/catalog';
 import {SITE_NAME} from '~/lib/seo';
 
 /**
@@ -8,7 +9,7 @@ import {SITE_NAME} from '~/lib/seo';
  * app/lib/submissions.ts — swap that for a durable backend before launch.
  */
 
-export const meta: Route.MetaFunction = () => [
+export const meta: Route.MetaFunction = ({data}) => [
   {title: `Request A Town — Nominate Your Mediocre Hometown | ${SITE_NAME}`},
   {
     name: 'description',
@@ -17,6 +18,7 @@ export const meta: Route.MetaFunction = () => [
       'gets the commemorative souvenir t-shirt it has quietly deserved all ' +
       'along.',
   },
+  {tagName: 'link', rel: 'canonical', href: `${data?.origin ?? ''}/request-a-town`},
 ];
 
 type ActionData =
@@ -37,15 +39,46 @@ export async function action({request}: Route.ActionArgs): Promise<ActionData> {
     return {ok: false, error: 'We need a working email to tell you when your town is up.'};
   }
 
-  await getSubmissionStore().addTownRequest({
-    town,
-    provinceState,
-    email,
-    note: note || undefined,
-    submittedAt: new Date().toISOString(),
-  });
+  const submittedAt = new Date().toISOString();
+  const store = getSubmissionStore();
+
+  // Two things happen here, and both matter. The request is the product
+  // pipeline — it decides what gets printed next. The subscriber record is the
+  // engagement side: the same person, on the list, tagged with the town and
+  // region they asked for, so "your town is open" can actually be sent.
+  const region = getRegion(slugify(provinceState)) ?? findRegionByName(provinceState);
+
+  await Promise.all([
+    store.addTownRequest({
+      town,
+      provinceState,
+      email,
+      note: note || undefined,
+      submittedAt,
+    }),
+    store.addSubscriber({
+      email,
+      source: 'request-a-town',
+      region: region?.slug,
+      regionName: region?.name ?? provinceState,
+      town,
+      tags: [
+        'newsletter',
+        'waitlist',
+        `town:${slugify(town)}`,
+        ...(region
+          ? [`region:${region.slug}`, `country:${region.country === 'Canada' ? 'ca' : 'us'}`]
+          : []),
+      ],
+      submittedAt,
+    }),
+  ]);
 
   return {ok: true, town};
+}
+
+export async function loader({request}: Route.LoaderArgs) {
+  return {origin: new URL(request.url).origin};
 }
 
 export default function RequestYourTown() {
@@ -148,5 +181,24 @@ export default function RequestYourTown() {
         </button>
       </Form>
     </div>
+  );
+}
+
+/** "New Brunswick" -> "new-brunswick", so a typed province can match a slug. */
+function slugify(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/** Fall back to matching on name or two-letter abbreviation. */
+function findRegionByName(value: string) {
+  const needle = value.trim().toLowerCase();
+  return REGIONS.find(
+    (region) =>
+      region.name.toLowerCase() === needle ||
+      region.abbrev.toLowerCase() === needle,
   );
 }

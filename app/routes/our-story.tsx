@@ -4,7 +4,7 @@ import {BadgeLogo} from '~/components/Brand';
 import {Reveal} from '~/components/Reveal';
 import {SITE_NAME} from '~/lib/seo';
 
-export const meta: Route.MetaFunction = () => [
+export const meta: Route.MetaFunction = ({data}) => [
   {title: `Our Story — Why Any Of This Exists | ${SITE_NAME}`},
   {
     name: 'description',
@@ -18,6 +18,7 @@ export const meta: Route.MetaFunction = () => [
     property: 'og:description',
     content: 'Every town deserves a souvenir. Even the ones that don’t.',
   },
+  {tagName: 'link', rel: 'canonical', href: `${data?.origin ?? ''}/our-story`},
 ];
 
 const MILESTONES = [
@@ -37,6 +38,10 @@ const MILESTONES = [
     body: 'A collection for every province, territory and state. Most of them are waitlists. That is not a failure state; it is the roadmap, and it is written by the people who live there.',
   },
 ];
+
+export async function loader({request}: Route.LoaderArgs) {
+  return {origin: new URL(request.url).origin};
+}
 
 export default function OurStory() {
   return (

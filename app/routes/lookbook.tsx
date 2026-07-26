@@ -7,7 +7,7 @@ import {productsByHandle} from '~/lib/shopify-search';
 import {cardPriceLabel} from '~/lib/shopify-collections';
 import {SITE_NAME} from '~/lib/seo';
 
-export const meta: Route.MetaFunction = () => [
+export const meta: Route.MetaFunction = ({data}) => [
   {title: `The Lookbook — Highway 1 and Onward | ${SITE_NAME}`},
   {
     name: 'description',
@@ -15,6 +15,7 @@ export const meta: Route.MetaFunction = () => [
       'A road trip through the British Columbia collection — Tofino to ' +
       'Trail, one overlooked town at a time, every stop shoppable.',
   },
+  {tagName: 'link', rel: 'canonical', href: `${data?.origin ?? ''}/lookbook`},
 ];
 
 /** The route, in driving order — a scrolling visual story per collection. */
@@ -51,7 +52,7 @@ const STOPS: {handle: string; km: string; note: string}[] = [
   },
 ];
 
-export async function loader({context}: Route.LoaderArgs) {
+export async function loader({context, request}: Route.LoaderArgs) {
   // The road trip is editorial and the towns are real, but a stop only becomes
   // a shoppable link when the store actually carries that shirt.
   const products = await productsByHandle(
@@ -65,7 +66,7 @@ export async function loader({context}: Route.LoaderArgs) {
     town: getTownByHandle(stop.handle),
     product: byHandle.get(stop.handle) ?? null,
   })).filter((s) => s.town !== undefined);
-  return {stops};
+  return {stops, origin: new URL(request.url).origin};
 }
 
 export default function Lookbook() {

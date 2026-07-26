@@ -4,7 +4,7 @@ import {Reveal} from '~/components/Reveal';
 import {FindMySize, SizeTable} from '~/components/SizeGuide';
 import {SITE_NAME} from '~/lib/seo';
 
-export const meta: Route.MetaFunction = () => [
+export const meta: Route.MetaFunction = ({data}) => [
   {title: `Size & Fit Guide — Unisex S–3XL | ${SITE_NAME}`},
   {
     name: 'description',
@@ -13,7 +13,12 @@ export const meta: Route.MetaFunction = () => [
       'Colors 1717, unisex S–3XL): chest width, body length, and a simple ' +
       'find-my-size flow.',
   },
+  {tagName: 'link', rel: 'canonical', href: `${data?.origin ?? ''}/size-guide`},
 ];
+
+export async function loader({request}: Route.LoaderArgs) {
+  return {origin: new URL(request.url).origin};
+}
 
 export default function SizeGuide() {
   return (

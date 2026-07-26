@@ -16,7 +16,7 @@ import {SITE_NAME} from '~/lib/seo';
  * into a log is not a promise anyone should have to rely on.
  */
 
-export const meta: Route.MetaFunction = () => [
+export const meta: Route.MetaFunction = ({data}) => [
   {title: `Contact — The Front Desk | ${SITE_NAME}`},
   {
     name: 'description',
@@ -24,6 +24,7 @@ export const meta: Route.MetaFunction = () => [
       'Write to Mediocre Souvenir Co. about an order, sizing, a town we got ' +
       'wrong, or anything else. Answered by a person within two business days.',
   },
+  {tagName: 'link', rel: 'canonical', href: `${data?.origin ?? ''}/contact`},
 ];
 
 const TOPICS: {value: MessageTopic; label: string}[] = [
@@ -79,6 +80,10 @@ export async function action({request}: Route.ActionArgs): Promise<ActionData> {
   });
 
   return {ok: true, name};
+}
+
+export async function loader({request}: Route.LoaderArgs) {
+  return {origin: new URL(request.url).origin};
 }
 
 export default function Contact() {
