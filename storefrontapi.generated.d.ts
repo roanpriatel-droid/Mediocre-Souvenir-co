@@ -377,6 +377,84 @@ export type FooterQuery = {
   >;
 };
 
+export type SouvenirAllProductsQueryVariables = StorefrontAPI.Exact<{
+  first: StorefrontAPI.Scalars['Int']['input'];
+  after?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['String']['input']>;
+}>;
+
+export type SouvenirAllProductsQuery = {
+  products: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'availableForSale' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+      }
+    >;
+    pageInfo: Pick<StorefrontAPI.PageInfo, 'hasNextPage' | 'endCursor'>;
+  };
+};
+
+export type SouvenirNewestProductsQueryVariables = StorefrontAPI.Exact<{
+  first: StorefrontAPI.Scalars['Int']['input'];
+}>;
+
+export type SouvenirNewestProductsQuery = {
+  products: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'availableForSale' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        compareAtPriceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+      }
+    >;
+  };
+};
+
 export type SouvenirMoneyFragment = Pick<
   StorefrontAPI.MoneyV2,
   'amount' | 'currencyCode'
@@ -922,6 +1000,14 @@ interface GeneratedQueryTypes {
   '#graphql\n  query Footer(\n    $country: CountryCode\n    $footerMenuHandle: String!\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    menu(handle: $footerMenuHandle) {\n      ...Menu\n    }\n  }\n  #graphql\n  fragment MenuItem on MenuItem {\n    id\n    resourceId\n    tags\n    title\n    type\n    url\n  }\n  fragment ChildMenuItem on MenuItem {\n    ...MenuItem\n  }\n  fragment ParentMenuItem on MenuItem {\n    ...MenuItem\n    items {\n      ...ChildMenuItem\n    }\n  }\n  fragment Menu on Menu {\n    id\n    items {\n      ...ParentMenuItem\n    }\n  }\n\n': {
     return: FooterQuery;
     variables: FooterQueryVariables;
+  };
+  '#graphql\n  query SouvenirAllProducts($first: Int!, $after: String) {\n    products(first: $first, after: $after, sortKey: TITLE) {\n      nodes {\n        ...SouvenirCard\n      }\n      pageInfo {\n        hasNextPage\n        endCursor\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
+    return: SouvenirAllProductsQuery;
+    variables: SouvenirAllProductsQueryVariables;
+  };
+  '#graphql\n  query SouvenirNewestProducts($first: Int!) {\n    products(first: $first, sortKey: CREATED_AT, reverse: true) {\n      nodes {\n        ...SouvenirCard\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
+    return: SouvenirNewestProductsQuery;
+    variables: SouvenirNewestProductsQueryVariables;
   };
   '#graphql\n  query SouvenirCollection($handle: String!, $first: Int!) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        url\n        altText\n        width\n        height\n      }\n      products(first: $first) {\n        nodes {\n          ...SouvenirCard\n        }\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
     return: SouvenirCollectionQuery;

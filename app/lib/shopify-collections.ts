@@ -83,7 +83,7 @@ const MONEY_FRAGMENT = `#graphql
 ` as const;
 
 /** The card shape every product grid renders. Kept lean — grids are wide. */
-const PRODUCT_CARD_FRAGMENT = `#graphql
+export const PRODUCT_CARD_FRAGMENT = `#graphql
   fragment SouvenirCard on Product {
     id
     handle
@@ -489,6 +489,19 @@ export async function loadRegionStatus(
       if (!regionByHandle.has(node.handle)) continue;
       open[node.handle] = (node.products?.nodes?.length ?? 0) > 0;
     }
+
+    // Not one region collection is reachable — they are not published to this
+    // sales channel. Work out which regions are stocked from the products
+    // instead, so the grid reflects the catalogue rather than the config.
+    if (!Object.keys(open).length) {
+      console.warn(
+        '[msc:collections] no region collections visible to the Storefront ' +
+          'API; deriving region status from products',
+      );
+      const {regionStatusFromProducts} = await import('./shopify-catalog');
+      return {open: await regionStatusFromProducts(storefront), live: true};
+    }
+
     return {open, live: true};
   } catch (error) {
     console.error('[msc:collections] region status failed to load', error);

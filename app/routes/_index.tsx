@@ -15,6 +15,10 @@ import {
   loadRegionStatus,
   UTILITY_COLLECTIONS,
 } from '~/lib/shopify-collections';
+import {
+  loadNewestProducts,
+  productsInOpenRegions,
+} from '~/lib/shopify-catalog';
 import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
@@ -55,11 +59,15 @@ export async function loader({context}: Route.LoaderArgs) {
       context.storefront,
       UTILITY_COLLECTIONS.nowOpen,
       8,
+    ).then((products) =>
+      products.length ? products : productsInOpenRegions(context.storefront, 8),
     ),
     newArrivalProducts: loadCollectionProducts(
       context.storefront,
       UTILITY_COLLECTIONS.newArrivals,
       8,
+    ).then((products) =>
+      products.length ? products : loadNewestProducts(context.storefront, 8),
     ),
   };
 }

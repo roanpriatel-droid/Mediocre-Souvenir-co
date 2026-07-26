@@ -3,6 +3,7 @@ import {
   loadCollectionProducts,
   UTILITY_COLLECTIONS,
 } from '~/lib/shopify-collections';
+import {productsInOpenRegions} from '~/lib/shopify-catalog';
 
 /**
  * One suggestion for the cart, drawn from Now Open so we never propose a
@@ -26,6 +27,9 @@ export async function loader({request, context}: Route.LoaderArgs) {
       UTILITY_COLLECTIONS.allSouvenirs,
       12,
     );
+  }
+  if (!products.length) {
+    products = await productsInOpenRegions(context.storefront, 12);
   }
 
   const suggestion =

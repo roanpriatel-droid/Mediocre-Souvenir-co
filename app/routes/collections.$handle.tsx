@@ -17,6 +17,13 @@ import {
   regionForCollectionHandle,
   type SouvenirCard,
 } from '~/lib/shopify-collections';
+import {
+  loadDerivedCatalog,
+  loadNewestProducts,
+  productsForCountry,
+  productsForRegion,
+  productsInOpenRegions,
+} from '~/lib/shopify-catalog';
 import {regionDescription, regionTagline} from '~/lib/region-copy';
 import {SITE_NAME} from '~/lib/seo';
 
@@ -95,27 +102,39 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
 
   // ── Region collection ────────────────────────────────────────────────
   if (region) {
-    // Trust the products we just fetched; only ask for the wider status when
-    // the region looks empty, so an open region costs a single query.
+    // The region's smart collection is the fast path. When it is not published
+    // to the headless channel we derive the rack from the products themselves
+    // rather than telling a stocked region it does not exist.
+    let regionProducts = products;
+    if (!regionProducts.length) {
+      regionProducts = await productsForRegion(context.storefront, region);
+      if (regionProducts.length) {
+        console.warn(
+          `[msc:collection] "${handle}" collection unavailable; served ` +
+            `${regionProducts.length} products derived from the catalogue`,
+        );
+      }
+    }
+
     const open =
-      products.length > 0
+      regionProducts.length > 0
         ? true
         : isRegionOpen(region, await loadRegionStatus(context.storefront));
 
     const description = regionDescription(region, open);
     const title = open
-      ? `${region.name} Souvenir T-Shirts — ${products.length} Overlooked Towns | ${SITE_NAME}`
+      ? `${region.name} Souvenir T-Shirts — ${regionProducts.length} Overlooked Towns | ${SITE_NAME}`
       : `${region.name} — Coming In Due Time | ${SITE_NAME}`;
 
     return {
       kind: 'region' as const,
-      connection,
+      connection: products.length ? connection : null,
       handle,
       region,
       open,
       heading: shopifyCollection?.title || `${region.name}`,
       description,
-      products,
+      products: regionProducts,
       origin,
       seo: {
         title,
@@ -154,15 +173,22 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   // the whole shop down, which is exactly what removing the catalog fallback
   // did. Render the rack empty and say so instead.
   if (KNOWN_HANDLES.has(handle)) {
+    const derived = await deriveUtilityRack(context.storefront, handle);
+    if (derived.length) {
+      console.warn(
+        `[msc:collection] "${handle}" collection unavailable; served ` +
+          `${derived.length} products derived from the catalogue`,
+      );
+    }
     return {
       kind: 'shopify' as const,
       connection: null,
       handle,
       region: null,
-      open: false,
+      open: derived.length > 0,
       heading: titleForHandle(handle),
       description: '',
-      products: [] as SouvenirCard[],
+      products: derived,
       origin,
       seo: {
         title: `${titleForHandle(handle)} | ${SITE_NAME}`,
@@ -178,6 +204,31 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
 
 /** Every collection handle this site links to. */
 const KNOWN_HANDLES = new Set<string>(Object.values(UTILITY_COLLECTIONS));
+
+/**
+ * The utility racks, rebuilt from products when their collections are not
+ * published. Coming In Due Time stays empty on purpose — it is a list of what
+ * we do not sell yet, which cannot be derived from what we do.
+ */
+async function deriveUtilityRack(
+  storefront: Route.LoaderArgs['context']['storefront'],
+  handle: string,
+): Promise<SouvenirCard[]> {
+  switch (handle) {
+    case UTILITY_COLLECTIONS.allSouvenirs:
+      return (await loadDerivedCatalog(storefront)).products;
+    case UTILITY_COLLECTIONS.canada:
+      return productsForCountry(storefront, 'Canada');
+    case UTILITY_COLLECTIONS.unitedStates:
+      return productsForCountry(storefront, 'United States');
+    case UTILITY_COLLECTIONS.newArrivals:
+      return loadNewestProducts(storefront, 24);
+    case UTILITY_COLLECTIONS.nowOpen:
+      return productsInOpenRegions(storefront, 24);
+    default:
+      return [];
+  }
+}
 
 function titleForHandle(handle: string): string {
   return handle
