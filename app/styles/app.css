@@ -5334,3 +5334,23 @@ select:focus-visible,
   opacity: 0.8;
   margin-bottom: 10px;
 }
+
+/* ---------- edge case: long town names ----------
+   "Newfoundland and Labrador" and the longer US city names overflow a rack
+   tag. Clamp to two lines with an ellipsis rather than letting a card grow
+   taller than its neighbours and break the grid baseline. */
+.rack-card-town {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  min-height: 2.2em;
+}
+
+.rack-card-meta {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}

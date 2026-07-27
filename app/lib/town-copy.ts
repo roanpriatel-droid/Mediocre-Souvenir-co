@@ -106,8 +106,14 @@ export function townNameFrom(title: string, handle: string): string {
   const abbrevs = new Set(REGIONS.map((r) => r.abbrev.toLowerCase()));
   const parts = handle.split('-');
   const cut = parts.findIndex((part) => part.length === 2 && abbrevs.has(part));
-  const words = cut > 0 ? parts.slice(0, cut) : parts.slice(0, 1);
-  return words
+
+  // No region code either, so this is not a town-shaped product — a gift card,
+  // a bundle, whatever gets added later. Taking the first handle segment would
+  // render "Gift Card" as "Gift"; show the real title instead.
+  if (cut <= 0) return title.trim();
+
+  return parts
+    .slice(0, cut)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
@@ -216,3 +222,40 @@ export function productMetaDescription(
     `Printed to order, ships with a Certificate of Mediocre Authenticity.`
   );
 }
+
+const abbrevToRegion = new Map(
+  REGIONS.map((region) => [region.abbrev.toUpperCase(), region]),
+);
+
+/**
+ * The region a product belongs to.
+ *
+ * Lives here rather than in the query layer so client components can share
+ * one parser with the product page — the card and the PDP disagreeing about a
+ * product's own name is exactly the drift this prevents.
+ *
+ * "Toledo, OH — Varsity" → OH. Falls back to the handle
+ * ("toledo-oh-varsity"), where the region sits between the city and the
+ * template. Returns undefined rather than guessing, so a Gift Card never
+ * lands in Ohio.
+ */
+export function regionForProduct(product: {
+  title: string;
+  handle: string;
+}): Region | undefined {
+  const fromTitle = /,\s*([A-Za-z]{2})\b/.exec(product.title);
+  if (fromTitle) {
+    const region = abbrevToRegion.get(fromTitle[1].toUpperCase());
+    if (region) return region;
+  }
+
+  for (const segment of product.handle.split('-')) {
+    if (segment.length === 2) {
+      const region = abbrevToRegion.get(segment.toUpperCase());
+      if (region) return region;
+    }
+  }
+
+  return undefined;
+}
+

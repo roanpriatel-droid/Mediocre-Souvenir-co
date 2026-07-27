@@ -14,6 +14,61 @@ Anything I could not measure is recorded as unmeasured rather than estimated.
 
 ---
 
+## Cycle 4 — 2026-07-27 — Lens: edge cases
+
+### Findings, ranked
+
+1. **Every product card in the store printed "Genuine souvenir" twice and
+   showed no region.** `SouvenirProductCard` looked the town up with
+   `getTownByHandle(product.handle)` — against the local British Columbia
+   catalogue, whose handles are `trail-t-shirt`. Real product handles are
+   `toledo-oh-varsity`, so the lookup **never matched for any product in the
+   catalogue**. The sub-line fell through to the literal string "Genuine
+   souvenir", and the price row's left label was the same string, so the card
+   said it twice, stacked, on the primary browsing surface.
+2. **Two different parsers for one product name.** The PDP used
+   `townNameFrom()` → "Toledo"; the card used a local `cardTitle()` that split
+   on the em dash → "Toledo, OH". The card and the product page disagreed about
+   the product's own name.
+3. **Non-town products were truncated.** Caught by the new edge-case suite:
+   "Gift Card" rendered as "Gift", because with no region code in the handle the
+   parser fell back to the first handle segment.
+4. Long town names ("Happy Valley-Goose Bay") had no clamp and would push a
+   card taller than its neighbours, breaking the grid baseline.
+
+### Done
+
+- Card now uses `townNameFrom()` and `regionForProduct()` — the same two
+  functions the PDP uses. Title shows the town, sub-line shows the **region**,
+  and the price row says "On the rack" / "Off the rack" instead of repeating.
+- Moved `regionForProduct` out of the query layer into the pure town module, so
+  a client component shares the parser without pulling the Storefront queries
+  into the browser bundle.
+- `townNameFrom` returns the full title when a product is not town-shaped.
+- Town name clamps to two lines with an ellipsis; region line truncates.
+
+### Why
+
+Finding 1 is a visible defect on every card on every browsing page, and it was
+invisible in the build because a stale lookup returning `undefined` is not an
+error. Finding 2 is the cause of 1 — two parsers for one fact will always drift.
+
+### Verified
+
+New edge-case suite, 5/5: real titles, a hyphenated multi-word town, a
+comma-less title, a gift card, a bundle. Build, typecheck clean; lint 0 errors.
+Crawl 69/69, 0 dead. Region parser 7/7, structured data 30/30.
+
+### Next
+
+- Copy quality lens: the templated tourism paragraph is one sentence pattern
+  across ~58 regions; worth checking it does not read as obviously generated at
+  scale.
+- Six duplicate CSS rules, still outstanding.
+- Brand decision on brick contrast (cycle 3) still open.
+
+---
+
 ## Cycle 3 — 2026-07-27 — Lens: accessibility
 
 ### Findings, ranked

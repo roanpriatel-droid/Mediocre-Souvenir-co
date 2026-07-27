@@ -2,19 +2,18 @@ import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {useAside} from '~/components/Aside';
-import {getTownByHandle, TIER_LABELS} from '~/lib/catalog';
 import {cardPriceLabel, type SouvenirCard as CardData} from '~/lib/shopify-collections';
+import {regionForProduct, townNameFrom} from '~/lib/town-copy';
 
 /**
  * A Shopify product on the rack tag.
  *
- * Two sources meet here. The price, availability, and photography come from
- * the store; the sub-line comes from the local town catalog when the handle
- * matches a town we know, so a real product keeps its population tier and
- * province rather than falling back to a vendor name. When the store has no
- * photograph yet, the generative mockup stands in — the catalog was drawing
- * these long before there were photos, and a rack with art on it beats a rack
- * of grey boxes.
+ * The town and region are parsed from the product's own title with the same
+ * two functions the product page uses. They used to be looked up in the local
+ * BC town catalog by handle, which never matched a real product handle
+ * (`trail-t-shirt` vs `toledo-oh-varsity`) — so every card in the store fell
+ * through to the literal string "Genuine souvenir", printed it twice, and
+ * showed no region at all. One parser, used everywhere, is the fix.
  */
 export function SouvenirProductCard({
   product,
@@ -23,14 +22,11 @@ export function SouvenirProductCard({
   product: CardData;
   loading?: 'eager' | 'lazy';
 }) {
-  const town = getTownByHandle(product.handle);
+  const town = townNameFrom(product.title, product.handle);
+  const region = regionForProduct(product);
   const onSale =
     Number(product.compareAtPriceRange?.minVariantPrice?.amount ?? 0) >
     Number(product.priceRange.minVariantPrice.amount);
-
-  const subtitle = town
-    ? `${town.provinceState} · ${TIER_LABELS[town.populationTier]}`
-    : 'Genuine souvenir';
 
   return (
     <Link className="rack-card" to={`/products/${product.handle}`} prefetch="intent">
@@ -54,10 +50,14 @@ export function SouvenirProductCard({
           </div>
         )}
       </div>
-      <div className="rack-card-town">{cardTitle(product.title, town?.city)}</div>
-      <div className="rack-card-meta">{subtitle}</div>
+      <div className="rack-card-town" title={product.title}>
+        {town}
+      </div>
+      <div className="rack-card-meta">
+        {region ? region.name : 'Genuine souvenir'}
+      </div>
       <div className="rack-card-price">
-        <span>{product.availableForSale ? 'Genuine souvenir' : 'Off the rack'}</span>
+        <span>{product.availableForSale ? 'On the rack' : 'Off the rack'}</span>
         <strong data-sale={onSale || undefined}>{cardPriceLabel(product)}</strong>
       </div>
     </Link>
@@ -111,16 +111,6 @@ function QuickAdd({product}: {product: CardData}) {
       Pick a size →
     </Link>
   );
-}
-
-/**
- * Store titles tend to read "Trail T-Shirt — Mediocre Souvenir Co."; the rack
- * only has room for the town. Falls back to the full title when we cannot do
- * better than the store did.
- */
-function cardTitle(title: string, city?: string): string {
-  if (city) return city;
-  return title.split(/\s+[—–|]\s+/)[0].replace(/\s+t-?shirt$/i, '').trim() || title;
 }
 
 export function SouvenirGrid({

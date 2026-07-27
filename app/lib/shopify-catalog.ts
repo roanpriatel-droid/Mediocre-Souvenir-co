@@ -1,5 +1,8 @@
 import type {Storefront} from '@shopify/hydrogen';
 import {REGIONS, type Region} from './catalog';
+import {regionForProduct} from './town-copy';
+export {regionForProduct};
+
 import {
   PRODUCT_CARD_FRAGMENT,
   type SouvenirCard,
@@ -151,38 +154,6 @@ export function loadProductIndex(
       indexMemo = null;
     });
   return promise;
-}
-
-const abbrevToRegion = new Map(
-  REGIONS.map((region) => [region.abbrev.toUpperCase(), region]),
-);
-
-/**
- * The region a product belongs to.
- *
- * "Toledo, OH — Varsity" → OH. Falls back to the handle
- * ("toledo-oh-varsity"), where the region sits between the city and the
- * template. Returns undefined rather than guessing, so a Gift Card never
- * lands in Ohio.
- */
-export function regionForProduct(product: {
-  title: string;
-  handle: string;
-}): Region | undefined {
-  const fromTitle = /,\s*([A-Za-z]{2})\b/.exec(product.title);
-  if (fromTitle) {
-    const region = abbrevToRegion.get(fromTitle[1].toUpperCase());
-    if (region) return region;
-  }
-
-  for (const segment of product.handle.split('-')) {
-    if (segment.length === 2) {
-      const region = abbrevToRegion.get(segment.toUpperCase());
-      if (region) return region;
-    }
-  }
-
-  return undefined;
 }
 
 export function groupByRegion(entries: ProductIndexEntry[]): DerivedCatalog {
