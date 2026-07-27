@@ -317,36 +317,90 @@ main {
 
 .header-menu-desktop {
   display: none;
-  flex: 1;
-  justify-content: center;
-  gap: 28px;
 }
 
+/*
+ * Desktop header is two rows: the wordmark and cart on top, the navigation on
+ * its own ruled band underneath. On one row, "MEDIOCRE SOUVENIR CO." plus five
+ * menus plus the cart left the links fighting for a few pixels each. A full
+ * -width band gives every item real padding and reads like the sign board over
+ * a shop counter, which is the system we are in anyway.
+ */
 @media (min-width: 900px) {
+  :root {
+    --header-height: 108px;
+  }
+
+  .header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'logo ctas'
+      'nav nav';
+    align-items: center;
+    padding: 0;
+    gap: 0;
+  }
+
+  .header-logo {
+    grid-area: logo;
+    padding: 0 0 0 28px;
+  }
+
+  .header-ctas {
+    grid-area: ctas;
+    padding: 0 28px 0 0;
+  }
+
   .header-menu-desktop {
+    grid-area: nav;
     display: flex;
+    align-items: stretch;
+    justify-content: center;
+    height: 46px;
+    border-top: 2px solid var(--msc-asphalt);
+    background: var(--msc-cream-deep);
   }
 }
 
 .header-menu-item {
-  font-size: 13.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 clamp(14px, 1.6vw, 26px);
+  font-family: var(--font-body);
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 2.4px;
   text-transform: uppercase;
   color: var(--msc-navy);
-  padding: 4px 0;
-  border-bottom: 3px solid transparent;
   white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: background 140ms ease, color 140ms ease;
 }
 
-.header-menu-item:hover {
-  color: var(--msc-brick);
-  border-bottom-color: var(--msc-brick);
+/* Dotted rules between items — a receipt, not a toolbar. */
+.header-menu-desktop > * + * .header-menu-item,
+.header-menu-desktop > * + .header-menu-item {
+  box-shadow: inset 1px 0 0 rgba(42, 61, 82, 0.28);
+}
+
+.header-menu-item:hover,
+.header-menu-item:focus-visible {
+  background: var(--msc-mustard);
+  color: var(--msc-asphalt);
 }
 
 .header-menu-item.active {
-  border-bottom-color: var(--msc-mustard);
-  color: var(--msc-navy);
+  border-bottom-color: var(--msc-brick);
+  color: var(--msc-brick);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-menu-item {
+    transition: none;
+  }
 }
 
 .header-ctas {
@@ -1000,11 +1054,6 @@ main {
   background: var(--msc-cream);
   border: 2px solid var(--msc-asphalt);
   display: block;
-}
-
-.rack-card-art {
-  width: 100%;
-  height: auto;
 }
 
 .rack-card-town {
@@ -4466,30 +4515,39 @@ select:focus-visible,
    Dropdown navigation + country town finder
    ============================================================ */
 
-.header-menu-desktop {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
 .nav-dropdown {
   position: relative;
+  display: flex;
+  align-items: stretch;
 }
 
 .nav-dropdown-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   background: none;
   border: none;
+  border-bottom: 3px solid transparent;
   cursor: pointer;
   font: inherit;
 }
 
 .nav-dropdown-caret {
-  font-size: 9px;
+  font-size: 8px;
+  opacity: 0.65;
   transform: translateY(1px);
   transition: transform 160ms ease;
+}
+
+.nav-dropdown-trigger:hover .nav-dropdown-caret,
+.nav-dropdown-trigger[aria-expanded='true'] .nav-dropdown-caret {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-dropdown-caret {
+    transition: none;
+  }
 }
 
 .nav-dropdown-trigger[aria-expanded='true'] .nav-dropdown-caret {
@@ -4499,12 +4557,13 @@ select:focus-visible,
 .nav-dropdown-trigger[aria-expanded='true'] {
   background: var(--msc-mustard);
   color: var(--msc-asphalt);
+  border-bottom-color: var(--msc-asphalt);
 }
 
 /* The panel: a rack card hanging off the bar, hard edges, offset shadow. */
 .nav-dropdown-panel {
   position: absolute;
-  top: calc(100% + 6px);
+  top: 100%;
   left: 0;
   z-index: 40;
   min-width: 250px;
@@ -4555,9 +4614,9 @@ select:focus-visible,
 
 /* Fifty states need columns, and the panel needs to stay on screen. */
 .nav-dropdown-panel[data-wide] {
-  min-width: min(760px, calc(100vw - 32px));
-  left: auto;
-  right: 0;
+  width: min(820px, calc(100vw - 48px));
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .nav-dropdown-panel[data-wide] ul {
