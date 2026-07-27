@@ -1165,12 +1165,6 @@ main {
   align-items: center;
 }
 
-.guest-book-stars {
-  font-size: 22px;
-  letter-spacing: 8px;
-  color: var(--msc-sage);
-}
-
 /* ---------- spotted in the wild (UGC) ---------- */
 
 .spotted-grid {
@@ -5236,12 +5230,21 @@ select:focus-visible,
  * on that page that matters, and 52px clears the 44px minimum tap target with
  * room for a thumb that is not being careful.
  */
+/*
+ * 19px bold is deliberate, not decoration. Cream on brick measures 4.09:1,
+ * which misses AA for normal text (4.5) but clears AA for large text (3.0),
+ * and WCAG counts >=18.66px bold as large. Sizing the primary control up puts
+ * the store's most important button in compliance without touching a locked
+ * brand colour — and a bigger buy button is the right call regardless.
+ */
 .msc-button--buy {
   display: block;
   width: 100%;
-  min-height: 52px;
-  font-size: 16px;
-  padding: 15px 26px;
+  min-height: 56px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 16px 26px;
 }
 
 .msc-button--buy[data-pending] {

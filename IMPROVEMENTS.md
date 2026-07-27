@@ -14,6 +14,74 @@ Anything I could not measure is recorded as unmeasured rather than estimated.
 
 ---
 
+## Cycle 3 — 2026-07-27 — Lens: accessibility
+
+### Findings, ranked
+
+Ran a WCAG contrast audit over every colour pair the stylesheet actually uses
+(computed, not eyeballed). Four pairs failed AA; three turned out not to be
+real defects:
+
+| pair | ratio | verdict |
+| --- | --- | --- |
+| `brick` on `cream` | **4.09** | real — needs 4.5 for normal text |
+| `brick` on `cream-deep` | **3.84** | real — same, worse on card stock |
+| `sage` on `cream` | 2.46 | not real — sole usage was `.guest-book-stars`, dead CSS from a component deleted earlier |
+| `mustard` on `cream` | 1.86 | not real — mustard text only ever sits on navy (4.95, passes) or asphalt; the one cream-adjacent use is decorative stars marked `aria-hidden` |
+
+Everything else passes comfortably: asphalt on cream 14.09, navy on cream 9.20,
+cream on navy 9.20, asphalt on mustard 7.59.
+
+Also found the last two lint errors in the repo: `EmailCaptureModal` had a JSX
+`onClick` on `<dialog>` for backdrop dismissal — the same non-interactive
+element defect I fixed in the gallery, which makes the behaviour mouse-only.
+
+### Done
+
+- **Primary buy button to 19px bold / 56px min-height.** Cream on brick is
+  4.09:1, which misses AA-normal (4.5) but clears AA-large (3.0), and WCAG
+  counts ≥18.66px bold as large text. Sizing the control up brings the store's
+  most important button into compliance **without touching a locked brand
+  colour** — and a bigger buy button is correct on its own merits.
+- Modal backdrop dismissal moved to a native listener. **Repo lint is now 0
+  errors** (down from 2), 6 warnings.
+- Removed the dead sage rule.
+
+### Blocked on you — brand-level, per the rails
+
+`--msc-brick` (#B8503A) is the primary accent and measures **4.09:1 on cream**.
+That is a pass for large text and a fail for normal text, so roughly 25 small
+uses — `.msc-kicker` at 13px, `.rack-card-meta` at 11.5px, `.collection-card-more`
+at 12.5px, `.cart-upsell-price` at 12px, the `.msc-button` base at 15px — sit
+just under AA. The margin is small (4.09 vs 4.5) but it is systematic.
+
+Three ways out, all brand-level, so I have not taken any of them:
+
+1. **Darken brick for text only.** A `--msc-brick-ink` around #A8452F reaches
+   4.5 and is visually near-indistinguishable at small sizes. Palette for fills
+   and rules stays exactly as specified. Smallest change, keeps the accent.
+2. **Reserve brick for large text and rules; use navy (9.20) for small text.**
+   No new colour, but it visibly cools a lot of small type.
+3. **Accept it** and document the store as AA-large. Defensible for a
+   deliberately faded 1970s palette, but it is a real barrier for low-vision
+   shoppers, and the small brick text includes prices and stock notices.
+
+My recommendation is (1). Tell me which and I will do it in one pass.
+
+### Verified
+
+Build, typecheck clean. Lint 0 errors. Route crawl 69/69, 0 dead. Region parser
+7/7, structured data 30/30. Contrast figures are computed from the hex values
+in `app.css`, so they are exact, not estimated.
+
+### Next
+
+- Edge cases lens: long product titles in cards and the sticky bar, empty
+  collections, OOS variants, a region with one product.
+- Six duplicate CSS rules still outstanding.
+
+---
+
 ## Cycle 2 — 2026-07-27 — Lens: performance
 
 ### Findings, ranked

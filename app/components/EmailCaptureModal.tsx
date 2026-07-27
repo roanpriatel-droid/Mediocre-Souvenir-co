@@ -54,15 +54,24 @@ export function EmailCaptureModal() {
     ref.current?.close();
   };
 
+  // Backdrop click dismisses. Bound natively rather than as a JSX handler on
+  // <dialog>, which is not an interactive element — the JSX form fails
+  // keyboard-accessibility linting and leaves the behaviour mouse-only.
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog) return;
+    const onBackdrop = (event: MouseEvent) => {
+      if (event.target === dialog) {
+        trackEvent('email_modal_dismissed');
+        dialog.close();
+      }
+    };
+    dialog.addEventListener('click', onBackdrop);
+    return () => dialog.removeEventListener('click', onBackdrop);
+  }, []);
+
   return (
-    <dialog
-      className="msc-modal email-modal"
-      ref={ref}
-      aria-label="Postcards from us"
-      onClick={(e) => {
-        if (e.target === ref.current) dismiss(); // backdrop click
-      }}
-    >
+    <dialog className="msc-modal email-modal" ref={ref} aria-label="Postcards from us">
       <div className="email-modal-inner">
         <MSCMonogram size={64} />
         <p className="msc-kicker">Postcards from us</p>
