@@ -1,61 +1,87 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import {Link, redirect, useLoaderData} from 'react-router';
+import {Link, redirect, useLoaderData, useSearchParams} from 'react-router';
 import type {Route} from './+types/products.$handle';
-import {Analytics, Image, useNonce} from '@shopify/hydrogen';
+import {Analytics, useNonce} from '@shopify/hydrogen';
 import {AddToCartButton} from '~/components/AddToCartButton';
-import {ProductLadderStrip} from '~/components/CollectLadder';
+import {ProductGallery} from '~/components/ProductGallery';
 import {SouvenirGrid} from '~/components/SouvenirCard';
 import {SizeTable} from '~/components/SizeGuide';
+import {NotifyMe} from '~/components/NotifyMe';
 import {useAside} from '~/components/Aside';
-import {
-  COLORWAY_LABELS,
-  DISPLAY_PRICE,
-  getRegion,
-  getTownByHandle,
-  localeFor,
-  PRICE,
-  SIZES,
-  TIER_LABELS,
-  type TownProduct,
-} from '~/lib/catalog';
 import {
   formatMoney,
   loadProduct,
   sizeOptionName,
-  variantForSize,
   type LiveProduct,
+  type LiveVariant,
 } from '~/lib/shopify-product';
 import {
   loadCollectionProducts,
   regionForCollectionHandle,
   type SouvenirCard,
 } from '~/lib/shopify-collections';
-import {townDescription, townH1, townPitch, townTitle} from '~/lib/seo';
+import {
+  loadNewestProducts,
+  productsForRegion,
+  regionForProduct,
+} from '~/lib/shopify-catalog';
+import {
+  buildDescription,
+  CARE_LINES,
+  foundedLabel,
+  productMetaDescription,
+  productMetaTitle,
+  sellLine,
+  SPEC_LINES,
+  townCopyFor,
+  townNameFrom,
+  type TownCopy,
+} from '~/lib/town-copy';
+import type {Region} from '~/lib/catalog';
+import {SITE_NAME} from '~/lib/seo';
 
 /**
  * The product page.
  *
- * Two sources, cleanly divided. The store owns commerce — variants, prices,
- * stock, photography — and the town catalog owns the story: population, est.
- * year, the one thing the place is known for, and the generative artwork that
- * carried the site before there were photographs. A product that exists in
- * both gets both. A product that exists in only one still renders.
+ * Every product in this store has a place attached, which is the thing an
+ * ordinary PDP cannot do — so the page is built as a souvenir-stand artifact
+ * for one town: a parks-sign plaque, a fact of dubious value, and apologetic
+ * tourism copy, all derived from the product's own title.
+ *
+ * Data quirks absorbed from the live catalogue:
+ *  - Titles read "Toledo, OH — Varsity"; the town is everything before the
+ *    comma, the region is the two-letter code after it.
+ *  - Prices come back in CAD even for US towns, so nothing formats currency by
+ *    assumption — Intl does it from the variant's own currencyCode.
+ *  - Only one collection is visible to the Storefront API, so "More From
+ *    [Region]" falls through to the product-derived catalogue.
+ *  - Some products have no images; the gallery renders regardless.
+ *  - A colourway option may not exist; chips render only when it does.
  */
 
 export const meta: Route.MetaFunction = ({data}) => {
   if (!data) return [{title: 'Not found'}];
-  const {town, live, origin, handle} = data;
-  const title = town ? townTitle(town) : `${live?.title ?? 'Souvenir'} | Mediocre Souvenir Co.`;
-  const description = town
-    ? townDescription(town)
-    : live?.description?.slice(0, 300) ||
-      'A genuine faux-vintage souvenir t-shirt for a town that never got one.';
+  const {town, region, copy, live, origin, handle} = data;
+  const title = `${productMetaTitle(town, region ?? undefined)} | ${SITE_NAME}`;
+  const description = productMetaDescription(town, copy, region ?? undefined);
   return [
     {title},
     {name: 'description', content: description},
     {tagName: 'link', rel: 'canonical', href: `${origin}/products/${handle}`},
-    ...(live?.featuredImage
-      ? [{property: 'og:image', content: live.featuredImage.url}]
+    {property: 'og:type', content: 'product'},
+    {property: 'og:title', content: `${town} — a souvenir nobody asked for`},
+    {property: 'og:description', content: description},
+    ...(live.featuredImage
+      ? [
+          {property: 'og:image', content: live.featuredImage.url},
+          // Preload the LCP element so the stage paints on the first pass.
+          {
+            tagName: 'link' as const,
+            rel: 'preload',
+            as: 'image',
+            href: live.featuredImage.url,
+          },
+        ]
       : []),
   ];
 };
@@ -65,246 +91,174 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
   if (!handle) throw new Error('Expected product handle to be defined');
 
   const live = await loadProduct(context.storefront, handle);
-  const town = getTownByHandle(handle);
-
-  // A product page must be a real, purchasable product. There is no stand-in
-  // any more: this used to check out against a mock.shop variant, which meant
-  // a page could look buyable while being attached to nothing.
   if (!live) {
-    // Never a dead end. If the store cannot give us this product — whether the
-    // handle is wrong or the Storefront is not answering — send the reader to
-    // the most specific rack we can name rather than 404ing them.
+    // Never a dead end — send the reader to the nearest real rack.
     console.warn(`[msc:product] "${handle}" not returned by the Storefront API`);
-    const fallbackRegion = town ? getRegion(town.provinceSlug) : undefined;
-    throw redirect(
-      fallbackRegion
-        ? `/collections/${fallbackRegion.slug}`
-        : '/collections/all-souvenirs',
-      302,
-    );
+    throw redirect('/collections/all-souvenirs', 302);
   }
 
-  // "More from [region]" — the region collection when we can identify it,
-  // otherwise the catalog's neighbours in the same province.
-  const regionSlug =
-    town?.provinceSlug ??
-    live?.collections.find((c) => regionForCollectionHandle(c.handle))?.handle;
-  const region = regionSlug ? getRegion(regionSlug) : undefined;
+  const asCard = {
+    id: live.id,
+    handle: live.handle,
+    title: live.title,
+  } as SouvenirCard;
 
-  let moreFromRegion: SouvenirCard[] = [];
+  const region =
+    regionForProduct(asCard) ??
+    live.collections
+      .map((collection) => regionForCollectionHandle(collection.handle))
+      .find(Boolean);
+
+  const town = townNameFrom(live.title, live.handle);
+  const copy = townCopyFor(handle, town, region);
+
+  // Siblings: the region collection when published, the derived catalogue
+  // when it is not.
+  let siblings: SouvenirCard[] = [];
   if (region) {
-    moreFromRegion = (
-      await loadCollectionProducts(context.storefront, region.slug, 5)
-    ).filter((product) => product.handle !== handle);
-    moreFromRegion = moreFromRegion.slice(0, 4);
+    siblings = await loadCollectionProducts(context.storefront, region.slug, 5);
+    if (!siblings.length) {
+      siblings = await productsForRegion(context.storefront, region);
+    }
+    siblings = siblings.filter((p) => p.handle !== handle).slice(0, 4);
   }
+
+  // Cross-region row — deliberately somewhere else.
+  const elsewhere = (await loadNewestProducts(context.storefront, 12))
+    .filter((product) => {
+      if (product.handle === handle) return false;
+      const other = regionForProduct(product);
+      return !region || !other || other.slug !== region.slug;
+    })
+    .slice(0, 4);
 
   return {
     handle,
-    town: town ?? null,
     live,
+    town,
     region: region ?? null,
-    moreFromRegion,
+    copy,
+    siblings,
+    elsewhere,
     origin: new URL(request.url).origin,
   };
 }
 
 export default function ProductPage() {
-  const {
-    handle,
-    town,
-    live,
-    region,
-    moreFromRegion,
-    origin,
-  } = useLoaderData<typeof loader>();
-
+  const {handle, live, town, region, copy, siblings, elsewhere, origin} =
+    useLoaderData<typeof loader>();
   const nonce = useNonce();
   const {open} = useAside();
+  const [params, setParams] = useSearchParams();
   const sizeGuideRef = useRef<HTMLDialogElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
+  const [sizeError, setSizeError] = useState(false);
 
-  // Live sizes when the store defines them; the catalog's S–3XL otherwise.
-  const optionName = sizeOptionName(live);
-  const sizes: string[] = useMemo(() => {
-    if (optionName) {
-      const option = live.options.find((o) => o.name === optionName);
-      if (option?.values.length) return option.values;
+  const sizeOption = sizeOptionName(live);
+  const colorOption = useMemo(
+    () =>
+      live.options.find((option) => /colou?r|colorway/i.test(option.name))
+        ?.name ?? null,
+    [live.options],
+  );
+
+  // URL-synced selection: every option lives in the query string, so a chosen
+  // colourway and size are shareable and survive a reload.
+  const selected = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const option of live.options) {
+      const value = params.get(option.name.toLowerCase());
+      if (value && option.values.includes(value)) out[option.name] = value;
     }
-    return [...SIZES];
-  }, [live, optionName]);
+    return out;
+  }, [live.options, params]);
 
-  const [size, setSize] = useState<string | null>(null);
-  const selectedVariant = size ? variantForSize(live, optionName, size) : undefined;
+  const setOption = (name: string, value: string) => {
+    setSizeError(false);
+    setParams(
+      (prev) => {
+        prev.set(name.toLowerCase(), value);
+        return prev;
+      },
+      {preventScrollReset: true, replace: true},
+    );
+  };
 
-  // Price follows the selection: a chosen variant's real price, else the
-  // product's from-price, else the catalog's flat display price.
-  const priceLabel = selectedVariant
-    ? formatMoney(selectedVariant.price)
-    : formatMoney(live.priceRange.minVariantPrice);
-  const compareAt = selectedVariant?.compareAtPrice;
-  const onSale =
-    compareAt && Number(compareAt.amount) > Number(selectedVariant!.price.amount);
+  const variant = useMemo(
+    () => matchVariant(live.variants, selected, live.options),
+    [live.variants, selected, live.options],
+  );
 
-  const merchandiseId = selectedVariant?.id ?? null;
-  const purchasable = selectedVariant
-    ? selectedVariant.availableForSale
-    : live.availableForSale;
+  const sizeChosen = !sizeOption || Boolean(selected[sizeOption]);
+  const price = variant?.price ?? live.priceRange.minVariantPrice;
+  const compareAt = variant?.compareAtPrice;
+  const onSale = compareAt && Number(compareAt.amount) > Number(price.amount);
+  const soldOut = variant ? !variant.availableForSale : !live.availableForSale;
 
-  const displayTitle = town ? townH1(town) : live.title;
-  const shortName = town?.city ?? live.title;
-
-  // The variant carries size, colour and price. Town attributes are kept only
-  // as order-desk context, never as the thing being bought.
-  const cartLines =
-    merchandiseId && size
-      ? [
-          {
-            merchandiseId,
-            quantity: 1,
-            attributes: town
-              ? [
-                  {key: 'Town', value: town.city},
-                  {key: 'Province', value: town.provinceState},
-                ]
-              : [],
-          },
-        ]
-      : [];
-
-  // Sticky bar appears once the primary add-to-cart scrolls out of view.
-  const atcSentinelRef = useRef<HTMLDivElement>(null);
-  const [mainAtcVisible, setMainAtcVisible] = useState(true);
+  const atcRef = useRef<HTMLDivElement>(null);
+  const [mainVisible, setMainVisible] = useState(true);
   useEffect(() => {
-    const el = atcSentinelRef.current;
+    const el = atcRef.current;
     if (!el) return;
     const io = new IntersectionObserver(([entry]) =>
-      setMainAtcVisible(entry.isIntersecting),
+      setMainVisible(entry.isIntersecting),
     );
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
-  const analyticsProduct = {
-    id: handle,
-    title: displayTitle,
-    price: selectedVariant?.price.amount ?? PRICE.amount,
-    quantity: 1,
+  const cartLines = variant
+    ? [
+        {
+          merchandiseId: variant.id,
+          quantity: 1,
+          attributes: [
+            {key: 'Town', value: town},
+            ...(region ? [{key: 'Region', value: region.name}] : []),
+          ],
+        },
+      ]
+    : [];
+
+  const nudgeSize = () => {
+    setSizeError(true);
+    optionsRef.current?.scrollIntoView({behavior: 'smooth', block: 'center'});
   };
 
-  return (
-    <>
-      <div className="product">
-        <ProductGallery town={town} live={live} />
+  const countryHandle = region?.country === 'Canada' ? 'canada' : 'united-states';
+  const activeImageId = variant ? findImageId(live, variant) : null;
 
-        <div className="product-main">
+  return (
+    <div className="pdp">
+      <div className="pdp-main">
+        <ProductGallery
+          images={live.images}
+          title={live.title}
+          activeImageId={activeImageId}
+        />
+
+        <div className="pdp-buy">
+          {/* 1 · Breadcrumb: Country → Region → product */}
           <nav className="msc-breadcrumb" aria-label="Breadcrumb">
-            <Link to="/collections/all-souvenirs">Shop</Link>
-            {region && (
+            {region ? (
               <>
-                <span aria-hidden="true">·</span>
-                <Link
-                  to={`/collections/${
-                    region.country === 'Canada' ? 'canada' : 'united-states'
-                  }`}
-                >
-                  {region.country}
-                </Link>
+                <Link to={`/collections/${countryHandle}`}>{region.country}</Link>
                 <span aria-hidden="true">·</span>
                 <Link to={`/collections/${region.slug}`}>{region.name}</Link>
               </>
+            ) : (
+              <Link to="/collections/all-souvenirs">Shop</Link>
             )}
             <span aria-hidden="true">·</span>
-            <span aria-current="page">{shortName}</span>
+            <span aria-current="page">{town}</span>
           </nav>
 
-          <h1>{displayTitle}</h1>
-          {town && (
-            <p className="msc-kicker msc-kicker--navy">
-              Genuine souvenir · {town.provinceState}, {town.country}
-            </p>
-          )}
+          {/* 2 · Title */}
+          <h1 className="pdp-title">{live.title}</h1>
 
-          <div className="product-price-row">
-            <span className="product-price">{priceLabel}</span>
-            {onSale && compareAt && (
-              <span className="product-price-was">{formatMoney(compareAt)}</span>
-            )}
-            <span className="product-price-note">
-              {live
-                ? `${selectedVariant ? 'In your market' : 'From'} · Comfort Colors 1717`
-                : 'CAD in Canada · USD in the US · Comfort Colors 1717'}
-              {town ? ` · ${COLORWAY_LABELS[town.colorway]}` : ''}
-            </span>
-          </div>
-
-          {town && <p className="product-pitch">{townPitch(town)}</p>}
-          {!town && live?.description && (
-            <p className="product-pitch">{live.description}</p>
-          )}
-
-          <div className="product-options" ref={optionsRef}>
-            <div className="product-options-header">
-              <span className="msc-label" style={{marginBottom: 0}}>
-                {optionName ?? 'Size'} — unisex{size ? `: ${size}` : ''}
-              </span>
-              <button
-                type="button"
-                className="product-size-guide-link"
-                onClick={() => sizeGuideRef.current?.showModal()}
-              >
-                Size guide
-              </button>
-            </div>
-            <div className="product-options-grid">
-              {sizes.map((value) => {
-                const variant = live
-                  ? variantForSize(live, optionName, value)
-                  : undefined;
-                const soldOut = live ? !variant?.availableForSale : false;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    className="product-options-item"
-                    data-selected={size === value}
-                    data-soldout={soldOut || undefined}
-                    aria-pressed={size === value}
-                    disabled={soldOut}
-                    onClick={() => setSize(value)}
-                  >
-                    {value}
-                  </button>
-                );
-              })}
-            </div>
-            {live && size && selectedVariant?.quantityAvailable != null &&
-              selectedVariant.quantityAvailable > 0 &&
-              selectedVariant.quantityAvailable <= 5 && (
-                <p className="product-stock-note">
-                  {selectedVariant.quantityAvailable} left, which is not a
-                  marketing tactic, just the number.
-                </p>
-              )}
-          </div>
-
-          <div ref={atcSentinelRef}>
-            <AddToCartButton
-              disabled={!size || !purchasable || !merchandiseId}
-              onClick={() => open('cart')}
-              lines={cartLines}
-              analytics={{products: [analyticsProduct]}}
-            >
-              {!purchasable
-                ? 'Temporarily off the rack'
-                : size
-                  ? 'Add to your souvenirs'
-                  : 'Pick a size'}
-            </AddToCartButton>
-          </div>
-
+          {/* 3 · Review stars — the slot disappears when there is nothing real */}
           {live.rating && (
-            <p className="product-rating" aria-label={`Rated ${live.rating.value} out of 5`}>
+            <p className="product-rating" aria-label={`Rated ${live.rating.value} of 5`}>
               <span className="product-rating-stars" aria-hidden="true">
                 {'★'.repeat(Math.round(live.rating.value))}
                 {'☆'.repeat(Math.max(0, 5 - Math.round(live.rating.value)))}
@@ -314,57 +268,224 @@ export default function ProductPage() {
             </p>
           )}
 
-          <ProductLadderStrip />
-          <TrustRow />
+          {/* 4 · The town plaque */}
+          <aside className="town-plaque" aria-label={`About ${town}`}>
+            <div className="town-plaque-head">
+              <span>{region ? region.name.toUpperCase() : 'NORTH AMERICA'}</span>
+              <span>{foundedLabel(copy)}</span>
+            </div>
+            <p className="town-plaque-town">{town}</p>
+            <p className="town-plaque-fact">
+              {town} {copy.fact}.
+            </p>
+          </aside>
 
+          {/* 5 · Price */}
+          <div className="pdp-price-row">
+            <span className="product-price">{formatMoney(price)}</span>
+            {onSale && compareAt && (
+              <span className="product-price-was">{formatMoney(compareAt)}</span>
+            )}
+            <span className="product-price-note">
+              {variant ? 'In your market' : 'From'} · Comfort Colors 1717 ·
+              collect 2 save 15%
+            </span>
+          </div>
+
+          <p className="pdp-sell">{sellLine(town, copy)}</p>
+
+          {/* 6 · Colourway chips — only when the product has them */}
+          {colorOption && (
+            <div className="pdp-options">
+              <span className="msc-label">
+                {colorOption}
+                {selected[colorOption] ? `: ${selected[colorOption]}` : ''}
+              </span>
+              <div className="pdp-chips">
+                {live.options
+                  .find((option) => option.name === colorOption)
+                  ?.values.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className="pdp-chip"
+                      data-selected={selected[colorOption] === value}
+                      aria-pressed={selected[colorOption] === value}
+                      onClick={() => setOption(colorOption, value)}
+                    >
+                      {value}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* 7 · Sizes + size guide */}
+          {sizeOption && (
+            <div className="pdp-options" ref={optionsRef}>
+              <div className="product-options-header">
+                <span className="msc-label" style={{marginBottom: 0}}>
+                  {sizeOption}
+                  {selected[sizeOption] ? `: ${selected[sizeOption]}` : ''}
+                </span>
+                <button
+                  type="button"
+                  className="product-size-guide-link"
+                  onClick={() => sizeGuideRef.current?.showModal()}
+                >
+                  Size guide
+                </button>
+              </div>
+              <div className="product-options-grid">
+                {live.options
+                  .find((option) => option.name === sizeOption)
+                  ?.values.map((value) => {
+                    const candidate = matchVariant(
+                      live.variants,
+                      {...selected, [sizeOption]: value},
+                      live.options,
+                    );
+                    const out = candidate ? !candidate.availableForSale : false;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        className="product-options-item"
+                        data-selected={selected[sizeOption] === value}
+                        data-soldout={out || undefined}
+                        aria-pressed={selected[sizeOption] === value}
+                        onClick={() => setOption(sizeOption, value)}
+                      >
+                        {value}
+                      </button>
+                    );
+                  })}
+              </div>
+              {sizeError && (
+                <p className="pdp-size-error" role="alert">
+                  Choose a size. The town would want that.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* 8 · Add to cart, sold out, express checkout */}
+          <div ref={atcRef} className="pdp-atc">
+            {soldOut ? (
+              <>
+                <p className="pdp-soldout">Sold out. The town finally has demand.</p>
+                <NotifyMe
+                  handle={handle}
+                  town={town}
+                  regionSlug={region?.slug}
+                  regionName={region?.name}
+                />
+              </>
+            ) : sizeChosen && variant ? (
+              <>
+                <AddToCartButton
+                  lines={cartLines}
+                  onClick={() => open('cart')}
+                  analytics={{
+                    products: [
+                      {
+                        id: live.id,
+                        title: live.title,
+                        price: price.amount,
+                        quantity: 1,
+                      },
+                    ],
+                  }}
+                >
+                  Add to cart
+                </AddToCartButton>
+                <a className="pdp-express" href="/cart">
+                  Or go straight to checkout →
+                </a>
+              </>
+            ) : (
+              <button type="button" className="msc-button" onClick={nudgeSize}>
+                Add to cart
+              </button>
+            )}
+          </div>
+
+          {/* 9 · Trust row */}
+          <ul className="product-trust-row">
+            <li>
+              <strong>30-day returns</strong>
+              <span>No interrogation</span>
+            </li>
+            <li>
+              <strong>Printed to order</strong>
+              <span>In North America</span>
+            </li>
+            <li>
+              <strong>Certificate included</strong>
+              <span>
+                <Link to="/certificate">Of Mediocre Authenticity</Link>
+              </span>
+            </li>
+          </ul>
+
+          {/* 10 · Accordions */}
           <div className="product-accordions">
             <details className="msc-accordion" open>
-              <summary>Details &amp; fit</summary>
+              <summary>The Shirt</summary>
               <div className="msc-accordion-body">
-                <p>
-                  Unisex classic-relaxed fit, true to size — your usual size
-                  gives the fit the shirt intends; one size up gives the
-                  vintage-find drape. Shoulders sit at the shoulder, sleeves
-                  hit mid-bicep.
-                </p>
-              </div>
-            </details>
-
-            {/* The hangtag back, as a detail element. */}
-            <details className="msc-accordion msc-accordion--certificate">
-              <summary>Certificate of Mediocre Authenticity</summary>
-              <div className="msc-accordion-body">
-                <CertificateOfAuthenticity town={town} title={displayTitle} />
+                <dl className="pdp-spec">
+                  {SPEC_LINES.map(([term, detail]) => (
+                    <div key={term}>
+                      <dt>{term}</dt>
+                      <dd>{detail}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
             </details>
 
             <details className="msc-accordion">
-              <summary>Materials &amp; care</summary>
+              <summary>The Town</summary>
+              <div className="msc-accordion-body">
+                <p>{copy.tourism}</p>
+                {region && (
+                  <p>
+                    <Link to={`/collections/${region.slug}`}>
+                      Everything we make for {region.name} →
+                    </Link>
+                  </p>
+                )}
+              </div>
+            </details>
+
+            <details className="msc-accordion">
+              <summary>Sizing</summary>
               <div className="msc-accordion-body">
                 <p>
-                  Comfort Colors 1717 — heavyweight 6.1 oz, 100% ring-spun
-                  cotton, garment-dyed so the fade is structural, not printed.
-                  Taped shoulders, double-needle hems.
+                  Unisex, true to size. Your usual size gives the fit the shirt
+                  intends; one size up gives the thrift-store drape. The cotton
+                  relaxes about half a size in the first month.
                 </p>
                 <p>
-                  Machine wash cold, inside out. Hang dry if you love it. Full
-                  instructions in the <Link to="/care">Care Guide</Link> and{' '}
-                  <Link to="/materials">Materials</Link>.
+                  <Link to="/size-guide">Full measurements →</Link>
                 </p>
               </div>
             </details>
 
             <details className="msc-accordion">
-              <summary>Shipping &amp; returns</summary>
+              <summary>Shipping &amp; care</summary>
               <div className="msc-accordion-body">
                 <p>
-                  Printed to order in North America — allow 5–10 business days.
-                  Free shipping over $75, Canada and the US. Genuine takes
-                  time.
+                  Printed to order — allow 5–10 business days before it moves,
+                  then transit. Free over $75. Thirty-day returns.
                 </p>
+                <ul className="policy-list">
+                  {CARE_LINES.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
                 <p>
-                  Returns: 30 days, no interrogation. Details in the{' '}
-                  <Link to="/policies/refund-policy">return policy</Link>.
+                  <Link to="/shipping-returns">Shipping &amp; returns →</Link>
                 </p>
               </div>
             </details>
@@ -372,64 +493,130 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {/* MORE FROM [REGION] */}
-      {moreFromRegion.length > 0 && (
-        <section className="msc-section msc-page" aria-labelledby="more-from">
+      {/* ── Below the fold ────────────────────────────────────────────── */}
+
+      <section className="msc-section msc-page" aria-labelledby="more-region">
+        <div className="msc-section-rule">
+          <h2 id="more-region">More from {region?.name ?? 'the rack'}</h2>
+          {region && (
+            <Link className="msc-section-note" to={`/collections/${region.slug}`}>
+              All of {region.name} →
+            </Link>
+          )}
+        </div>
+        {siblings.length > 0 ? (
+          <SouvenirGrid products={siblings} eagerCount={0} />
+        ) : (
+          <div className="guest-book-empty">
+            <h3>This is currently the town&rsquo;s entire cultural output.</h3>
+            <p>
+              One shirt, no runner-up. Try somewhere adjacent —{' '}
+              <Link to={`/collections/${countryHandle}`}>
+                the rest of {region?.country ?? 'the country'}
+              </Link>{' '}
+              or <Link to="/towns">the full directory</Link>.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {elsewhere.length > 0 && (
+        <section className="msc-section msc-page" aria-labelledby="elsewhere">
           <div className="msc-section-rule">
-            <h2 id="more-from">
-              More from {region?.name ?? 'the rack'}
-            </h2>
-            <Link
-              className="msc-section-note"
-              to={region ? `/collections/${region.slug}` : '/collections/all-souvenirs'}
-            >
-              All {region?.name ?? 'souvenirs'} →
+            <h2 id="elsewhere">Other towns you won&rsquo;t visit</h2>
+            <Link className="msc-section-note" to="/collections/all-souvenirs">
+              Everything →
             </Link>
           </div>
-          <SouvenirGrid products={moreFromRegion} eagerCount={0} />
-          <p
-            className="msc-kicker msc-kicker--navy"
-            style={{marginTop: '18px', textAlign: 'center'}}
-          >
-            Two towns save 15% · Three save 20% · Automatic at checkout
-          </p>
+          <SouvenirGrid products={elsewhere} eagerCount={0} />
         </section>
       )}
 
-      {/* Sticky add-to-cart — mobile-first, appears when the main one leaves */}
+      <section className="msc-section msc-page">
+        <div className="request-banner">
+          <div>
+            <span className="msc-kicker">The waitlist is the roadmap</span>
+            <h2>Your hometown worse than this?</h2>
+            <p>
+              Tell us. We do not choose regions by market size, we choose them
+              by who asked, and the bar is lower than you think.
+            </p>
+          </div>
+          <Link className="msc-button msc-button--navy" to="/request-a-town">
+            Request a town
+          </Link>
+        </div>
+      </section>
+
+      <section className="msc-section msc-page" aria-labelledby="reviews">
+        <div className="msc-section-rule">
+          <h2 id="reviews">What people said</h2>
+        </div>
+        {live.rating ? (
+          <p className="pdp-reviews-summary">
+            {live.rating.value.toFixed(1)} out of 5, from {live.rating.count}{' '}
+            {live.rating.count === 1 ? 'review' : 'reviews'}.
+          </p>
+        ) : (
+          <div className="guest-book-empty">
+            <h3>The guest book is open.</h3>
+            <p>
+              Nobody has reviewed {town} yet. We will print what they say when
+              they do, including the unenthusiastic ones — especially those.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* Final CTA — the back of a postcard */}
+      <section className="pdp-postcard-band">
+        <div className="pdp-postcard">
+          <div className="pdp-postcard-left">
+            <span className="msc-kicker">Greetings from</span>
+            <p className="pdp-postcard-town">{town}</p>
+            <span className="msc-marker">wish you were here, more or less.</span>
+          </div>
+          <div className="pdp-postcard-right">
+            <div className="msc-stamp">
+              Genuine
+              <br />
+              Souvenir
+              <br />★ ★ ★
+            </div>
+            <Link className="msc-button" to="/collections/all-souvenirs">
+              Find another town
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Mobile sticky bar — thumb-reachable, appears when the buy box leaves */}
       <div
         className="sticky-atc"
-        data-visible={!mainAtcVisible}
-        aria-hidden={mainAtcVisible}
+        data-visible={!mainVisible}
+        aria-hidden={mainVisible}
       >
         <div className="sticky-atc-info">
-          <strong>{shortName}</strong>
+          <strong>{town}</strong>
           <span>
-            {priceLabel}
-            {size ? ` · ${size}` : ''}
+            {formatMoney(price)}
+            {sizeOption && selected[sizeOption]
+              ? ` · ${selected[sizeOption]}`
+              : ''}
           </span>
         </div>
-        {size && purchasable && merchandiseId ? (
-          <AddToCartButton
-            lines={cartLines}
-            onClick={() => open('cart')}
-            analytics={{products: [analyticsProduct]}}
-          >
+        {!soldOut && sizeChosen && variant ? (
+          <AddToCartButton lines={cartLines} onClick={() => open('cart')}>
             Add to cart
           </AddToCartButton>
         ) : (
           <button
             type="button"
             className="msc-button"
-            disabled={!purchasable}
-            onClick={() =>
-              optionsRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center',
-              })
-            }
+            disabled={soldOut}
+            onClick={nudgeSize}
           >
-            {purchasable ? 'Pick a size' : 'Off the rack'}
+            {soldOut ? 'Sold out' : 'Choose a size'}
           </button>
         )}
       </div>
@@ -450,8 +637,7 @@ export default function ProductPage() {
         <SizeTable />
         <p style={{fontSize: '14px', marginTop: '12px'}}>
           Between sizes? Usual size for the honest fit, one up for the
-          vintage-find drape. Full guide at{' '}
-          <Link to="/size-guide">/size-guide</Link>.
+          vintage-find drape. <Link to="/size-guide">Full guide</Link>.
         </p>
       </dialog>
 
@@ -459,266 +645,111 @@ export default function ProductPage() {
         type="application/ld+json"
         nonce={nonce}
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Product',
-            name: displayTitle,
-            description: town ? townDescription(town) : live.description,
-            sku: live.handle,
-            brand: {'@type': 'Brand', name: 'Mediocre Souvenir Co.'},
-            ...(live.featuredImage ? {image: live.featuredImage.url} : {}),
-            offers: {
-              '@type': 'AggregateOffer',
-              priceCurrency: live.priceRange.minVariantPrice.currencyCode,
-              lowPrice: live.priceRange.minVariantPrice.amount,
-              highPrice: live.priceRange.maxVariantPrice.amount,
-              offerCount: live.variants.length,
-              availability: live.availableForSale
-                ? 'https://schema.org/InStock'
-                : 'https://schema.org/OutOfStock',
-              url: `${origin}/products/${live.handle}`,
-            },
-            // Only ever present when a reviews app has written real
-            // aggregates. No reviews, no rating markup.
-            ...(live.rating
-              ? {
-                  aggregateRating: {
-                    '@type': 'AggregateRating',
-                    ratingValue: live.rating.value,
-                    reviewCount: live.rating.count,
-                  },
-                }
-              : {}),
-          }),
+          __html: JSON.stringify(
+            productJsonLd({live, town, region, copy, origin}),
+          ),
         }}
       />
 
-      {selectedVariant && (
+      {variant && (
         <Analytics.ProductView
           data={{
             products: [
               {
                 id: live.id,
-                title: displayTitle,
-                price: selectedVariant.price.amount,
-                vendor: live.vendor || 'Mediocre Souvenir Co.',
-                variantId: selectedVariant.id,
-                variantTitle: selectedVariant.title,
+                title: live.title,
+                price: price.amount,
+                vendor: live.vendor || SITE_NAME,
+                variantId: variant.id,
+                variantTitle: variant.title,
                 quantity: 1,
               },
             ],
           }}
         />
       )}
-    </>
+    </div>
   );
 }
 
-/** The one-line reassurance strip under the buy button. */
-function TrustRow() {
-  const items = [
-    ['30-day returns', 'No interrogation'],
-    ['Printed to order', '5–10 business days'],
-    ['Free over $75', 'Canada and the US'],
-  ];
-  return (
-    <ul className="product-trust-row">
-      {items.map(([head, sub]) => (
-        <li key={head}>
-          <strong>{head}</strong>
-          <span>{sub}</span>
-        </li>
-      ))}
-    </ul>
+/** The variant whose selectedOptions match everything currently chosen. */
+function matchVariant(
+  variants: LiveVariant[],
+  selected: Record<string, string>,
+  options: {name: string; values: string[]}[],
+): LiveVariant | undefined {
+  if (!options.length) return variants[0];
+  if (options.some((option) => !selected[option.name])) return undefined;
+  return variants.find((candidate) =>
+    candidate.selectedOptions.every(
+      (option) => selected[option.name] === option.value,
+    ),
   );
 }
 
-/**
- * Gallery: store photography when it exists, generative mockups when it does
- * not. Both end with the certificate panel, which is the thing people
- * screenshot.
- */
-function ProductGallery({
-  town,
+/** Match a variant's image back to an id in the gallery list. */
+function findImageId(live: LiveProduct, variant: LiveVariant): string | null {
+  if (!variant.image?.url) return null;
+  const found = live.images.find((image) => image.url === variant.image?.url);
+  return found?.id ?? null;
+}
+
+/** Product structured data with one offer per real variant. */
+function productJsonLd({
   live,
-}: {
-  town: TownProduct | null;
-  live: LiveProduct | null;
-}) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [index, setIndex] = useState(0);
-
-  const slides = useMemo(() => {
-    const out: {key: string; label: string; node: React.ReactNode}[] = [];
-
-    if (live?.images.length) {
-      live.images.slice(0, 4).forEach((image, i) => {
-        out.push({
-          key: image.id ?? `img-${i}`,
-          label: i === 0 ? 'Front' : `View ${i + 1}`,
-          node: (
-            <Image
-              data={image}
-              alt={image.altText || live.title}
-              aspectRatio="1/1"
-              sizes="(min-width: 900px) 560px, 100vw"
-              loading={i === 0 ? 'eager' : 'lazy'}
-            />
-          ),
-        });
-      });
-    } else {
-      out.push({
-        key: 'pending',
-        label: 'Front',
-        node: (
-          <div className="product-photo-pending">
-            <span>Photograph coming</span>
-            <small>
-              The shirt exists. The photograph of it is running late.
-            </small>
-          </div>
-        ),
-      });
-    }
-
-    if (town) {
-      out.push({
-        key: 'cert',
-        label: 'Certificate',
-        node: <CertificateOfAuthenticity town={town} title={town.city} />,
-      });
-    }
-    return out;
-  }, [live, town]);
-
-  const goTo = (i: number) => {
-    const track = trackRef.current;
-    if (!track) return;
-    track.scrollTo({left: i * track.clientWidth, behavior: 'smooth'});
-  };
-
-  const onScroll = () => {
-    const track = trackRef.current;
-    if (!track) return;
-    setIndex(Math.round(track.scrollLeft / track.clientWidth));
-  };
-
-  if (!slides.length) return <div className="product-gallery" />;
-
-  return (
-    <div className="product-gallery">
-      <div
-        className="product-gallery-track"
-        ref={trackRef}
-        onScroll={onScroll}
-        aria-label="Product gallery"
-      >
-        {slides.map((slide) => (
-          <div
-            key={slide.key}
-            className={
-              slide.key === 'cert'
-                ? 'product-gallery-slide product-gallery-slide--cert'
-                : 'product-gallery-slide'
-            }
-          >
-            {slide.node}
-          </div>
-        ))}
-      </div>
-      {slides.length > 1 && (
-        <>
-          <div
-            className="product-gallery-nav"
-            role="tablist"
-            aria-label="Gallery views"
-          >
-            {slides.map((slide, i) => (
-              <button
-                key={slide.key}
-                type="button"
-                role="tab"
-                aria-selected={index === i}
-                data-active={index === i}
-                onClick={() => goTo(i)}
-              >
-                {slide.label}
-              </button>
-            ))}
-          </div>
-          <div className="product-gallery-dots" aria-hidden="true">
-            {slides.map((slide, i) => (
-              <span key={slide.key} data-active={index === i} />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-/**
- * The certificate. Filled in per town where we have the facts; where we do
- * not, it says so, because inventing a population would be the one genuinely
- * unforgivable thing this company could do.
- */
-function CertificateOfAuthenticity({
   town,
-  title,
+  region,
+  copy,
+  origin,
 }: {
-  town: TownProduct | null;
-  title: string;
+  live: LiveProduct;
+  town: string;
+  region: Region | null;
+  copy: TownCopy;
+  origin: string;
 }) {
-  return (
-    <div className="product-certificate">
-      <div className="product-certificate-title">
-        Certificate of Mediocre Authenticity
-      </div>
-      <dl>
-        <div className="product-certificate-row">
-          <dt>Subject</dt>
-          <dd>{town?.city ?? title}</dd>
-        </div>
-        {town && (
-          <>
-            <div className="product-certificate-row">
-              <dt>Population</dt>
-              <dd>
-                {town.population.toLocaleString(localeFor(town.country))}{' '}
-                (approx.)
-              </dd>
-            </div>
-            <div className="product-certificate-row">
-              <dt>Known for</dt>
-              <dd>{town.knownFor}</dd>
-            </div>
-            <div className="product-certificate-row">
-              <dt>Established</dt>
-              <dd>{town.estYear}</dd>
-            </div>
-            <div className="product-certificate-row">
-              <dt>Classification</dt>
-              <dd>{TIER_LABELS[town.populationTier]}</dd>
-            </div>
-          </>
-        )}
-        <div className="product-certificate-row">
-          <dt>Distinction</dt>
-          <dd>None on record</dd>
-        </div>
-      </dl>
-      <p style={{fontSize: '13.5px', lineHeight: 1.5}}>
-        This garment honors a real place where people live full lives, mostly
-        without incident. No claim is made as to its significance. Wear it with
-        the quiet pride it deserves.
-      </p>
-      <div className="msc-stamp" style={{alignSelf: 'flex-end'}}>
-        Genuine
-        <br />
-        Souvenir
-        <br />★ ★ ★
-      </div>
-    </div>
-  );
+  const url = `${origin}/products/${live.handle}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: live.title,
+    description: buildDescription(town, copy, region ?? undefined),
+    sku: live.handle,
+    url,
+    brand: {'@type': 'Brand', name: SITE_NAME},
+    material: '100% ring-spun cotton, garment-dyed',
+    ...(live.images.length ? {image: live.images.map((image) => image.url)} : {}),
+    ...(region
+      ? {
+          additionalProperty: [
+            {'@type': 'PropertyValue', name: 'Town', value: town},
+            {'@type': 'PropertyValue', name: 'Region', value: region.name},
+            {'@type': 'PropertyValue', name: 'Country', value: region.country},
+          ],
+        }
+      : {}),
+    // One offer per variant — every size and colourway priced individually.
+    offers: live.variants.map((variant) => ({
+      '@type': 'Offer',
+      sku: variant.id.split('/').pop(),
+      name: variant.title,
+      price: variant.price.amount,
+      priceCurrency: variant.price.currencyCode,
+      availability: variant.availableForSale
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      url,
+      itemCondition: 'https://schema.org/NewCondition',
+    })),
+    // Present only when a reviews app has written real aggregates.
+    ...(live.rating
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: live.rating.value,
+            reviewCount: live.rating.count,
+          },
+        }
+      : {}),
+  };
 }

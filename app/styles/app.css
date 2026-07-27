@@ -4735,3 +4735,454 @@ select:focus-visible,
     flex-direction: column;
   }
 }
+
+/* ============================================================
+   Product page — the souvenir-stand artifact
+   ============================================================ */
+
+.pdp-main {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 24px 24px 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
+  gap: 48px;
+  align-items: start;
+}
+
+/* ---------- gallery ---------- */
+
+.pdp-gallery {
+  position: sticky;
+  top: calc(var(--header-height) + 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Fixed 1:1 stage: layout is identical before and after the image loads,
+   so the gallery contributes nothing to CLS. */
+.pdp-stage {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border: var(--border-heavy);
+  background: var(--msc-cream);
+  box-shadow: var(--shadow-offset);
+  overflow: hidden;
+}
+
+.pdp-stage-button {
+  all: unset;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: zoom-in;
+  position: relative;
+}
+
+.pdp-stage img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 16px;
+  mix-blend-mode: multiply;
+}
+
+.pdp-stage-zoom {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: var(--msc-cream-deep);
+  border: var(--border-std);
+  padding: 5px 10px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.pdp-stage-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 48px;
+  border: var(--border-std);
+  background: var(--msc-cream-deep);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--msc-navy);
+}
+
+.pdp-stage-nav--prev {
+  left: 10px;
+}
+.pdp-stage-nav--next {
+  right: 10px;
+}
+.pdp-stage-nav:hover {
+  background: var(--msc-mustard);
+}
+
+.pdp-thumbs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pdp-thumb {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  width: 84px;
+  aspect-ratio: 1 / 1;
+  border: var(--border-std);
+  background: var(--msc-cream);
+  overflow: hidden;
+}
+
+.pdp-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 5px;
+  mix-blend-mode: multiply;
+}
+
+.pdp-thumb[data-active] {
+  box-shadow: 3px 3px 0 var(--msc-brick);
+  border-color: var(--msc-brick);
+}
+
+.pdp-lightbox {
+  border: none;
+  padding: 0;
+  background: transparent;
+  max-width: 96vw;
+  max-height: 96vh;
+}
+
+.pdp-lightbox::backdrop {
+  background: rgba(28, 28, 28, 0.86);
+}
+
+.pdp-lightbox-inner {
+  position: relative;
+  background: var(--msc-cream);
+  border: var(--border-heavy);
+  padding: 16px;
+}
+
+.pdp-lightbox-inner img {
+  max-width: min(86vw, 760px);
+  max-height: 76vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.pdp-lightbox-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 2;
+}
+
+.pdp-lightbox-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.pdp-lightbox-nav button {
+  border: var(--border-std);
+  background: var(--msc-cream-deep);
+  padding: 7px 12px;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* ---------- buy column ---------- */
+
+.pdp-buy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 6px;
+}
+
+.pdp-title {
+  font-size: clamp(30px, 4.4vw, 46px);
+  line-height: 1.05;
+}
+
+/* The town plaque — a small vintage parks sign, routed edge and all. */
+.town-plaque {
+  border: 3px solid var(--msc-sage);
+  outline: 2px solid var(--msc-asphalt);
+  outline-offset: 3px;
+  background: var(--msc-navy);
+  color: var(--msc-cream);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 3px;
+}
+
+.town-plaque-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--msc-mustard);
+  border-bottom: 1px solid rgba(241, 233, 214, 0.3);
+  padding-bottom: 6px;
+}
+
+.town-plaque-town {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1.05;
+}
+
+.town-plaque-fact {
+  font-size: 14.5px;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+.pdp-price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.pdp-sell {
+  font-family: var(--font-marker);
+  font-size: 19px;
+  color: var(--msc-brick);
+  transform: rotate(-1deg);
+  margin: 2px 0;
+}
+
+.pdp-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pdp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pdp-chip {
+  border: var(--border-std);
+  background: var(--msc-cream);
+  padding: 9px 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--msc-asphalt);
+}
+
+.pdp-chip[data-selected='true'] {
+  background: var(--msc-navy);
+  color: var(--msc-cream);
+  box-shadow: 2px 2px 0 var(--msc-brick);
+}
+
+.pdp-size-error {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--msc-brick);
+  font-size: 14px;
+}
+
+.pdp-atc {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pdp-express {
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+}
+
+.pdp-soldout {
+  font-family: var(--font-display);
+  font-size: 19px;
+  color: var(--msc-brick);
+  border: 2px dashed var(--msc-brick);
+  padding: 12px 14px;
+  text-align: center;
+}
+
+.pdp-notify {
+  border: var(--border-std);
+  background: var(--msc-cream-deep);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pdp-notify-field {
+  display: flex;
+  gap: 10px;
+}
+
+.pdp-notify-field .msc-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.pdp-notify-done {
+  font-family: var(--font-marker);
+  font-size: 18px;
+  color: var(--msc-brick);
+}
+
+.pdp-notify-error {
+  color: var(--msc-brick);
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+.pdp-spec {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.pdp-spec > div {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  padding-bottom: 7px;
+  border-bottom: 1px dotted var(--msc-asphalt);
+}
+
+.pdp-spec dt {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+  font-weight: 700;
+}
+
+.pdp-spec dd {
+  margin: 0;
+  font-size: 15px;
+}
+
+.pdp-reviews-summary {
+  font-size: 16px;
+}
+
+/* ---------- postcard footer band ---------- */
+
+.pdp-postcard-band {
+  padding: 0 24px 96px;
+  max-width: var(--page-max);
+  margin: 0 auto;
+}
+
+.pdp-postcard {
+  border: var(--border-heavy);
+  background: var(--msc-cream-deep);
+  box-shadow: var(--shadow-offset);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 28px;
+  padding: 34px 32px;
+  align-items: center;
+  position: relative;
+}
+
+/* the dividing line down the back of a postcard */
+.pdp-postcard::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  bottom: 24px;
+  left: 62%;
+  border-left: 2px solid rgba(28, 28, 28, 0.25);
+}
+
+.pdp-postcard-town {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 5vw, 52px);
+  line-height: 1;
+  color: var(--msc-navy);
+  margin: 6px 0 10px;
+}
+
+.pdp-postcard-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+@media (max-width: 1000px) {
+  .pdp-main {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .pdp-gallery {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .pdp-main {
+    padding: 14px 16px 8px;
+  }
+  .pdp-postcard {
+    grid-template-columns: 1fr;
+  }
+  .pdp-postcard::before {
+    display: none;
+  }
+  .pdp-notify-field {
+    flex-direction: column;
+  }
+  .pdp-spec > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .pdp-thumb {
+    width: 64px;
+  }
+  /* Sticky bar sits above the safe area so the CTA stays thumb-reachable. */
+  .sticky-atc {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+}
