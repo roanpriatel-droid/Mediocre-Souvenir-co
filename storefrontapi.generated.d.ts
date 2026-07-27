@@ -377,12 +377,24 @@ export type FooterQuery = {
   >;
 };
 
-export type SouvenirAllProductsQueryVariables = StorefrontAPI.Exact<{
+export type SouvenirProductIndexQueryVariables = StorefrontAPI.Exact<{
   first: StorefrontAPI.Scalars['Int']['input'];
   after?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['String']['input']>;
 }>;
 
-export type SouvenirAllProductsQuery = {
+export type SouvenirProductIndexQuery = {
+  products: {
+    nodes: Array<Pick<StorefrontAPI.Product, 'handle' | 'title'>>;
+    pageInfo: Pick<StorefrontAPI.PageInfo, 'hasNextPage' | 'endCursor'>;
+  };
+};
+
+export type SouvenirCardsByHandleQueryVariables = StorefrontAPI.Exact<{
+  first: StorefrontAPI.Scalars['Int']['input'];
+  query: StorefrontAPI.Scalars['String']['input'];
+}>;
+
+export type SouvenirCardsByHandleQuery = {
   products: {
     nodes: Array<
       Pick<
@@ -418,7 +430,6 @@ export type SouvenirAllProductsQuery = {
         };
       }
     >;
-    pageInfo: Pick<StorefrontAPI.PageInfo, 'hasNextPage' | 'endCursor'>;
   };
 };
 
@@ -1049,9 +1060,13 @@ interface GeneratedQueryTypes {
     return: FooterQuery;
     variables: FooterQueryVariables;
   };
-  '#graphql\n  query SouvenirAllProducts($first: Int!, $after: String) {\n    products(first: $first, after: $after, sortKey: TITLE) {\n      nodes {\n        ...SouvenirCard\n      }\n      pageInfo {\n        hasNextPage\n        endCursor\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    # Two is enough to answer "is this a one-variant product?" — which decides\n    # whether quick-add can add it outright or has to send you to the PDP.\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
-    return: SouvenirAllProductsQuery;
-    variables: SouvenirAllProductsQueryVariables;
+  '#graphql\n  query SouvenirProductIndex($first: Int!, $after: String) {\n    products(first: $first, after: $after, sortKey: TITLE) {\n      nodes {\n        handle\n        title\n      }\n      pageInfo {\n        hasNextPage\n        endCursor\n      }\n    }\n  }\n': {
+    return: SouvenirProductIndexQuery;
+    variables: SouvenirProductIndexQueryVariables;
+  };
+  '#graphql\n  query SouvenirCardsByHandle($first: Int!, $query: String!) {\n    products(first: $first, query: $query) {\n      nodes {\n        ...SouvenirCard\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    # Two is enough to answer "is this a one-variant product?" — which decides\n    # whether quick-add can add it outright or has to send you to the PDP.\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
+    return: SouvenirCardsByHandleQuery;
+    variables: SouvenirCardsByHandleQueryVariables;
   };
   '#graphql\n  query SouvenirNewestProducts($first: Int!) {\n    products(first: $first, sortKey: CREATED_AT, reverse: true) {\n      nodes {\n        ...SouvenirCard\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n      maxVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SouvenirMoney\n      }\n    }\n    # Two is enough to answer "is this a one-variant product?" — which decides\n    # whether quick-add can add it outright or has to send you to the PDP.\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n  #graphql\n  fragment SouvenirMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n\n\n': {
     return: SouvenirNewestProductsQuery;

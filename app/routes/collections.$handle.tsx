@@ -19,7 +19,7 @@ import {
   type SouvenirCard,
 } from '~/lib/shopify-collections';
 import {
-  loadDerivedCatalog,
+  allDerivedProducts,
   loadNewestProducts,
   productsForCountry,
   productsForRegion,
@@ -238,7 +238,7 @@ async function deriveUtilityRack(
 ): Promise<SouvenirCard[]> {
   switch (handle) {
     case UTILITY_COLLECTIONS.allSouvenirs:
-      return (await loadDerivedCatalog(storefront)).products;
+      return allDerivedProducts(storefront, 40);
     case UTILITY_COLLECTIONS.canada:
       return productsForCountry(storefront, 'Canada');
     case UTILITY_COLLECTIONS.unitedStates:
