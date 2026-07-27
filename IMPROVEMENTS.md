@@ -14,6 +14,97 @@ Anything I could not measure is recorded as unmeasured rather than estimated.
 
 ---
 
+## Cycle 5 — 2026-07-27 — Lens: live production crawl (the preview opened)
+
+**The standing constraint lifted.** The Oxygen preview started answering 200
+instead of 302, so for the first time in this project I could crawl production
+rather than reason about it. I re-tested before claiming anything.
+
+### What the crawl found immediately
+
+`/towns` reported all 63 regions **open**. Meanwhile `/collections/british-columbia`,
+`/ontario`, `/texas`, `/nunavut` and `/california` each rendered **zero
+products and a waitlist**, and `/collections/all-souvenirs` returned **4**
+products when it asked for 40. Only Ohio worked. Two surfaces reading the same
+data disagreed, so one of them was lying to customers.
+
+### Root cause, proven not guessed
+
+Inference kept going in circles, so I shipped index diagnostics to
+`/api/storefront-status` and read the answer off production:
+
+```
+indexSize            2000          <- exactly the cap
+probe british-columbia
+  index says entries   25
+  hydrateCards got      0
+```
+
+The index held **106 British Columbia products**. Hydration asked for 25 by
+handle and got none. So the index was fine and `hydrateCards` was broken.
+
+**`products(query: "handle:...")` cannot express "give me exactly these
+products."** Shopify's product search tokenises on hyphens and treats a leading
+`-` as negation, and every handle here is `city-xx-style`. Ohio worked by
+accident — its alphabetically-first handle, `akron-oh-greetings`, happens to
+parse cleanly. British Columbia's first is `100-mile-house-bc-greetings`, and
+one malformed term poisons the whole OR chain.
+
+Quoting the handles **did not fix it** — BC still returned 0 of 25 and Ohio
+returned an arbitrary 16 of 25. A search index is simply the wrong tool. The
+index now carries the Storefront GID and hydration uses `nodes(ids:)`: exact,
+unparsed, 250 per call.
+
+A second bug in the same pass: `indexSize` was **exactly 2000**, the old
+8-page cap, silently truncating the catalogue at "Watertown, NY". Raised to 24
+pages — the index is handle/title/id only, so pages are cheap.
+
+### Verified on production, before and after
+
+| page | before | after |
+| --- | --- | --- |
+| `/collections/british-columbia` | 0 (waitlist) | **50** |
+| `/collections/ontario` | 0 (waitlist) | **50** |
+| `/collections/texas` | 0 (waitlist) | **50** |
+| `/collections/california` | 0 (waitlist) | **40** |
+| `/collections/nunavut` | 0 (waitlist) | **6** |
+| `/collections/all-souvenirs` | 4 | **40** |
+| `/collections/canada` | — | **50** |
+| index size | 2000 (capped) | **2150** (complete, reaches "Zanesville, OH") |
+| BC hydration probe | 0 of 25 | **25 of 25** |
+
+**62 of 63 region pages were showing a "coming in due time" waitlist for
+regions that were fully stocked.** The catalogue is 2,150 products across all
+63 regions; the store was effectively selling one region.
+
+### Process note, honestly
+
+My first "after" verification showed no change and I nearly concluded the fix
+had failed. It had not — my deploy-wait loop had matched a *previous*
+completed run and I tested the old build. The wait now asserts the commit SHA
+before testing. Verifying against the wrong artefact is indistinguishable from
+a failed fix, which is worth remembering.
+
+### Also confirmed working on production
+
+Cycle 1's buy button and cart order, cycle 3's contrast sizing, and cycle 4's
+card fix all render correctly. PDP shows the hand-tuned Toledo plaque
+("EST. 1833", the glass museum line), the sell line, Product structured data,
+and correctly **no** `aggregateRating`. TTFB measured 0.14–0.45s across five
+page types.
+
+### Next
+
+- The site's copy still says "British Columbia is open, Alberta is next, the
+  rest have a waitlist." With 63/63 regions stocked that is now false on
+  `/provinces`, in the FAQ, in Our Story, and in the BC-specific lookbook.
+  Copy-quality cycle, and it is the largest remaining item.
+- `now-open` returns 24 and `all-souvenirs` 40 — both are my own caps, not the
+  catalogue. Worth pagination rather than a cap.
+- Brand decision on brick contrast (cycle 3) still open.
+
+---
+
 ## Cycle 4 — 2026-07-27 — Lens: edge cases
 
 ### Findings, ranked
