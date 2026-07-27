@@ -37,14 +37,24 @@ import {
  * ones, and the four navigation pages cost one.
  */
 
-const MAX_PAGES = 8;
+/*
+ * The live catalogue is larger than 2,000 products — the old 8-page cap was
+ * being hit exactly, silently cutting the index off at "Watertown, NY" and
+ * making every alphabetically later town invisible to region grouping. Pages
+ * are cheap now that the index carries only handle and title (~15 KB each),
+ * and the whole sweep is memoised per isolate.
+ */
+const MAX_PAGES = 24;
 const PAGE_SIZE = 250;
 
 /** How long an isolate may reuse its in-memory index. */
 const INDEX_TTL_MS = 5 * 60 * 1000;
 
-/** Cap on cards hydrated in one batch — Storefront query strings are finite. */
-const MAX_BATCH = 40;
+/** Cap per batched lookup. Quoted handles are longer, so keep chunks modest. */
+const BATCH_SIZE = 25;
+
+/** Cap on cards hydrated for one rack. */
+const MAX_BATCH = 50;
 
 /** Handle and title. Everything the region index needs and nothing else. */
 const PRODUCT_INDEX_QUERY = `#graphql
@@ -188,15 +198,41 @@ export async function hydrateCards(
   const wanted = entries.slice(0, MAX_BATCH);
   if (!wanted.length) return [];
 
+  // Split into chunks so a 50-product rack still resolves, and so one
+  // oversized query string cannot drop an entire rack.
+  if (wanted.length > BATCH_SIZE) {
+    const chunks: ProductIndexEntry[][] = [];
+    for (let i = 0; i < wanted.length; i += BATCH_SIZE) {
+      chunks.push(wanted.slice(i, i + BATCH_SIZE));
+    }
+    const results = await Promise.all(
+      chunks.map((chunk) => hydrateCards(storefront, chunk)),
+    );
+    return results.flat();
+  }
+
   try {
     const data = await storefront.query(PRODUCTS_BY_HANDLE_BATCH_QUERY, {
       variables: {
         first: wanted.length,
-        query: wanted.map((entry) => `handle:${entry.handle}`).join(' OR '),
+        // Handles MUST be quoted. Shopify's search syntax tokenises on
+        // hyphens and treats a leading "-" as negation, so an unquoted
+        // `handle:100-mile-house-bc-greetings` parses as a handle term plus
+        // several exclusions — and one malformed term poisons the whole OR
+        // chain, returning nothing. That is why every region whose first
+        // product handle contained a digit or an extra hyphen rendered as an
+        // empty waitlist while its index bucket was full.
+        query: wanted.map((entry) => `handle:"${entry.handle}"`).join(' OR '),
       },
       cache: storefront.CacheShort(),
     });
     const nodes = (data?.products?.nodes ?? []) as SouvenirCard[];
+    if (nodes.length < wanted.length) {
+      console.warn(
+        `[msc:catalog] hydrateCards asked for ${wanted.length} handles and ` +
+          `got ${nodes.length}; first requested was "${wanted[0].handle}"`,
+      );
+    }
     const byHandle = new Map(nodes.map((node) => [node.handle, node]));
     return wanted
       .map((entry) => byHandle.get(entry.handle))
