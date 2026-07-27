@@ -197,6 +197,49 @@ export async function loader({context}: Route.LoaderArgs) {
       };
     }
 
+    // ── Derived-catalogue diagnostics ──────────────────────────────────
+    // The site runs off a product index because the collections are not
+    // published. When a region page renders empty while /towns says that
+    // region is open, the disagreement is in here.
+    try {
+      const {loadProductIndex, groupByRegion, hydrateCards} = await import(
+        '~/lib/shopify-catalog'
+      );
+      const entries = await loadProductIndex(context.storefront);
+      const {byRegion} = groupByRegion(entries);
+
+      const counts: Record<string, number> = {};
+      for (const [slug, bucket] of byRegion) counts[slug] = bucket.length;
+
+      // Round-trip a real region through hydrateCards to see whether the
+      // batched handle lookup returns what the index promised.
+      const probeSlug = byRegion.has('british-columbia')
+        ? 'british-columbia'
+        : [...byRegion.keys()][0];
+      const probeEntries = (byRegion.get(probeSlug) ?? []).slice(0, 25);
+      const hydrated = await hydrateCards(context.storefront, probeEntries);
+
+      report.derivedCatalog = {
+        indexSize: entries.length,
+        regionsWithProducts: Object.keys(counts).length,
+        firstTitles: entries.slice(0, 3).map((e) => e.title),
+        lastTitles: entries.slice(-3).map((e) => e.title),
+        counts,
+        probe: {
+          region: probeSlug,
+          indexSaysEntries: probeEntries.length,
+          hydrateCardsReturned: hydrated.length,
+          requestedHandles: probeEntries.slice(0, 5).map((e) => e.handle),
+          returnedHandles: hydrated.slice(0, 5).map((p) => p.handle),
+        },
+      };
+    } catch (error) {
+      report.derivedCatalog = {
+        failed: true,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+
     report.verdict = buildVerdict(report);
   } catch (error) {
     report.queryFailed = true;
