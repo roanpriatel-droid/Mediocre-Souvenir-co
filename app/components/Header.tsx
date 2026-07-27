@@ -8,30 +8,13 @@ import {
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
 import {BadgeLogo} from '~/components/Brand';
+import {DesktopNav, MobileNav} from '~/components/NavMenu';
 
 interface HeaderProps {
   cart: Promise<CartApiQueryFragment | null>;
 }
 
 type Viewport = 'desktop' | 'mobile';
-
-/**
- * The nav maps onto the store's collections.
- *
- * People arrive looking for a place, so the path to a region is never more
- * than two clicks: country → region, or Regions → the grid. "Now Open" is the
- * shortcut for the only question a returning visitor has.
- */
-export const NAV_ITEMS = [
-  {title: 'Shop All', to: '/collections/all-souvenirs'},
-  {title: 'Canada', to: '/collections/canada'},
-  {title: 'USA', to: '/collections/united-states'},
-  {title: 'The Towns', to: '/towns'},
-  {title: 'Now Open', to: '/collections/now-open'},
-  {title: 'New Arrivals', to: '/collections/new-arrivals'},
-  {title: 'Postcards', to: '/postcards'},
-  {title: 'Our Story', to: '/our-story'},
-];
 
 export function Header({cart}: HeaderProps) {
   return (
@@ -40,7 +23,7 @@ export function Header({cart}: HeaderProps) {
         <BadgeLogo size={46} />
         <span className="header-logo-word">MEDIOCRE SOUVENIR CO.</span>
       </NavLink>
-      <HeaderMenu viewport="desktop" />
+      <DesktopNav />
       <div className="header-ctas">
         <HeaderMenuMobileToggle />
         <CartToggle cart={cart} />
@@ -49,24 +32,11 @@ export function Header({cart}: HeaderProps) {
   );
 }
 
+/** Rendered inside the mobile aside. */
 export function HeaderMenu({viewport}: {viewport: Viewport}) {
   const {close} = useAside();
-  return (
-    <nav className={`header-menu-${viewport}`} role="navigation">
-      {NAV_ITEMS.map((item) => (
-        <NavLink
-          className="header-menu-item"
-          end={item.to === '/'}
-          key={item.to}
-          onClick={close}
-          prefetch="intent"
-          to={item.to}
-        >
-          {item.title}
-        </NavLink>
-      ))}
-    </nav>
-  );
+  if (viewport === 'desktop') return <DesktopNav />;
+  return <MobileNav onNavigate={close} />;
 }
 
 function HeaderMenuMobileToggle() {

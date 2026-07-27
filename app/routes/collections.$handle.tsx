@@ -5,6 +5,7 @@ import type {Route} from './+types/collections.$handle';
 import {SouvenirProductCard} from '~/components/SouvenirCard';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {RegionWaitlist} from '~/components/RegionWaitlist';
+import {CountryTownFinder} from '~/components/CountryTownFinder';
 import {Reveal} from '~/components/Reveal';
 import {DISPLAY_PRICE, type Region} from '~/lib/catalog';
 import {
@@ -132,6 +133,9 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       kind: 'region' as const,
       connection: products.length ? connection : null,
       handle,
+      country: null,
+      countryOpen: {} as Record<string, boolean>,
+      countryLive: false,
       region,
       open,
       heading: shopifyCollection?.title || `${region.name}`,
@@ -146,12 +150,27 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     };
   }
 
+  // Country racks carry a town finder, which needs to know which regions in
+  // that country are open.
+  const country: 'Canada' | 'United States' | null =
+    handle === UTILITY_COLLECTIONS.canada
+      ? 'Canada'
+      : handle === UTILITY_COLLECTIONS.unitedStates
+        ? 'United States'
+        : null;
+  const countryStatus = country
+    ? await loadRegionStatus(context.storefront)
+    : {open: {} as Record<string, boolean>, live: false};
+
   // ── Shopify non-region collection (All Souvenirs, Now Open, …) ────────
   if (shopifyCollection) {
     return {
       kind: 'shopify' as const,
       connection,
       handle,
+      country,
+      countryOpen: countryStatus.open,
+      countryLive: countryStatus.live,
       region: null,
       open: products.length > 0,
       heading: shopifyCollection.title,
@@ -184,6 +203,9 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       kind: 'shopify' as const,
       connection: null,
       handle,
+      country,
+      countryOpen: countryStatus.open,
+      countryLive: countryStatus.live,
       region: null,
       open: derived.length > 0,
       heading: titleForHandle(handle),
