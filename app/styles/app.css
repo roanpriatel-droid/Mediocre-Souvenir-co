@@ -926,22 +926,6 @@ main {
 }
 
 /* art placeholder for a product with no photo and no known town */
-.rack-card-art-empty {
-  aspect-ratio: 1 / 1;
-  display: grid;
-  place-items: center;
-  background: var(--msc-cream);
-  border: 2px dashed var(--msc-navy);
-}
-
-.rack-card-art-empty span {
-  font-family: var(--font-display);
-  font-size: 26px;
-  color: var(--msc-navy);
-  opacity: 0.5;
-  letter-spacing: 3px;
-}
-
 /* ---------- PDP additions ---------- */
 
 .product-price-was {
@@ -3248,6 +3232,7 @@ p {
 }
 
 .sticky-atc .msc-button,
+.sticky-atc .msc-button--buy,
 .sticky-atc button[type='submit'] {
   white-space: nowrap;
 }
@@ -4449,9 +4434,7 @@ select:focus-visible,
   flex: 1;
 }
 
-.rack-card-quickadd,
-.rack-cell .msc-button,
-.rack-cell button[type='submit'] {
+.rack-card-quickadd {
   width: 100%;
   text-align: center;
   border: var(--border-std);
@@ -4467,8 +4450,7 @@ select:focus-visible,
   cursor: pointer;
 }
 
-.rack-card-quickadd:hover,
-.rack-cell button[type='submit']:hover:not(:disabled) {
+.rack-card-quickadd:hover {
   background: var(--msc-mustard);
   transform: translate(1px, 1px);
   box-shadow: 1px 1px 0 var(--msc-navy);
@@ -4484,8 +4466,7 @@ select:focus-visible,
 }
 
 @media (max-width: 560px) {
-  .rack-card-quickadd,
-  .rack-cell button[type='submit'] {
+  .rack-card-quickadd {
     font-size: 11px;
     letter-spacing: 1.4px;
     padding: 9px 8px;
@@ -5244,4 +5225,109 @@ select:focus-visible,
   .sticky-atc {
     padding-bottom: calc(12px + env(safe-area-inset-bottom));
   }
+}
+
+/* ============================================================
+   Cycle 1 · conversion — the purchase controls
+   ============================================================ */
+
+/*
+ * The buy button. Full-width and tall on the PDP because it is the only thing
+ * on that page that matters, and 52px clears the 44px minimum tap target with
+ * room for a thumb that is not being careful.
+ */
+.msc-button--buy {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  font-size: 16px;
+  padding: 15px 26px;
+}
+
+.msc-button--buy[data-pending] {
+  opacity: 0.75;
+  cursor: progress;
+}
+
+/* Confirmation reads as confirmation — mustard on asphalt, not another
+   red button you might press again. */
+.msc-button--buy[data-added] {
+  background: var(--msc-mustard);
+  color: var(--msc-asphalt);
+  box-shadow: var(--shadow-offset);
+}
+
+.msc-button:disabled {
+  cursor: not-allowed;
+}
+
+/* Quick-add on cards keeps the card's smaller scale. */
+.rack-cell .msc-button--buy {
+  min-height: 42px;
+  font-size: 12.5px;
+  letter-spacing: 2px;
+  padding: 10px 12px;
+  background: var(--msc-cream);
+  color: var(--msc-asphalt);
+  box-shadow: 2px 2px 0 var(--msc-navy);
+}
+
+.rack-cell .msc-button--buy:hover:not(:disabled) {
+  background: var(--msc-mustard);
+  color: var(--msc-asphalt);
+}
+
+.rack-cell .msc-button--buy[data-added] {
+  background: var(--msc-mustard);
+}
+
+/* Sticky bar keeps its compact proportions. */
+.sticky-atc .msc-button--buy {
+  display: inline-block;
+  width: auto;
+  min-height: 44px;
+  font-size: 13.5px;
+  padding: 11px 20px;
+}
+
+/* ---------- collapsed discount / gift-card fields ---------- */
+
+.cart-codes {
+  margin-top: 14px;
+  border-top: 1px dotted var(--msc-asphalt);
+  padding-top: 12px;
+}
+
+.cart-codes > summary {
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+  padding: 6px 0;
+}
+
+.cart-codes > summary::-webkit-details-marker {
+  display: none;
+}
+
+.cart-codes > summary::after {
+  content: ' +';
+}
+
+.cart-codes[open] > summary::after {
+  content: ' –';
+}
+
+.cart-codes-body {
+  padding-top: 8px;
+}
+
+.cart-codes-note {
+  font-size: 13px;
+  opacity: 0.8;
+  margin-bottom: 10px;
 }

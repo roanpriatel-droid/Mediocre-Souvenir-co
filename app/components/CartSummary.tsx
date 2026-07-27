@@ -36,17 +36,39 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
         subtotal={Number(cart?.cost?.subtotalAmount?.amount ?? 0)}
       />
       <CollectLadderHint quantity={cart?.totalQuantity ?? 0} />
-      <CartDiscounts
-        discountCodes={cart?.discountCodes}
-        discountsHeadingId={discountsHeadingId}
-        discountCodeInputId={discountCodeInputId}
-      />
-      <CartGiftCard
-        giftCardCodes={cart?.appliedGiftCards}
-        giftCardHeadingId={giftCardHeadingId}
-        giftCardInputId={giftCardInputId}
-      />
+
+      {/*
+        Checkout comes before the code fields, and the code fields are folded
+        away behind a link.
+
+        Baymard's checkout research is blunt about this: an open, empty promo
+        field makes every shopper without a code feel they are overpaying, and
+        sends a measurable share of them off-site coupon hunting — from which
+        many never return. Our discounts are automatic (2+ save 15%, 3+ save
+        20%), so almost nobody needs this field at all.
+        https://baymard.com/blog/checkout-usability-apply-buttons
+      */}
       <CartCheckoutActions checkoutUrl={cart?.checkoutUrl} />
+
+      <details className="cart-codes">
+        <summary>Have a code?</summary>
+        <div className="cart-codes-body">
+          <p className="cart-codes-note">
+            Most of our discounts apply themselves. This is only for the ones
+            that do not.
+          </p>
+          <CartDiscounts
+            discountCodes={cart?.discountCodes}
+            discountsHeadingId={discountsHeadingId}
+            discountCodeInputId={discountCodeInputId}
+          />
+          <CartGiftCard
+            giftCardCodes={cart?.appliedGiftCards}
+            giftCardHeadingId={giftCardHeadingId}
+            giftCardInputId={giftCardInputId}
+          />
+        </div>
+      </details>
     </div>
   );
 }

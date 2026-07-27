@@ -404,7 +404,11 @@ export default function ProductPage() {
                 </a>
               </>
             ) : (
-              <button type="button" className="msc-button" onClick={nudgeSize}>
+              <button
+                type="button"
+                className="msc-button msc-button--buy"
+                onClick={nudgeSize}
+              >
                 Add to cart
               </button>
             )}
@@ -612,7 +616,7 @@ export default function ProductPage() {
         ) : (
           <button
             type="button"
-            className="msc-button"
+            className="msc-button msc-button--buy"
             disabled={soldOut}
             onClick={nudgeSize}
           >
