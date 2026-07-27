@@ -50,10 +50,7 @@ const PAGE_SIZE = 250;
 /** How long an isolate may reuse its in-memory index. */
 const INDEX_TTL_MS = 5 * 60 * 1000;
 
-/** Cap per batched lookup. Quoted handles are longer, so keep chunks modest. */
-const BATCH_SIZE = 25;
-
-/** Cap on cards hydrated for one rack. */
+/** Cap on cards hydrated for one rack. nodes(ids:) accepts up to 250. */
 const MAX_BATCH = 50;
 
 /** Handle and title. Everything the region index needs and nothing else. */
@@ -61,6 +58,7 @@ const PRODUCT_INDEX_QUERY = `#graphql
   query SouvenirProductIndex($first: Int!, $after: String) {
     products(first: $first, after: $after, sortKey: TITLE) {
       nodes {
+        id
         handle
         title
       }
@@ -72,10 +70,23 @@ const PRODUCT_INDEX_QUERY = `#graphql
   }
 ` as const;
 
-const PRODUCTS_BY_HANDLE_BATCH_QUERY = `#graphql
-  query SouvenirCardsByHandle($first: Int!, $query: String!) {
-    products(first: $first, query: $query) {
-      nodes {
+/*
+ * Hydration is by id, not by handle search.
+ *
+ * `products(query: "handle:...")` cannot be trusted here. Shopify's search
+ * tokenises on hyphens and treats a leading "-" as negation, so a handle like
+ * `100-mile-house-bc-greetings` is not matched as a literal — and quoting it
+ * did not help either: British Columbia still returned 0 of 25, while Ohio
+ * returned an arbitrary 16 of 25. A search index is the wrong tool for "give
+ * me exactly these products".
+ *
+ * `nodes(ids:)` is an exact lookup. No parsing, no partial matches, and it
+ * takes up to 250 ids per call.
+ */
+const PRODUCTS_BY_IDS_QUERY = `#graphql
+  query SouvenirCardsByIds($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product {
         ...SouvenirCard
       }
     }
@@ -95,6 +106,8 @@ const NEWEST_PRODUCTS_QUERY = `#graphql
 ` as const;
 
 export interface ProductIndexEntry {
+  /** Storefront GID. Hydration is by id, never by handle search. */
+  id: string;
   handle: string;
   title: string;
 }
@@ -198,44 +211,23 @@ export async function hydrateCards(
   const wanted = entries.slice(0, MAX_BATCH);
   if (!wanted.length) return [];
 
-  // Split into chunks so a 50-product rack still resolves, and so one
-  // oversized query string cannot drop an entire rack.
-  if (wanted.length > BATCH_SIZE) {
-    const chunks: ProductIndexEntry[][] = [];
-    for (let i = 0; i < wanted.length; i += BATCH_SIZE) {
-      chunks.push(wanted.slice(i, i + BATCH_SIZE));
-    }
-    const results = await Promise.all(
-      chunks.map((chunk) => hydrateCards(storefront, chunk)),
-    );
-    return results.flat();
-  }
-
   try {
-    const data = await storefront.query(PRODUCTS_BY_HANDLE_BATCH_QUERY, {
-      variables: {
-        first: wanted.length,
-        // Handles MUST be quoted. Shopify's search syntax tokenises on
-        // hyphens and treats a leading "-" as negation, so an unquoted
-        // `handle:100-mile-house-bc-greetings` parses as a handle term plus
-        // several exclusions — and one malformed term poisons the whole OR
-        // chain, returning nothing. That is why every region whose first
-        // product handle contained a digit or an extra hyphen rendered as an
-        // empty waitlist while its index bucket was full.
-        query: wanted.map((entry) => `handle:"${entry.handle}"`).join(' OR '),
-      },
+    const data = await storefront.query(PRODUCTS_BY_IDS_QUERY, {
+      variables: {ids: wanted.map((entry) => entry.id)},
       cache: storefront.CacheShort(),
     });
-    const nodes = (data?.products?.nodes ?? []) as SouvenirCard[];
+    const nodes = ((data?.nodes ?? []) as (SouvenirCard | null)[]).filter(
+      (node): node is SouvenirCard => Boolean(node?.handle),
+    );
     if (nodes.length < wanted.length) {
       console.warn(
-        `[msc:catalog] hydrateCards asked for ${wanted.length} handles and ` +
-          `got ${nodes.length}; first requested was "${wanted[0].handle}"`,
+        `[msc:catalog] hydrateCards asked for ${wanted.length} ids and got ` +
+          `${nodes.length}; first was "${wanted[0].handle}"`,
       );
     }
-    const byHandle = new Map(nodes.map((node) => [node.handle, node]));
+    const byId = new Map(nodes.map((node) => [node.id, node]));
     return wanted
-      .map((entry) => byHandle.get(entry.handle))
+      .map((entry) => byId.get(entry.id))
       .filter((node): node is SouvenirCard => Boolean(node));
   } catch (error) {
     console.error('[msc:catalog] card hydration failed', error);
