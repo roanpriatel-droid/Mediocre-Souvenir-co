@@ -5444,9 +5444,17 @@ select:focus-visible,
   inset: -4% -2%;
   z-index: -1;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  opacity: 0.28;
+  /*
+   * Density is the message. At 6 columns the tiles are large enough to read as
+   * individual ghost words, which looks like smudging; at 11 they read as a
+   * wall of many different cards, which is the actual claim — there is a shirt
+   * for everywhere. Tiles need a source roughly 3.2x their display width
+   * because only 31% of each image is shown, so this is also the point where
+   * the payload stops being free.
+   */
+  grid-template-columns: repeat(11, 1fr);
+  gap: 7px;
+  opacity: 0.32;
   transform: rotate(-3deg) scale(1.14);
   pointer-events: none;
 }
@@ -5487,8 +5495,8 @@ select:focus-visible,
     100deg,
     var(--msc-cream) 0%,
     rgba(241, 233, 214, 0.94) 42%,
-    rgba(241, 233, 214, 0.55) 68%,
-    rgba(241, 233, 214, 0.3) 100%
+    rgba(241, 233, 214, 0.45) 68%,
+    rgba(241, 233, 214, 0.06) 100%
   );
   pointer-events: none;
 }
@@ -5674,8 +5682,8 @@ select:focus-visible,
     gap: 20px;
   }
   .hero-wall {
-    grid-template-columns: repeat(4, 1fr);
-    opacity: 0.22;
+    grid-template-columns: repeat(7, 1fr);
+    opacity: 0.26;
   }
   .hero-stamp {
     max-width: 250px;
@@ -5694,7 +5702,7 @@ select:focus-visible,
     letter-spacing: 4px;
   }
   .hero-wall {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(5, 1fr);
   }
   .hero-back {
     font-size: 10.5px;

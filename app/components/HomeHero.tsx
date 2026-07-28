@@ -65,13 +65,13 @@ export function HomeHero({
       {/* ── the wall: cropped town prints, multiplied onto the paper ── */}
       {tiles.length > 0 && (
         <div className="hero-wall" aria-hidden="true">
-          {tiles.slice(0, 18).map((product, i) => (
+          {tiles.slice(0, 30).map((product, i) => (
             <div className="hero-wall-cell" key={product.id}>
               {product.featuredImage && (
                 <Image
                   data={product.featuredImage}
                   alt=""
-                  sizes="200px"
+                  sizes="180px"
                   loading={i < 6 ? 'eager' : 'lazy'}
                 />
               )}

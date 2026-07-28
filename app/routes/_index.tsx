@@ -57,7 +57,7 @@ export async function loader({context, request}: Route.LoaderArgs) {
     : {products: await productsInOpenRegions(context.storefront, 4), total: 0};
 
   const {entries} = await loadDerivedCatalog(context.storefront);
-  const wall = await heroWall(context.storefront, 18);
+  const wall = await heroWall(context.storefront, 30);
 
   return {
     region,
