@@ -5398,3 +5398,198 @@ select:focus-visible,
     padding-bottom: 32px;
   }
 }
+
+/* ============================================================
+   Homepage hero — geo-personalised, product above the fold
+   ============================================================ */
+
+.hero-v2 {
+  border-bottom: var(--border-heavy);
+  background:
+    var(--worn-noise),
+    linear-gradient(var(--msc-cream-deep), var(--msc-cream-deep));
+  background-blend-mode: multiply;
+  padding: 36px 24px 0;
+}
+
+.hero-v2-inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
+  gap: 40px;
+  align-items: center;
+  padding-bottom: 32px;
+}
+
+.hero-v2-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.hero-v2-badge {
+  margin-bottom: 2px;
+}
+
+.hero-v2-eyebrow {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--msc-brick);
+}
+
+/* The region name is the headline when we know it — biggest type on the
+   page, because it is the most interesting word on the page. */
+.hero-v2-title {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 6.6vw, 82px);
+  line-height: 0.94;
+  color: var(--msc-navy);
+  letter-spacing: -0.5px;
+  /* off-register print, per the brand doc */
+  text-shadow: 3px 3px 0 rgba(184, 80, 58, 0.28);
+}
+
+.hero-v2-sub {
+  font-size: 17px;
+  line-height: 1.5;
+  max-width: 46ch;
+}
+
+.hero-v2-sub strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 19px;
+  color: var(--msc-brick);
+}
+
+.hero-v2-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 4px 0 2px;
+}
+
+/* Four shirts, tiled like a rack behind the counter. */
+.hero-v2-art {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.hero-v2-tile {
+  border: var(--border-std);
+  background: var(--msc-cream);
+  box-shadow: var(--shadow-offset);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--msc-asphalt);
+}
+
+.hero-v2-tile:nth-child(odd) {
+  transform: rotate(-0.7deg);
+}
+.hero-v2-tile:nth-child(even) {
+  transform: rotate(0.6deg);
+}
+
+.hero-v2-tile:hover {
+  transform: rotate(0deg) translate(-1px, -2px);
+  box-shadow: 5px 6px 0 var(--msc-navy);
+  color: var(--msc-asphalt);
+}
+
+.hero-v2-tile img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.hero-v2-tile-label {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--msc-navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The catalogue is the argument — say how big it is. */
+.hero-v2-scale {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: var(--border-std);
+}
+
+.hero-v2-scale > div {
+  padding: 14px 12px;
+  text-align: center;
+  border-right: 1px dotted var(--msc-asphalt);
+}
+
+.hero-v2-scale > div:last-child {
+  border-right: none;
+}
+
+.hero-v2-scale dt {
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+  opacity: 0.8;
+}
+
+.hero-v2-scale dd {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.6vw, 30px);
+  line-height: 1;
+  color: var(--msc-brick);
+}
+
+@media (max-width: 900px) {
+  .hero-v2-inner {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .hero-v2-copy {
+    align-items: center;
+    text-align: center;
+  }
+  .hero-v2-sub {
+    margin-inline: auto;
+  }
+  .hero-v2-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero-v2 {
+    padding-top: 24px;
+  }
+  .hero-v2-scale {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .hero-v2-scale > div:nth-child(2) {
+    border-right: none;
+  }
+  .hero-v2-scale > div:nth-child(-n + 2) {
+    border-bottom: 1px dotted var(--msc-asphalt);
+  }
+}

@@ -290,18 +290,68 @@ export async function productsForCountry(
   return hydrateCards(storefront, entries.slice(0, limit));
 }
 
-/** One product from each stocked region — the Now Open rack. */
+/**
+ * The Now Open rack — one product from each stocked region, merchandised.
+ *
+ * This used to take `bucket[0]` from each region in map order, which meant the
+ * showcase row on the homepage was literally the alphabetically-first product
+ * of the alphabetically-first regions: 100 Mile House, Aberdeen MD, Aberdeen
+ * SD, Aberdeen WA, Abilene TX. It read like a database dump.
+ *
+ * Now: regions are ordered by how much stock they carry (a well-stocked region
+ * is a better shop window), and the product within each is chosen by a seed
+ * that changes daily. Deterministic per day, so the server and client agree and
+ * the page can still be cached — but the row is different tomorrow.
+ */
 export async function productsInOpenRegions(
   storefront: Storefront,
   limit = 12,
+  seed = daySeed(),
 ): Promise<SouvenirCard[]> {
   const {byRegion} = await loadDerivedCatalog(storefront);
+
+  const buckets = [...byRegion.entries()]
+    .filter(([, items]) => items.length > 0)
+    .sort((a, b) => b[1].length - a[1].length);
+
   const entries: ProductIndexEntry[] = [];
-  for (const bucket of byRegion.values()) {
-    if (bucket[0]) entries.push(bucket[0]);
+  for (const [slug, items] of buckets) {
     if (entries.length >= limit) break;
+    // Rotate within the region so the same town is not always the face of it.
+    const pick = items[(seed + hashString(slug)) % items.length];
+    if (pick) entries.push(pick);
   }
   return hydrateCards(storefront, entries);
+}
+
+/** Days since epoch — stable across a day, different the next. */
+function daySeed(): number {
+  return Math.floor(Date.now() / 86_400_000);
+}
+
+function hashString(value: string): number {
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+/** Products for the visitor's own region, for the geo-personalised hero. */
+export async function regionSpotlight(
+  storefront: Storefront,
+  region: Region,
+  limit = 4,
+): Promise<{products: SouvenirCard[]; total: number}> {
+  const {byRegion} = await loadDerivedCatalog(storefront);
+  const items = byRegion.get(region.slug) ?? [];
+  if (!items.length) return {products: [], total: 0};
+  const seed = daySeed() + hashString(region.slug);
+  const start = items.length > limit ? seed % (items.length - limit + 1) : 0;
+  return {
+    products: await hydrateCards(storefront, items.slice(start, start + limit)),
+    total: items.length,
+  };
 }
 
 /** Everything, hydrated, for the All Souvenirs fallback rack. */

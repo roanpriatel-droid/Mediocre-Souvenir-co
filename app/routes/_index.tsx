@@ -1,14 +1,13 @@
 import {Suspense} from 'react';
 import {Await, Link} from 'react-router';
 import type {Route} from './+types/_index';
-import {BadgeLogo, MSCMonogram} from '~/components/Brand';
+import {MSCMonogram} from '~/components/Brand';
+import {HomeHero} from '~/components/HomeHero';
 import {Reveal} from '~/components/Reveal';
-import {TownSearch} from '~/components/TownSearch';
 import {MarqueeStrip, TrustBar} from '~/components/Strips';
 import {RegionBrowse} from '~/components/RegionBrowse';
 import {CollectLadder} from '~/components/CollectLadder';
 import {Testimonials} from '~/components/Testimonials';
-import {EmailCapture} from '~/components/EmailCapture';
 import {SouvenirGrid, SouvenirGridSkeleton} from '~/components/SouvenirCard';
 import {
   loadCollectionProducts,
@@ -16,9 +15,12 @@ import {
   UTILITY_COLLECTIONS,
 } from '~/lib/shopify-collections';
 import {
+  loadDerivedCatalog,
   loadNewestProducts,
   productsInOpenRegions,
+  regionSpotlight,
 } from '~/lib/shopify-catalog';
+import {buyerCity, buyerRegion} from '~/lib/geo';
 import {ARTICLES} from '~/lib/journal';
 import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
 
@@ -39,12 +41,28 @@ export const meta: Route.MetaFunction = () => [
   {property: 'og:type', content: 'website'},
 ];
 
-export async function loader({context}: Route.LoaderArgs) {
+export async function loader({context, request}: Route.LoaderArgs) {
+  // Where the visitor is, per the Oxygen edge. Best-effort; absence is normal.
+  const region = buyerRegion(request) ?? null;
+  const city = buyerCity(request) ?? null;
   // Critical: the region grid is the primary navigation, so its status query
   // is awaited. The product rows sit below the fold and stream in.
   const regionStatus = await loadRegionStatus(context.storefront);
 
+  // The hero needs product above the fold either way: the visitor's own region
+  // when we know it, the best-stocked regions when we do not.
+  const spotlight = region
+    ? await regionSpotlight(context.storefront, region, 4)
+    : {products: await productsInOpenRegions(context.storefront, 4), total: 0};
+
+  const {entries} = await loadDerivedCatalog(context.storefront);
+
   return {
+    region,
+    city,
+    spotlight: spotlight.products,
+    spotlightTotal: spotlight.total,
+    totalProducts: entries.length,
     regionStatus,
     nowOpen: loadCollectionProducts(
       context.storefront,
@@ -73,29 +91,30 @@ export async function loader({context}: Route.LoaderArgs) {
 }
 
 export default function Homepage({loaderData}: Route.ComponentProps) {
-  const {regionStatus, nowOpen, newArrivalProducts, postcards} = loaderData;
+  const {
+    region,
+    city,
+    spotlight,
+    spotlightTotal,
+    totalProducts,
+    regionStatus,
+    nowOpen,
+    newArrivalProducts,
+    postcards,
+  } = loaderData;
   const openCount = Object.values(regionStatus.open).filter(Boolean).length;
 
   return (
     <div className="home">
-      {/* 1 · HERO — the CTA is a search field, not a shop button */}
-      <section className="hero">
-        <BadgeLogo size={210} className="hero-badge" />
-        <h1>GENUINE MERCH FOR OVERLOOKED PLACES.</h1>
-        <p className="hero-sub">
-          Souvenir tees for the towns that never got one ·{' '}
-          {openCount > 0 ? `${openCount} regions open` : 'Sixty-three regions'}
-        </p>
-        <TownSearch />
-        <div className="hero-actions">
-          <Link className="msc-button" to="/collections/now-open">
-            What&rsquo;s open
-          </Link>
-          <Link className="msc-button msc-button--ghost" to="/towns">
-            The directory
-          </Link>
-        </div>
-      </section>
+      {/* 1 · HERO — geo-personalised, product above the fold */}
+      <HomeHero
+        region={region}
+        city={city}
+        spotlight={spotlight}
+        spotlightTotal={spotlightTotal}
+        totalProducts={totalProducts}
+        openRegions={openCount}
+      />
 
       <MarqueeStrip />
 
@@ -256,8 +275,8 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         <TrustBar />
       </section>
 
-      {/* 11 · EMAIL CAPTURE */}
-      <EmailCapture />
+      {/* The newsletter lives in the footer — one capture per page, not two
+          competing forms with identical headings. */}
     </div>
   );
 }
