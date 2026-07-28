@@ -49,16 +49,16 @@ export async function loader({context}: Route.LoaderArgs) {
     nowOpen: loadCollectionProducts(
       context.storefront,
       UTILITY_COLLECTIONS.nowOpen,
-      8,
+      12,
     ).then((products) =>
-      products.length ? products : productsInOpenRegions(context.storefront, 8),
+      products.length ? products : productsInOpenRegions(context.storefront, 12),
     ),
     newArrivalProducts: loadCollectionProducts(
       context.storefront,
       UTILITY_COLLECTIONS.newArrivals,
-      8,
+      12,
     ).then((products) =>
-      products.length ? products : loadNewestProducts(context.storefront, 8),
+      products.length ? products : loadNewestProducts(context.storefront, 12),
     ),
     postcards: [...ARTICLES]
       .sort((a, b) => b.date.localeCompare(a.date))
@@ -118,7 +118,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
             See all →
           </Link>
         </div>
-        <Suspense fallback={<SouvenirGridSkeleton count={4} />}>
+        <Suspense fallback={<SouvenirGridSkeleton count={6} />}>
           <Await resolve={nowOpen} errorElement={<RowFallback />}>
             {(products) =>
               products.length > 0 ? (
@@ -133,7 +133,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
 
       {/* 4 · RECENTLY INSULTED — new arrivals */}
       <section
-        className="msc-section msc-page"
+        className="msc-section msc-section--band msc-page"
         aria-labelledby="recently-insulted"
       >
         <div className="msc-section-rule">
@@ -146,7 +146,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
           The latest towns to be taken as seriously as they always should have
           been.
         </p>
-        <Suspense fallback={<SouvenirGridSkeleton count={4} />}>
+        <Suspense fallback={<SouvenirGridSkeleton count={6} />}>
           <Await resolve={newArrivalProducts} errorElement={<RowFallback />}>
             {(products) =>
               products.length > 0 ? (
@@ -180,7 +180,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
       </section>
 
       {/* 6 · EDITORIAL TEASER — Postcards From Nowhere */}
-      <section className="msc-section msc-page" aria-labelledby="postcards">
+      <section className="msc-section msc-section--band msc-page" aria-labelledby="postcards">
         <Reveal>
           <div className="msc-section-rule">
             <h2 id="postcards">Postcards from nowhere</h2>
