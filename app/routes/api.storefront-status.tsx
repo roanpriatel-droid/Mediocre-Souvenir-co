@@ -89,15 +89,34 @@ const NEUTRAL_QUERY = `#graphql
   }
 ` as const;
 
-export async function loader({context}: Route.LoaderArgs) {
+export async function loader({context, request}: Route.LoaderArgs) {
   const storeDomain = context.env.PUBLIC_STORE_DOMAIN ?? '(not set)';
   const expected = [
     ...Object.values(UTILITY_COLLECTIONS),
     ...REGIONS.map((region) => region.slug),
   ];
 
+  // Which geo headers the edge actually sets. The hero personalises off
+  // `oxygen-buyer-region`; this reports whether that value exists in
+  // production. Deliberately excludes oxygen-buyer-ip.
+  const geo: Record<string, string | null> = {};
+  for (const key of [
+    'oxygen-buyer-country',
+    'oxygen-buyer-region',
+    'oxygen-buyer-city',
+    'oxygen-buyer-latitude',
+    'oxygen-buyer-longitude',
+  ]) {
+    geo[key] = request.headers.get(key);
+  }
+  const allOxygenHeaders = [...request.headers.keys()]
+    .filter((k) => k.startsWith('oxygen-') && k !== 'oxygen-buyer-ip')
+    .sort();
+
   const report: Record<string, unknown> = {
     checkedAt: new Date().toISOString(),
+    geo,
+    allOxygenHeaders,
     storeDomain,
     isMockShop: storeDomain.includes('mock.shop'),
     storefrontApiTokenPresent: Boolean(
