@@ -18,10 +18,15 @@ interface PageLayoutProps {
   header: HeaderQuery;
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
+  buyerRegion?: {slug: string; name: string} | null;
   children?: React.ReactNode;
 }
 
-export function PageLayout({cart, children = null}: PageLayoutProps) {
+export function PageLayout({
+  cart,
+  buyerRegion = null,
+  children = null,
+}: PageLayoutProps) {
   return (
     <Aside.Provider>
       <CartAside cart={cart} />
@@ -30,7 +35,7 @@ export function PageLayout({cart, children = null}: PageLayoutProps) {
         Skip to content
       </a>
       <AnnouncementBar />
-      <Header cart={cart} />
+      <Header cart={cart} buyerRegion={buyerRegion} />
       <main id="main">{children}</main>
       <Footer />
       <EmailCaptureModal />

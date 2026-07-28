@@ -1,6 +1,7 @@
 import {useEffect, useId, useRef, useState} from 'react';
 import {Link, NavLink} from 'react-router';
 import {getRegionsByCountry, type Region} from '~/lib/catalog';
+import {TownSearch} from '~/components/TownSearch';
 
 /**
  * The navigation, as dropdowns.
@@ -225,6 +226,11 @@ export function MobileNav({onNavigate}: {onNavigate: () => void}) {
   const entries = buildNav();
   return (
     <nav className="header-menu-mobile" role="navigation" aria-label="Main">
+      {/* The header hides its search below the nav breakpoint, so the drawer
+          carries it — otherwise the core action is unreachable on a phone. */}
+      <div className="nav-mobile-search">
+        <TownSearch compact />
+      </div>
       {entries.map((entry) =>
         isGroup(entry) ? (
           <details className="nav-mobile-group" key={entry.title}>

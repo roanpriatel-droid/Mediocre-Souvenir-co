@@ -11,7 +11,14 @@ import type {Suggestion} from '~/lib/shopify-search';
  * /api/suggest, and always submits to /search as a fallback so the box works
  * with JavaScript unavailable or the request in flight.
  */
-export function TownSearch({autoFocus = false}: {autoFocus?: boolean}) {
+export function TownSearch({
+  autoFocus = false,
+  compact = false,
+}: {
+  autoFocus?: boolean;
+  /** Header variant: no hint line, tighter control, shorter placeholder. */
+  compact?: boolean;
+}) {
   const [query, setQuery] = useState('');
   const [highlighted, setHighlighted] = useState(-1);
   const [open, setOpen] = useState(false);
@@ -81,7 +88,7 @@ export function TownSearch({autoFocus = false}: {autoFocus?: boolean}) {
     open && !searching && query.trim().length > 1 && results.length === 0;
 
   return (
-    <div className="town-search" ref={rootRef}>
+    <div className={compact ? 'town-search town-search--compact' : 'town-search'} ref={rootRef}>
       <form
         className="town-search-box"
         role="search"
@@ -93,7 +100,7 @@ export function TownSearch({autoFocus = false}: {autoFocus?: boolean}) {
           type="search"
           name="q"
           value={query}
-          placeholder="Find your town…"
+          placeholder={compact ? 'Find your town…' : 'Find your town — Trail, Toledo, Gary…'}
           aria-label="Find your town"
           autoComplete="off"
           role="combobox"
@@ -151,10 +158,12 @@ export function TownSearch({autoFocus = false}: {autoFocus?: boolean}) {
         </div>
       )}
 
-      <div className="town-search-hint">
-        Try &ldquo;Trail,&rdquo; &ldquo;Hope,&rdquo; or wherever you&rsquo;re
-        actually from.
-      </div>
+      {!compact && (
+        <div className="town-search-hint">
+          Try &ldquo;Trail,&rdquo; &ldquo;Hope,&rdquo; or wherever you&rsquo;re
+          actually from.
+        </div>
+      )}
     </div>
   );
 }

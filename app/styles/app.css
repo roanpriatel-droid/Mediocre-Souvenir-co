@@ -333,10 +333,10 @@ main {
 
   .header {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
-      'logo ctas'
-      'nav nav';
+      'logo search ctas'
+      'nav nav nav';
     align-items: center;
     padding: 0;
     gap: 0;
@@ -345,6 +345,16 @@ main {
   .header-logo {
     grid-area: logo;
     padding: 0 0 0 28px;
+  }
+
+  /* The dead middle of the top row now carries the store's core action. */
+  .header-search {
+    grid-area: search;
+    display: block;
+    padding: 0 28px;
+    max-width: 520px;
+    justify-self: center;
+    width: 100%;
   }
 
   .header-ctas {
@@ -5664,4 +5674,113 @@ select:focus-visible,
   .postcard-hero-meta span:not(:last-child)::after {
     padding-left: 8px;
   }
+}
+
+/* ---------- header: search, region chip, cart value ---------- */
+
+/* Hidden below the nav breakpoint — mobile gets search inside the menu drawer
+   rather than a field competing with the hamburger. */
+.header-search {
+  display: none;
+}
+
+.town-search--compact {
+  width: 100%;
+}
+
+.town-search--compact .town-search-box {
+  margin: 0;
+}
+
+.town-search--compact .town-search-box input {
+  height: 38px;
+  font-size: 14px;
+  padding: 0 12px;
+}
+
+.town-search--compact .town-search-box button {
+  height: 38px;
+  padding: 0 14px;
+  font-size: 12px;
+  letter-spacing: 1.6px;
+}
+
+.town-search--compact .town-search-results {
+  top: 42px;
+}
+
+/* Region chip — the edge already knows; this makes it useful. */
+.header-region {
+  display: none;
+  flex-direction: column;
+  line-height: 1.1;
+  padding: 4px 12px;
+  border-left: 1px dotted var(--msc-asphalt);
+  border-right: 1px dotted var(--msc-asphalt);
+  color: var(--msc-navy);
+  max-width: 190px;
+}
+
+@media (min-width: 1080px) {
+  .header-region {
+    display: flex;
+  }
+}
+
+.header-region-label {
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.header-region-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--msc-brick);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-region:hover .header-region-name {
+  color: var(--msc-navy);
+}
+
+/* Cart stacks a label row over the free-shipping gap. */
+.header-cart-link {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  line-height: 1.15;
+}
+
+.header-cart-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-cart-note {
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--msc-brick);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .header-cart-note {
+    display: none;
+  }
+}
+
+.nav-mobile-search {
+  padding: 4px 0 14px;
+  border-bottom: 1px dotted var(--msc-asphalt);
+  margin-bottom: 6px;
 }
