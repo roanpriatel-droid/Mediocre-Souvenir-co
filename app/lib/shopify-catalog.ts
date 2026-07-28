@@ -337,7 +337,14 @@ function hashString(value: string): number {
   return hash;
 }
 
-/** Products for the visitor's own region, for the geo-personalised hero. */
+/**
+ * Products for the visitor's own region, for the geo-personalised hero.
+ *
+ * One per TOWN, not one per product. Every town ships in four styles
+ * (Greetings / I Heart / Tour / Varsity), so slicing four consecutive entries
+ * returned four variants of the same place — the hero showed "Trail, BC"
+ * three times, which reads as a broken grid rather than a region.
+ */
 export async function regionSpotlight(
   storefront: Storefront,
   region: Region,
@@ -346,10 +353,20 @@ export async function regionSpotlight(
   const {byRegion} = await loadDerivedCatalog(storefront);
   const items = byRegion.get(region.slug) ?? [];
   if (!items.length) return {products: [], total: 0};
+
+  // Collapse to one entry per town, keeping index order.
+  const byTown = new Map<string, ProductIndexEntry>();
+  for (const item of items) {
+    const town = item.title.split(/[—–]/)[0].trim().toLowerCase();
+    if (!byTown.has(town)) byTown.set(town, item);
+  }
+  const towns = [...byTown.values()];
+
   const seed = daySeed() + hashString(region.slug);
-  const start = items.length > limit ? seed % (items.length - limit + 1) : 0;
+  const start = towns.length > limit ? seed % (towns.length - limit + 1) : 0;
+
   return {
-    products: await hydrateCards(storefront, items.slice(start, start + limit)),
+    products: await hydrateCards(storefront, towns.slice(start, start + limit)),
     total: items.length,
   };
 }

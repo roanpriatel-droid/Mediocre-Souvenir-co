@@ -4,6 +4,7 @@ import {BadgeLogo} from '~/components/Brand';
 import {TownSearch} from '~/components/TownSearch';
 import type {SouvenirCard} from '~/lib/shopify-collections';
 import type {Region} from '~/lib/catalog';
+import {townNameFrom} from '~/lib/town-copy';
 
 /**
  * The hero.
@@ -107,7 +108,7 @@ export function HomeHero({
                   </div>
                 )}
                 <span className="hero-v2-tile-label">
-                  {product.title.split('—')[0].trim()}
+                  {townNameFrom(product.title, product.handle)}
                 </span>
               </Link>
             ))}
