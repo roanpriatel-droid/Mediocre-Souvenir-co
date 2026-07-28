@@ -5400,196 +5400,268 @@ select:focus-visible,
 }
 
 /* ============================================================
-   Homepage hero — geo-personalised, product above the fold
+   Homepage hero — the postcard
    ============================================================ */
 
-.hero-v2 {
+.postcard-hero {
   border-bottom: var(--border-heavy);
-  background:
-    var(--worn-noise),
-    linear-gradient(var(--msc-cream-deep), var(--msc-cream-deep));
-  background-blend-mode: multiply;
-  padding: 36px 24px 0;
+  background: var(--msc-navy);
+  padding: 22px 16px 0;
 }
 
-.hero-v2-inner {
+/* The card itself sits on the navy like a postcard on a counter. */
+.postcard-hero-card {
   max-width: var(--page-max);
   margin: 0 auto;
+  background:
+    var(--worn-noise),
+    linear-gradient(var(--msc-cream), var(--msc-cream));
+  background-blend-mode: multiply;
+  border: var(--border-heavy);
+  box-shadow: 6px 6px 0 var(--msc-brick);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
-  gap: 40px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
+  gap: 24px;
+  padding: 30px 30px 26px;
   align-items: center;
-  padding-bottom: 32px;
+  position: relative;
 }
 
-.hero-v2-copy {
+.postcard-hero-front {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  align-items: flex-start;
+  min-width: 0;
 }
 
-.hero-v2-badge {
-  margin-bottom: 2px;
-}
-
-.hero-v2-eyebrow {
+/* "Greetings from" — small, arced-feeling, the way it is printed. */
+.postcard-hero-greeting {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: clamp(13px, 1.5vw, 17px);
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 7px;
   text-transform: uppercase;
   color: var(--msc-brick);
 }
 
-/* The region name is the headline when we know it — biggest type on the
-   page, because it is the most interesting word on the page. */
-.hero-v2-title {
-  font-family: var(--font-display);
-  font-size: clamp(40px, 6.6vw, 82px);
-  line-height: 0.94;
-  color: var(--msc-navy);
-  letter-spacing: -0.5px;
-  /* off-register print, per the brand doc */
-  text-shadow: 3px 3px 0 rgba(184, 80, 58, 0.28);
-}
-
-.hero-v2-sub {
-  font-size: 17px;
-  line-height: 1.5;
-  max-width: 46ch;
-}
-
-.hero-v2-sub strong {
+/*
+ * The place name. Biggest thing on the site, and per BRAND.md it gets the
+ * off-register dual-colour text-shadow — mustard on one axis, brick on the
+ * other, like a plate that slipped.
+ */
+.postcard-hero-place {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 19px;
+  color: var(--msc-navy);
+  line-height: 0.86;
+  letter-spacing: -1px;
+  overflow-wrap: anywhere;
+  text-shadow:
+    3px 0 0 var(--msc-mustard),
+    6px 4px 0 rgba(184, 80, 58, 0.85);
+  font-size: clamp(46px, 9vw, 118px);
+}
+
+.postcard-hero-place[data-scale='medium'] {
+  font-size: clamp(40px, 7.2vw, 92px);
+}
+
+.postcard-hero-place[data-scale='long'] {
+  font-size: clamp(32px, 5vw, 64px);
+  letter-spacing: -0.5px;
+  text-shadow:
+    2px 0 0 var(--msc-mustard),
+    4px 3px 0 rgba(184, 80, 58, 0.85);
+}
+
+.postcard-hero-sub {
+  font-size: 16.5px;
+  line-height: 1.45;
+  max-width: 40ch;
+}
+
+.postcard-hero-sub strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 20px;
   color: var(--msc-brick);
 }
 
-.hero-v2-actions {
+.postcard-hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin: 4px 0 2px;
+  gap: 10px;
+  margin-top: 2px;
 }
 
-/* Four shirts, tiled like a rack behind the counter. */
-.hero-v2-art {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
+/* ---------- stamp block ---------- */
 
-.hero-v2-tile {
-  border: var(--border-std);
-  background: var(--msc-cream);
-  box-shadow: var(--shadow-offset);
-  padding: 8px;
+.postcard-hero-stamp-block {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  justify-content: center;
+}
+
+/* Perforated stamp edge, done with a dashed outline rather than an image. */
+.postcard-hero-shirt {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  background: var(--msc-cream-deep);
+  border: 3px dashed var(--msc-navy);
+  padding: 10px;
+  color: var(--msc-asphalt);
+  transform: rotate(-1.4deg);
+}
+
+.postcard-hero-shirt:hover {
+  transform: rotate(0deg) translate(-2px, -2px);
   color: var(--msc-asphalt);
 }
 
-.hero-v2-tile:nth-child(odd) {
-  transform: rotate(-0.7deg);
-}
-.hero-v2-tile:nth-child(even) {
-  transform: rotate(0.6deg);
-}
-
-.hero-v2-tile:hover {
-  transform: rotate(0deg) translate(-1px, -2px);
-  box-shadow: 5px 6px 0 var(--msc-navy);
-  color: var(--msc-asphalt);
-}
-
-.hero-v2-tile img {
+.postcard-hero-shirt img {
   width: 100%;
   aspect-ratio: 1 / 1;
   object-fit: contain;
   mix-blend-mode: multiply;
 }
 
-.hero-v2-tile-label {
-  font-family: var(--font-body);
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
+.postcard-hero-shirt-label {
+  display: block;
   text-align: center;
-  color: var(--msc-navy);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* The catalogue is the argument — say how big it is. */
-.hero-v2-scale {
-  max-width: var(--page-max);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-top: var(--border-std);
-}
-
-.hero-v2-scale > div {
-  padding: 14px 12px;
-  text-align: center;
-  border-right: 1px dotted var(--msc-asphalt);
-}
-
-.hero-v2-scale > div:last-child {
-  border-right: none;
-}
-
-.hero-v2-scale dt {
   font-family: var(--font-body);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 2.4px;
   text-transform: uppercase;
   color: var(--msc-navy);
-  opacity: 0.8;
+  padding-top: 6px;
+  border-top: 1px dotted var(--msc-navy);
+  margin-top: 6px;
 }
 
-.hero-v2-scale dd {
-  margin: 2px 0 0;
-  font-family: var(--font-display);
-  font-size: clamp(20px, 2.6vw, 30px);
-  line-height: 1;
+/* Circular postmark, rotated, overlapping the stamp. */
+.postcard-hero-postmark {
+  position: absolute;
+  top: -14px;
+  right: -6px;
+  z-index: 2;
+  width: 104px;
+  height: 104px;
+  border: 2px solid var(--msc-brick);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transform: rotate(-11deg);
+  background: rgba(241, 233, 214, 0.72);
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
   color: var(--msc-brick);
+  text-align: center;
+  padding: 8px;
+  line-height: 1.15;
+}
+
+.postcard-hero-postmark-rule {
+  width: 62%;
+  border-top: 1px solid var(--msc-brick);
+}
+
+/* ---------- back of the card ---------- */
+
+.postcard-hero-back {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 24px;
+  padding: 12px 2px 14px;
+  color: var(--msc-cream);
+}
+
+.postcard-hero-meta,
+.postcard-hero-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.postcard-hero-meta span:not(:last-child)::after {
+  content: ' ·';
+  color: var(--msc-mustard);
+  padding-left: 18px;
+}
+
+.postcard-hero-more ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.postcard-hero-more-label {
+  color: var(--msc-mustard);
+}
+
+.postcard-hero-more a {
+  color: var(--msc-cream);
+  border-bottom: 1px dotted rgba(241, 233, 214, 0.5);
+}
+
+.postcard-hero-more a:hover {
+  color: var(--msc-mustard);
 }
 
 @media (max-width: 900px) {
-  .hero-v2-inner {
+  .postcard-hero-card {
     grid-template-columns: 1fr;
-    gap: 24px;
+    gap: 18px;
+    padding: 24px 20px 22px;
   }
-  .hero-v2-copy {
-    align-items: center;
-    text-align: center;
+  .postcard-hero-front {
+    order: 1;
   }
-  .hero-v2-sub {
-    margin-inline: auto;
+  .postcard-hero-stamp-block {
+    order: 2;
   }
-  .hero-v2-actions {
-    justify-content: center;
+  .postcard-hero-shirt {
+    max-width: 260px;
+  }
+  .postcard-hero-postmark {
+    width: 86px;
+    height: 86px;
+    right: 4px;
   }
 }
 
 @media (max-width: 560px) {
-  .hero-v2 {
-    padding-top: 24px;
+  .postcard-hero {
+    padding: 14px 10px 0;
   }
-  .hero-v2-scale {
-    grid-template-columns: repeat(2, 1fr);
+  .postcard-hero-greeting {
+    letter-spacing: 4px;
   }
-  .hero-v2-scale > div:nth-child(2) {
-    border-right: none;
+  .postcard-hero-back {
+    justify-content: flex-start;
+    font-size: 11px;
   }
-  .hero-v2-scale > div:nth-child(-n + 2) {
-    border-bottom: 1px dotted var(--msc-asphalt);
+  .postcard-hero-meta span:not(:last-child)::after {
+    padding-left: 8px;
   }
 }

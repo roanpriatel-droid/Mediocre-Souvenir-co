@@ -1,23 +1,28 @@
 import {Link} from 'react-router';
 import {Image} from '@shopify/hydrogen';
-import {BadgeLogo} from '~/components/Brand';
-import {TownSearch} from '~/components/TownSearch';
 import type {SouvenirCard} from '~/lib/shopify-collections';
 import type {Region} from '~/lib/catalog';
 import {townNameFrom} from '~/lib/town-copy';
 
 /**
- * The hero.
+ * The hero, as a postcard.
  *
- * Two problems with what was here: no product above the fold at all — the
- * first image on the page was the badge SVG — and nothing that used the one
- * advantage this store has over every other apparel shop, which is that every
- * product is a *place* and the edge already knows where the visitor is.
+ * The previous version was a stack of eight elements — badge, eyebrow,
+ * headline, paragraph, two buttons, a search field, then a 2×2 tile grid and a
+ * stats table. It ran 956px on a phone, which is more than a full viewport
+ * before the page even starts, and the four small tiles read as search results
+ * rather than a shop window.
  *
- * So when Oxygen gives us a region, the hero addresses it directly and shows
- * four shirts from it. When it does not — VPN, bot, unknown edge — it falls
- * back to the generic headline and a rotating set from the best-stocked
- * regions. Both paths render product; neither is gated on geo.
+ * This is the most recognisable souvenir object there is: GREETINGS FROM in an
+ * arc over an enormous place name, a postmark, and the shirt itself. It suits
+ * the brand because the brand *is* a 1978 gift shop, BRAND.md specifically
+ * calls for off-register dual-colour text-shadow on hero display type, and —
+ * the part that makes it work — the store already sells the "Greetings from…"
+ * shirt, so the graphic and the product are the same object.
+ *
+ * The place name is the biggest thing on the page and it is the visitor's own
+ * region, taken from the Oxygen edge. When geo is unavailable it addresses
+ * "Somewhere" instead, which is on-brand rather than broken.
  */
 export function HomeHero({
   region,
@@ -35,106 +40,119 @@ export function HomeHero({
   openRegions: number;
 }) {
   const personalised = Boolean(region && spotlight.length);
+  const place = region?.name ?? 'Nowhere in particular';
+  const lead = spotlight[0];
+  const rest = spotlight.slice(1, 4);
+
+  // Long names ("Newfoundland and Labrador") need to step down a size or they
+  // wrap into three lines and swamp the card.
+  const scale =
+    place.length > 18 ? 'long' : place.length > 12 ? 'medium' : 'short';
 
   return (
-    <section className="hero-v2">
-      <div className="hero-v2-inner">
-        <div className="hero-v2-copy">
-          <BadgeLogo size={104} className="hero-v2-badge" />
+    <section className="postcard-hero" aria-label="Greetings">
+      <div className="postcard-hero-card">
+        {/* ── front of the card ─────────────────────────────────────── */}
+        <div className="postcard-hero-front">
+          <p className="postcard-hero-greeting">Greetings from</p>
 
-          {personalised ? (
-            <>
-              <p className="hero-v2-eyebrow">
-                {city ? `Hello, ${city}.` : 'Hello.'} You appear to be in
-              </p>
-              <h1 className="hero-v2-title">{region!.name}</h1>
-              <p className="hero-v2-sub">
-                We make <strong>{spotlightTotal}</strong> souvenirs for{' '}
-                {region!.name}, a place we are certain has never been called a
-                destination. Someone should commemorate it. We have.
-              </p>
-              <div className="hero-v2-actions">
-                <Link className="msc-button" to={`/collections/${region!.slug}`}>
-                  Shop {region!.name}
-                </Link>
-                <Link className="msc-button msc-button--ghost" to="/towns">
-                  Somewhere else
-                </Link>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="hero-v2-eyebrow">Genuine merch for</p>
-              <h1 className="hero-v2-title">Overlooked places.</h1>
-              <p className="hero-v2-sub">
-                Souvenir tees for towns that never got one. Find yours — it is
-                almost certainly here, and almost certainly unremarkable.
-              </p>
-              <div className="hero-v2-actions">
-                <Link className="msc-button" to="/collections/all-souvenirs">
-                  Shop all souvenirs
-                </Link>
-                <Link className="msc-button msc-button--ghost" to="/towns">
-                  The directory
-                </Link>
-              </div>
-            </>
-          )}
+          <h1 className="postcard-hero-place" data-scale={scale}>
+            {place}
+          </h1>
 
-          <TownSearch />
+          <p className="postcard-hero-sub">
+            {personalised ? (
+              <>
+                <strong>{spotlightTotal}</strong> souvenirs for a place that has
+                never once been called a destination.
+              </>
+            ) : (
+              <>
+                <strong>{totalProducts.toLocaleString('en-CA')}</strong>{' '}
+                souvenirs for towns that never got one.
+              </>
+            )}
+          </p>
+
+          <div className="postcard-hero-actions">
+            <Link
+              className="msc-button"
+              to={
+                region
+                  ? `/collections/${region.slug}`
+                  : '/collections/all-souvenirs'
+              }
+            >
+              {region ? `Shop ${region.name}` : 'Shop all souvenirs'}
+            </Link>
+            <Link className="msc-button msc-button--ghost" to="/towns">
+              {region ? 'Somewhere else' : 'The directory'}
+            </Link>
+          </div>
         </div>
 
-        {/* Product above the fold — four shirts, not a logo. */}
-        {spotlight.length > 0 && (
-          <div className="hero-v2-art" aria-label="Souvenirs from this region">
-            {spotlight.slice(0, 4).map((product, i) => (
-              <Link
-                className="hero-v2-tile"
-                key={product.id}
-                to={`/products/${product.handle}`}
-                prefetch="intent"
-              >
-                {product.featuredImage ? (
-                  <Image
-                    data={product.featuredImage}
-                    alt={product.featuredImage.altText || product.title}
-                    aspectRatio="1/1"
-                    sizes="(min-width: 1000px) 220px, 45vw"
-                    loading={i < 2 ? 'eager' : 'lazy'}
-                  />
-                ) : (
-                  <div className="rack-card-art-empty">
-                    <span>{product.title.slice(0, 2).toUpperCase()}</span>
-                  </div>
-                )}
-                <span className="hero-v2-tile-label">
-                  {townNameFrom(product.title, product.handle)}
-                </span>
-              </Link>
-            ))}
+        {/* ── the stamp block: postmark + the actual shirt ───────────── */}
+        <div className="postcard-hero-stamp-block">
+          <div className="postcard-hero-postmark" aria-hidden="true">
+            <span>{city ?? 'PARTS UNKNOWN'}</span>
+            <span className="postcard-hero-postmark-rule" />
+            <span>EST. 2026</span>
+          </div>
+
+          {lead ? (
+            <Link
+              className="postcard-hero-shirt"
+              to={`/products/${lead.handle}`}
+              prefetch="intent"
+            >
+              {lead.featuredImage ? (
+                <Image
+                  data={lead.featuredImage}
+                  alt={lead.featuredImage.altText || lead.title}
+                  aspectRatio="1/1"
+                  sizes="(min-width: 1000px) 380px, 60vw"
+                  loading="eager"
+                  decoding="sync"
+                />
+              ) : (
+                <div className="rack-card-art-empty">
+                  <span>{lead.title.slice(0, 2).toUpperCase()}</span>
+                </div>
+              )}
+              <span className="postcard-hero-shirt-label">
+                {townNameFrom(lead.title, lead.handle)}
+              </span>
+            </Link>
+          ) : null}
+        </div>
+      </div>
+
+      {/* ── back of the card: the address lines carry the numbers ───── */}
+      <div className="postcard-hero-back">
+        <div className="postcard-hero-meta">
+          <span>{totalProducts.toLocaleString('en-CA')} souvenirs</span>
+          <span>{openRegions} regions</span>
+          <span>0 famous ones</span>
+          <span>Free shipping over $75</span>
+        </div>
+
+        {rest.length > 0 && (
+          <div className="postcard-hero-more">
+            <span className="postcard-hero-more-label">
+              {region ? `Also from ${region.name}` : 'Also on the rack'}
+            </span>
+            <ul>
+              {rest.map((product) => (
+                <li key={product.id}>
+                  <Link to={`/products/${product.handle}`} prefetch="intent">
+                    {townNameFrom(product.title, product.handle)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>
-
-      {/* Scale, stated plainly. The catalogue is the argument. */}
-      <dl className="hero-v2-scale">
-        <div>
-          <dt>Souvenirs</dt>
-          <dd>{totalProducts.toLocaleString('en-CA')}</dd>
-        </div>
-        <div>
-          <dt>Regions</dt>
-          <dd>{openRegions}</dd>
-        </div>
-        <div>
-          <dt>Famous ones</dt>
-          <dd>0</dd>
-        </div>
-        <div>
-          <dt>Free shipping</dt>
-          <dd>$75+</dd>
-        </div>
-      </dl>
     </section>
   );
 }

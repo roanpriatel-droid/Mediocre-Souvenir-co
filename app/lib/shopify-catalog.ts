@@ -364,9 +364,25 @@ export async function regionSpotlight(
 
   const seed = daySeed() + hashString(region.slug);
   const start = towns.length > limit ? seed % (towns.length - limit + 1) : 0;
+  const picked = towns.slice(start, start + limit);
+
+  // The hero is a "Greetings from…" postcard, so lead with the Greetings
+  // shirt for that town when the store has one — the graphic and the product
+  // are then the same object. Falls back to whatever came first.
+  const leadTown = picked[0]?.title.split(/[—–]/)[0].trim().toLowerCase();
+  const greetings = leadTown
+    ? items.find(
+        (item) =>
+          /greetings/i.test(item.handle) &&
+          item.title.split(/[—–]/)[0].trim().toLowerCase() === leadTown,
+      )
+    : undefined;
+  if (greetings && !picked.some((p) => p.id === greetings.id)) {
+    picked[0] = greetings;
+  }
 
   return {
-    products: await hydrateCards(storefront, towns.slice(start, start + limit)),
+    products: await hydrateCards(storefront, picked),
     total: items.length,
   };
 }
