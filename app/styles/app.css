@@ -5410,42 +5410,99 @@ select:focus-visible,
 }
 
 /* ============================================================
-   Homepage hero — the postcard
+   Homepage hero — the print wall
    ============================================================ */
 
-.postcard-hero {
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   border-bottom: var(--border-heavy);
-  background: var(--msc-navy);
-  padding: 22px 16px 0;
-}
-
-/* The card itself sits on the navy like a postcard on a counter. */
-.postcard-hero-card {
-  max-width: var(--page-max);
-  margin: 0 auto;
   background:
     var(--worn-noise),
     linear-gradient(var(--msc-cream), var(--msc-cream));
   background-blend-mode: multiply;
-  border: var(--border-heavy);
-  box-shadow: 6px 6px 0 var(--msc-brick);
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
-  gap: 24px;
-  padding: 30px 30px 26px;
-  align-items: center;
-  position: relative;
+  padding: 40px 24px 0;
 }
 
-.postcard-hero-front {
+/*
+ * The wall.
+ *
+ * Every product photo is the same grey tee on pure white; the only unique
+ * content is a chest print at x 34-65%, y 28-53% (measured, not guessed). Each
+ * cell crops to exactly that box by over-scaling the image and offsetting it:
+ *
+ *   width  = 100 / 0.31 = 322.6%
+ *   left   = -34 / 31   = -109.7%
+ *   top    = -28 / 25   = -112%
+ *
+ * multiply then drops the white ground onto the cream so the artwork reads as
+ * ink printed on the page rather than a photograph pasted over it.
+ */
+.hero-wall {
+  position: absolute;
+  inset: -4% -2%;
+  z-index: -1;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  opacity: 0.3;
+  transform: rotate(-3deg) scale(1.14);
+  pointer-events: none;
+}
+
+.hero-wall-cell {
+  position: relative;
+  aspect-ratio: 31 / 25;
+  overflow: hidden;
+}
+
+.hero-wall-cell img {
+  position: absolute;
+  width: 322.6%;
+  height: auto;
+  left: -109.7%;
+  top: -112%;
+  max-width: none;
+  mix-blend-mode: multiply;
+  filter: grayscale(0.35) contrast(1.15);
+}
+
+/* Paper gradient so type always lands on a calm field, wall or no wall. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    var(--msc-cream) 0%,
+    rgba(241, 233, 214, 0.94) 42%,
+    rgba(241, 233, 214, 0.55) 68%,
+    rgba(241, 233, 214, 0.3) 100%
+  );
+  pointer-events: none;
+}
+
+.hero-inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr);
+  gap: 32px;
+  align-items: center;
+  padding-bottom: 28px;
+}
+
+.hero-copy {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  align-items: flex-start;
   min-width: 0;
 }
 
-/* "Greetings from" — small, arced-feeling, the way it is printed. */
-.postcard-hero-greeting {
+.hero-greeting {
   font-family: var(--font-body);
   font-size: clamp(13px, 1.5vw, 17px);
   font-weight: 700;
@@ -5454,12 +5511,8 @@ select:focus-visible,
   color: var(--msc-brick);
 }
 
-/*
- * The place name. Biggest thing on the site, and per BRAND.md it gets the
- * off-register dual-colour text-shadow — mustard on one axis, brick on the
- * other, like a plate that slipped.
- */
-.postcard-hero-place {
+/* Off-register dual-colour shadow, per BRAND.md. */
+.hero-place {
   font-family: var(--font-display);
   font-weight: 400;
   color: var(--msc-navy);
@@ -5468,75 +5521,74 @@ select:focus-visible,
   overflow-wrap: anywhere;
   text-shadow:
     3px 0 0 var(--msc-mustard),
-    6px 4px 0 rgba(184, 80, 58, 0.85);
-  font-size: clamp(46px, 9vw, 118px);
+    6px 4px 0 rgba(184, 80, 58, 0.9);
+  font-size: clamp(46px, 8.6vw, 112px);
 }
 
-.postcard-hero-place[data-scale='medium'] {
-  font-size: clamp(40px, 7.2vw, 92px);
+.hero-place[data-scale='medium'] {
+  font-size: clamp(40px, 7vw, 88px);
 }
 
-.postcard-hero-place[data-scale='long'] {
-  font-size: clamp(32px, 5vw, 64px);
-  letter-spacing: -0.5px;
+.hero-place[data-scale='long'] {
+  font-size: clamp(32px, 4.8vw, 62px);
   text-shadow:
     2px 0 0 var(--msc-mustard),
-    4px 3px 0 rgba(184, 80, 58, 0.85);
+    4px 3px 0 rgba(184, 80, 58, 0.9);
 }
 
-.postcard-hero-sub {
+.hero-sub {
   font-size: 16.5px;
   line-height: 1.45;
   max-width: 40ch;
 }
 
-.postcard-hero-sub strong {
+.hero-sub strong {
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 20px;
   color: var(--msc-brick);
 }
 
-.postcard-hero-actions {
+.hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 2px;
 }
 
-/* ---------- stamp block ---------- */
+/* ---------- the stamp ---------- */
 
-.postcard-hero-stamp-block {
+.hero-stamp-block {
   position: relative;
   display: flex;
   justify-content: center;
 }
 
-/* Perforated stamp edge, done with a dashed outline rather than an image. */
-.postcard-hero-shirt {
+.hero-stamp {
   display: block;
   width: 100%;
-  max-width: 340px;
-  background: var(--msc-cream-deep);
+  max-width: 320px;
+  background: var(--msc-cream);
   border: 3px dashed var(--msc-navy);
+  box-shadow: var(--shadow-offset);
   padding: 10px;
   color: var(--msc-asphalt);
-  transform: rotate(-1.4deg);
+  transform: rotate(-1.6deg);
 }
 
-.postcard-hero-shirt:hover {
+.hero-stamp:hover {
   transform: rotate(0deg) translate(-2px, -2px);
   color: var(--msc-asphalt);
 }
 
-.postcard-hero-shirt img {
+.hero-stamp img {
   width: 100%;
   aspect-ratio: 1 / 1;
   object-fit: contain;
   mix-blend-mode: multiply;
 }
 
-.postcard-hero-shirt-label {
+.hero-stamp-label {
   display: block;
   text-align: center;
   font-family: var(--font-body);
@@ -5547,17 +5599,16 @@ select:focus-visible,
   color: var(--msc-navy);
   padding-top: 6px;
   border-top: 1px dotted var(--msc-navy);
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
-/* Circular postmark, rotated, overlapping the stamp. */
-.postcard-hero-postmark {
+.hero-postmark {
   position: absolute;
-  top: -14px;
-  right: -6px;
+  top: -16px;
+  right: -4px;
   z-index: 2;
-  width: 104px;
-  height: 104px;
+  width: 100px;
+  height: 100px;
   border: 2px solid var(--msc-brick);
   border-radius: 50%;
   display: flex;
@@ -5566,7 +5617,7 @@ select:focus-visible,
   justify-content: center;
   gap: 3px;
   transform: rotate(-11deg);
-  background: rgba(241, 233, 214, 0.72);
+  background: rgba(241, 233, 214, 0.78);
   font-family: var(--font-body);
   font-size: 9.5px;
   font-weight: 700;
@@ -5578,209 +5629,76 @@ select:focus-visible,
   line-height: 1.15;
 }
 
-.postcard-hero-postmark-rule {
+.hero-postmark-rule {
   width: 62%;
   border-top: 1px solid var(--msc-brick);
 }
 
 /* ---------- back of the card ---------- */
 
-.postcard-hero-back {
+.hero-back {
+  position: relative;
   max-width: var(--page-max);
   margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px 24px;
-  padding: 12px 2px 14px;
-  color: var(--msc-cream);
-}
-
-.postcard-hero-meta,
-.postcard-hero-more {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 18px;
+  gap: 6px 22px;
+  padding: 11px 0 12px;
+  border-top: 2px dashed var(--msc-navy);
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
+  color: var(--msc-navy);
 }
 
-.postcard-hero-meta span:not(:last-child)::after {
+.hero-back span:not(:last-child)::after {
   content: ' ·';
-  color: var(--msc-mustard);
-  padding-left: 18px;
-}
-
-.postcard-hero-more ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.postcard-hero-more-label {
-  color: var(--msc-mustard);
-}
-
-.postcard-hero-more a {
-  color: var(--msc-cream);
-  border-bottom: 1px dotted rgba(241, 233, 214, 0.5);
-}
-
-.postcard-hero-more a:hover {
-  color: var(--msc-mustard);
+  color: var(--msc-brick);
+  padding-left: 22px;
 }
 
 @media (max-width: 900px) {
-  .postcard-hero-card {
+  .hero-inner {
     grid-template-columns: 1fr;
-    gap: 18px;
-    padding: 24px 20px 22px;
+    gap: 20px;
   }
-  .postcard-hero-front {
-    order: 1;
+  .hero-wall {
+    grid-template-columns: repeat(4, 1fr);
+    opacity: 0.22;
   }
-  .postcard-hero-stamp-block {
-    order: 2;
+  .hero-stamp {
+    max-width: 250px;
   }
-  .postcard-hero-shirt {
-    max-width: 260px;
-  }
-  .postcard-hero-postmark {
-    width: 86px;
-    height: 86px;
-    right: 4px;
+  .hero-postmark {
+    width: 84px;
+    height: 84px;
   }
 }
 
 @media (max-width: 560px) {
-  .postcard-hero {
-    padding: 14px 10px 0;
+  .hero {
+    padding: 26px 16px 0;
   }
-  .postcard-hero-greeting {
+  .hero-greeting {
     letter-spacing: 4px;
   }
-  .postcard-hero-back {
-    justify-content: flex-start;
-    font-size: 11px;
+  .hero-wall {
+    grid-template-columns: repeat(3, 1fr);
   }
-  .postcard-hero-meta span:not(:last-child)::after {
-    padding-left: 8px;
+  .hero-back {
+    font-size: 10.5px;
+    gap: 4px 14px;
   }
-}
-
-/* ---------- header: search, region chip, cart value ---------- */
-
-/* Hidden below the nav breakpoint — mobile gets search inside the menu drawer
-   rather than a field competing with the hamburger. */
-.header-search {
-  display: none;
-}
-
-.town-search--compact {
-  width: 100%;
-}
-
-.town-search--compact .town-search-box {
-  margin: 0;
-}
-
-.town-search--compact .town-search-box input {
-  height: 38px;
-  font-size: 14px;
-  padding: 0 12px;
-}
-
-.town-search--compact .town-search-box button {
-  height: 38px;
-  padding: 0 14px;
-  font-size: 12px;
-  letter-spacing: 1.6px;
-}
-
-.town-search--compact .town-search-results {
-  top: 42px;
-}
-
-/* Region chip — the edge already knows; this makes it useful. */
-.header-region {
-  display: none;
-  flex-direction: column;
-  line-height: 1.1;
-  padding: 4px 12px;
-  border-left: 1px dotted var(--msc-asphalt);
-  border-right: 1px dotted var(--msc-asphalt);
-  color: var(--msc-navy);
-  max-width: 190px;
-}
-
-@media (min-width: 1080px) {
-  .header-region {
-    display: flex;
+  .hero-back span:not(:last-child)::after {
+    padding-left: 14px;
   }
 }
 
-.header-region-label {
-  font-family: var(--font-body);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  opacity: 0.72;
-}
-
-.header-region-name {
-  font-family: var(--font-display);
-  font-size: 14px;
-  color: var(--msc-brick);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.header-region:hover .header-region-name {
-  color: var(--msc-navy);
-}
-
-/* Cart stacks a label row over the free-shipping gap. */
-.header-cart-link {
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 1px;
-  line-height: 1.15;
-}
-
-.header-cart-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.header-cart-note {
-  font-family: var(--font-body);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--msc-brick);
-  white-space: nowrap;
-}
-
-@media (max-width: 640px) {
-  .header-cart-note {
-    display: none;
+/* The wall is decoration; motion sensitivity gets a flat field. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-wall {
+    transform: none;
   }
-}
-
-.nav-mobile-search {
-  padding: 4px 0 14px;
-  border-bottom: 1px dotted var(--msc-asphalt);
-  margin-bottom: 6px;
 }

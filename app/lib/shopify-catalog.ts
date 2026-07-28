@@ -345,6 +345,40 @@ function hashString(value: string): number {
  * returned four variants of the same place — the hero showed "Trail, BC"
  * three times, which reads as a broken grid rather than a region.
  */
+/**
+ * A spread of products for the hero's print wall.
+ *
+ * Deliberately drawn ACROSS regions rather than within one: the wall exists to
+ * say "there is a shirt for everywhere", so eighteen prints from eighteen
+ * different places is the whole point. One per town, so a place never repeats.
+ */
+export async function heroWall(
+  storefront: Storefront,
+  count = 18,
+): Promise<SouvenirCard[]> {
+  const {byRegion} = await loadDerivedCatalog(storefront);
+  const buckets = [...byRegion.values()].filter((b) => b.length > 0);
+  if (!buckets.length) return [];
+
+  const seed = daySeed();
+  const picked: ProductIndexEntry[] = [];
+  const seenTowns = new Set<string>();
+
+  // Round-robin across regions so the wall spans the map, not one province.
+  for (let pass = 0; picked.length < count && pass < 6; pass++) {
+    for (const bucket of buckets) {
+      if (picked.length >= count) break;
+      const item = bucket[(seed + pass * 7) % bucket.length];
+      if (!item) continue;
+      const town = item.title.split(/[—–]/)[0].trim().toLowerCase();
+      if (seenTowns.has(town)) continue;
+      seenTowns.add(town);
+      picked.push(item);
+    }
+  }
+  return hydrateCards(storefront, picked);
+}
+
 export async function regionSpotlight(
   storefront: Storefront,
   region: Region,

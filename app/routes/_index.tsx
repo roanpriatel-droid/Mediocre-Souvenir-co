@@ -16,6 +16,7 @@ import {
 } from '~/lib/shopify-collections';
 import {
   loadDerivedCatalog,
+  heroWall,
   loadNewestProducts,
   productsInOpenRegions,
   regionSpotlight,
@@ -56,12 +57,14 @@ export async function loader({context, request}: Route.LoaderArgs) {
     : {products: await productsInOpenRegions(context.storefront, 4), total: 0};
 
   const {entries} = await loadDerivedCatalog(context.storefront);
+  const wall = await heroWall(context.storefront, 18);
 
   return {
     region,
     city,
     spotlight: spotlight.products,
     spotlightTotal: spotlight.total,
+    wall,
     totalProducts: entries.length,
     regionStatus,
     nowOpen: loadCollectionProducts(
@@ -96,6 +99,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
     city,
     spotlight,
     spotlightTotal,
+    wall,
     totalProducts,
     regionStatus,
     nowOpen,
@@ -112,6 +116,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         city={city}
         spotlight={spotlight}
         spotlightTotal={spotlightTotal}
+        wall={wall}
         totalProducts={totalProducts}
         openRegions={openCount}
       />
