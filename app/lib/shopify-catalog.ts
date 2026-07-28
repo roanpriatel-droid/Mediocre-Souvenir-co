@@ -364,18 +364,46 @@ export async function heroWall(
   const picked: ProductIndexEntry[] = [];
   const seenTowns = new Set<string>();
 
-  // Round-robin across regions so the wall spans the map, not one province.
-  for (let pass = 0; picked.length < count && pass < 6; pass++) {
+  // The four print styles look very different — Varsity is a bold town name,
+  // Greetings is a light script header. Filling the wall from one style makes
+  // it read as a repeating template, so cycle styles as well as regions.
+  const STYLES = ['varsity', 'tour', 'i-heart', 'greetings'];
+  const styleOf = (handle: string) =>
+    STYLES.find((style) => handle.endsWith(style)) ?? 'other';
+
+  for (let pass = 0; picked.length < count && pass < 8; pass++) {
+    const wantStyle = STYLES[pass % STYLES.length];
     for (const bucket of buckets) {
       if (picked.length >= count) break;
-      const item = bucket[(seed + pass * 7) % bucket.length];
+      // Prefer this pass's style within the region; fall back to anything.
+      const offset = (seed + pass * 7) % bucket.length;
+      const rotated = [...bucket.slice(offset), ...bucket.slice(0, offset)];
+      const item =
+        rotated.find(
+          (candidate) =>
+            styleOf(candidate.handle) === wantStyle &&
+            !seenTowns.has(candidate.title.split(/[—–]/)[0].trim().toLowerCase()),
+        ) ?? undefined;
       if (!item) continue;
-      const town = item.title.split(/[—–]/)[0].trim().toLowerCase();
-      if (seenTowns.has(town)) continue;
-      seenTowns.add(town);
+      seenTowns.add(item.title.split(/[—–]/)[0].trim().toLowerCase());
       picked.push(item);
     }
   }
+
+  // Top up if style-cycling could not fill the wall.
+  if (picked.length < count) {
+    for (const bucket of buckets) {
+      if (picked.length >= count) break;
+      for (const item of bucket) {
+        const town = item.title.split(/[—–]/)[0].trim().toLowerCase();
+        if (seenTowns.has(town)) continue;
+        seenTowns.add(town);
+        picked.push(item);
+        break;
+      }
+    }
+  }
+
   return hydrateCards(storefront, picked);
 }
 
