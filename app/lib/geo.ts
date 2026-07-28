@@ -16,16 +16,30 @@ import {REGIONS, type Region} from './catalog';
 const byAbbrev = new Map(
   REGIONS.map((region) => [region.abbrev.toUpperCase(), region]),
 );
+const byName = new Map(
+  REGIONS.map((region) => [region.name.toLowerCase(), region]),
+);
 
 export function buyerRegion(request: Request): Region | undefined {
-  const raw = request.headers.get('oxygen-buyer-region');
-  if (!raw) return undefined;
+  // Oxygen sends BOTH: `oxygen-buyer-region-code` is "BC", while
+  // `oxygen-buyer-region` is the full name "British Columbia". An earlier
+  // version read only the latter and expected a two-letter code, so it never
+  // matched and the personalised hero never fired. Try the code first, then
+  // fall back to matching the name.
+  const code = request.headers
+    .get('oxygen-buyer-region-code')
+    ?.split('-')
+    .pop()
+    ?.trim()
+    .toUpperCase();
 
-  // Some edges send "US-OH" rather than "OH".
-  const code = raw.split('-').pop()?.trim().toUpperCase();
-  if (!code || code.length !== 2) return undefined;
+  let region = code && code.length === 2 ? byAbbrev.get(code) : undefined;
 
-  const region = byAbbrev.get(code);
+  if (!region) {
+    const name = request.headers.get('oxygen-buyer-region')?.trim();
+    if (name) region = byName.get(name.toLowerCase());
+  }
+
   if (!region) return undefined;
 
   // Guard against a country/region mismatch — "ON" is Ontario, but only if the
