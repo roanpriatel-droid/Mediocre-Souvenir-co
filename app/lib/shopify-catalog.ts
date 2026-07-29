@@ -50,8 +50,91 @@ const PAGE_SIZE = 250;
 /** How long an isolate may reuse its in-memory index. */
 const INDEX_TTL_MS = 5 * 60 * 1000;
 
-/** Cap on cards hydrated for one rack. nodes(ids:) accepts up to 250. */
+/** Cap on cards hydrated in one request. nodes(ids:) accepts up to 250. */
 const MAX_BATCH = 50;
+
+/** Products per page on a derived rack. */
+export const DERIVED_PER_PAGE = 24;
+
+/** The four print styles, read off the handle suffix. */
+export const PRINT_STYLES = [
+  {value: 'varsity', label: 'Varsity'},
+  {value: 'greetings', label: 'Greetings'},
+  {value: 'i-heart', label: 'I Heart'},
+  {value: 'tour', label: 'Tour'},
+] as const;
+
+export function styleOfHandle(handle: string): string | undefined {
+  return PRINT_STYLES.find((s) => handle.endsWith(s.value))?.value;
+}
+
+export interface DerivedRack {
+  products: SouvenirCard[];
+  /** Total matching the current filter, before paging. */
+  total: number;
+  page: number;
+  pages: number;
+  /** How many exist per style, for the filter chips. */
+  styleCounts: Record<string, number>;
+}
+
+/**
+ * A paged, filterable rack built from the product index.
+ *
+ * Before this existed, the derived path returned a flat slice capped at 50 and
+ * rendered no pagination — so British Columbia showed 50 of its 106 products
+ * and All Souvenirs showed 40 of 2,150. Over two thousand products were
+ * unreachable and therefore unbuyable.
+ */
+export async function derivedRack(
+  storefront: Storefront,
+  opts: {
+    region?: Region;
+    country?: Region['country'];
+    style?: string;
+    page?: number;
+    perPage?: number;
+  },
+): Promise<DerivedRack> {
+  const {byRegion, entries: all} = await loadDerivedCatalog(storefront);
+
+  let entries: ProductIndexEntry[];
+  if (opts.region) {
+    entries = byRegion.get(opts.region.slug) ?? [];
+  } else if (opts.country) {
+    entries = [];
+    for (const region of REGIONS) {
+      if (region.country !== opts.country) continue;
+      entries.push(...(byRegion.get(region.slug) ?? []));
+    }
+    entries.sort((a, b) => a.title.localeCompare(b.title));
+  } else {
+    entries = all;
+  }
+
+  const styleCounts: Record<string, number> = {};
+  for (const entry of entries) {
+    const style = styleOfHandle(entry.handle);
+    if (style) styleCounts[style] = (styleCounts[style] ?? 0) + 1;
+  }
+
+  const filtered = opts.style
+    ? entries.filter((entry) => styleOfHandle(entry.handle) === opts.style)
+    : entries;
+
+  const perPage = Math.min(opts.perPage ?? DERIVED_PER_PAGE, MAX_BATCH);
+  const pages = Math.max(1, Math.ceil(filtered.length / perPage));
+  const page = Math.min(Math.max(1, opts.page ?? 1), pages);
+  const slice = filtered.slice((page - 1) * perPage, page * perPage);
+
+  return {
+    products: await hydrateCards(storefront, slice),
+    total: filtered.length,
+    page,
+    pages,
+    styleCounts,
+  };
+}
 
 /** Handle and title. Everything the region index needs and nothing else. */
 const PRODUCT_INDEX_QUERY = `#graphql

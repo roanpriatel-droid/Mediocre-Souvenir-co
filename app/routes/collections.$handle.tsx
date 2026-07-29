@@ -19,10 +19,9 @@ import {
   type SouvenirCard,
 } from '~/lib/shopify-collections';
 import {
-  allDerivedProducts,
+  derivedRack,
   loadNewestProducts,
-  productsForCountry,
-  productsForRegion,
+  PRINT_STYLES,
   productsInOpenRegions,
 } from '~/lib/shopify-catalog';
 import {
@@ -95,6 +94,8 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   const url = new URL(request.url);
   const sort = (url.searchParams.get('sort') ?? 'featured') as SortKey;
   const availability = url.searchParams.get('availability') ?? '';
+  const style = url.searchParams.get('style') ?? '';
+  const page = Math.max(1, Number(url.searchParams.get('page') ?? 1) || 1);
   const paginationVariables = getPaginationVariables(request, {pageBy: 24});
 
   const shopifyCollection = await loadCollectionPage(context.storefront, handle, {
@@ -111,14 +112,10 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     // to the headless channel we derive the rack from the products themselves
     // rather than telling a stocked region it does not exist.
     let regionProducts = products;
+    let derived: Awaited<ReturnType<typeof derivedRack>> | null = null;
     if (!regionProducts.length) {
-      regionProducts = await productsForRegion(context.storefront, region);
-      if (regionProducts.length) {
-        console.warn(
-          `[msc:collection] "${handle}" collection unavailable; served ` +
-            `${regionProducts.length} products derived from the catalogue`,
-        );
-      }
+      derived = await derivedRack(context.storefront, {region, style, page});
+      regionProducts = derived.products;
     }
 
     const open =
@@ -132,6 +129,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     return {
       kind: 'region' as const,
       connection: products.length ? connection : null,
+      derived,
       handle,
       country: null,
       countryOpen: {} as Record<string, boolean>,
@@ -167,6 +165,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     return {
       kind: 'shopify' as const,
       connection,
+      derived: null,
       handle,
       country,
       countryOpen: countryStatus.open,
@@ -192,25 +191,20 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   // the whole shop down, which is exactly what removing the catalog fallback
   // did. Render the rack empty and say so instead.
   if (KNOWN_HANDLES.has(handle)) {
-    const derived = await deriveUtilityRack(context.storefront, handle);
-    if (derived.length) {
-      console.warn(
-        `[msc:collection] "${handle}" collection unavailable; served ` +
-          `${derived.length} products derived from the catalogue`,
-      );
-    }
+    const rack = await deriveUtilityRack(context.storefront, handle, style, page);
     return {
       kind: 'shopify' as const,
       connection: null,
+      derived: rack,
       handle,
       country,
       countryOpen: countryStatus.open,
       countryLive: countryStatus.live,
       region: null,
-      open: derived.length > 0,
+      open: rack.products.length > 0,
       heading: titleForHandle(handle),
       description: '',
-      products: derived,
+      products: rack.products,
       origin,
       seo: {
         title: `${titleForHandle(handle)} | ${SITE_NAME}`,
@@ -235,20 +229,33 @@ const KNOWN_HANDLES = new Set<string>(Object.values(UTILITY_COLLECTIONS));
 async function deriveUtilityRack(
   storefront: Route.LoaderArgs['context']['storefront'],
   handle: string,
-): Promise<SouvenirCard[]> {
+  style: string,
+  page: number,
+) {
+  const empty: Awaited<ReturnType<typeof derivedRack>> = {
+    products: [],
+    total: 0,
+    page: 1,
+    pages: 1,
+    styleCounts: {},
+  };
   switch (handle) {
     case UTILITY_COLLECTIONS.allSouvenirs:
-      return allDerivedProducts(storefront, 40);
+      return derivedRack(storefront, {style, page});
     case UTILITY_COLLECTIONS.canada:
-      return productsForCountry(storefront, 'Canada');
+      return derivedRack(storefront, {country: 'Canada', style, page});
     case UTILITY_COLLECTIONS.unitedStates:
-      return productsForCountry(storefront, 'United States');
-    case UTILITY_COLLECTIONS.newArrivals:
-      return loadNewestProducts(storefront, 24);
-    case UTILITY_COLLECTIONS.nowOpen:
-      return productsInOpenRegions(storefront, 24);
+      return derivedRack(storefront, {country: 'United States', style, page});
+    case UTILITY_COLLECTIONS.newArrivals: {
+      const products = await loadNewestProducts(storefront, 24);
+      return {...empty, products, total: products.length};
+    }
+    case UTILITY_COLLECTIONS.nowOpen: {
+      const products = await productsInOpenRegions(storefront, 24);
+      return {...empty, products, total: products.length};
+    }
     default:
-      return [];
+      return empty;
   }
 }
 
@@ -266,12 +273,16 @@ export default function CollectionPage() {
 
   const sort = (params.get('sort') ?? 'featured') as SortKey;
   const availability = params.get('availability') ?? '';
+  const style = params.get('style') ?? '';
 
   const setParam = (key: string, value: string) =>
     setParams(
       (prev) => {
         if (value) prev.set(key, value);
         else prev.delete(key);
+        // Changing a filter or sort must return to page one, or you land on
+        // an out-of-range page and see an empty rack.
+        if (key !== 'page') prev.delete('page');
         return prev;
       },
       {preventScrollReset: true, replace: true},
@@ -336,9 +347,41 @@ export default function CollectionPage() {
             </label>
           </div>
 
+          {data.derived && Object.keys(data.derived.styleCounts).length > 1 && (
+            <div className="style-filter" role="group" aria-label="Filter by print">
+              <button
+                type="button"
+                className="collection-chip"
+                data-selected={!style}
+                onClick={() => setParam('style', '')}
+              >
+                All prints
+              </button>
+              {PRINT_STYLES.filter(
+                (s) => (data.derived!.styleCounts[s.value] ?? 0) > 0,
+              ).map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  className="collection-chip"
+                  data-selected={style === s.value}
+                  onClick={() => setParam('style', style === s.value ? '' : s.value)}
+                >
+                  {s.label}
+                  <em>{data.derived!.styleCounts[s.value]}</em>
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="shop-count">
             <span className="msc-kicker msc-kicker--navy">
-              {visible.length} on this page
+              {data.derived
+                ? `${data.derived.total} souvenir${data.derived.total === 1 ? '' : 's'}` +
+                  (data.derived.pages > 1
+                    ? ` · page ${data.derived.page} of ${data.derived.pages}`
+                    : '')
+                : `${visible.length} on this page`}
             </span>
             {(availability || sort !== 'featured') && (
               <button
@@ -350,6 +393,30 @@ export default function CollectionPage() {
               </button>
             )}
           </div>
+
+          {data.derived && data.derived.pages > 1 && (
+            <nav className="rack-pager" aria-label="Pagination">
+              <button
+                type="button"
+                className="collection-chip"
+                disabled={data.derived.page <= 1}
+                onClick={() => setParam('page', String(data.derived!.page - 1))}
+              >
+                ← Previous
+              </button>
+              <span>
+                Page {data.derived.page} of {data.derived.pages}
+              </span>
+              <button
+                type="button"
+                className="collection-chip"
+                disabled={data.derived.page >= data.derived.pages}
+                onClick={() => setParam('page', String(data.derived!.page + 1))}
+              >
+                Next →
+              </button>
+            </nav>
+          )}
 
           {data.connection ? (
             <div className="collection-pagination">
