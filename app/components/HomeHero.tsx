@@ -81,7 +81,16 @@ export function HomeHero({
                 <Image
                   data={product.featuredImage}
                   alt=""
-                  sizes="180px"
+                  /*
+                   * Each tile shows 31% of its image, so the tag renders at
+                   * roughly 3.2x the cell — about 480px for a 150px cell.
+                   * Asking for 180px picked a 200w source and upscaled it two
+                   * and a half times. 320 lands on the 400w file: still under
+                   * the true render width, which is the right trade for
+                   * thirty greyscaled tiles at 32% opacity, but no longer
+                   * mush.
+                   */
+                  sizes="320px"
                   loading={i < 6 ? 'eager' : 'lazy'}
                 />
               )}

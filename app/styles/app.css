@@ -532,38 +532,24 @@ main {
   }
 }
 
-/* ---------- hero ---------- */
-
-.hero {
-  padding: 52px 24px 44px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 22px;
-  text-align: center;
-  position: relative;
-}
-
-.hero-badge {
-  width: clamp(150px, 22vw, 210px);
-  height: auto;
-}
-
-.hero h1 {
-  max-width: 15ch;
-  /* off-register print, per brand doc masthead */
-  text-shadow:
-    2px 1px 0 rgba(184, 80, 58, 0.35),
-    -2px -1px 0 rgba(212, 166, 74, 0.3);
-}
-
-.hero-sub {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--msc-brick-ink);
-}
+/*
+ * ---------- hero ----------
+ *
+ * The hero's real styles live in one block further down, next to the wall and
+ * the rotation. What used to sit here was the *original* hero — a centred
+ * flex column with a badge — and it never stopped applying: it was still
+ * setting `text-align: center` and `display: flex; align-items: center` on
+ * `.hero` (which the newer block does not declare, so the old values won),
+ * capping the headline at `max-width: 15ch` through `.hero h1`, which
+ * out-specifies `.hero-place`, and putting `.hero-sub` in 3px-tracked
+ * uppercase. So the shipped hero had a centre-ragged headline wrapping two
+ * lines early, a subhead shouting in caps, and the off-register mustard/brick
+ * shadow BRAND.md specifies replaced by a faint grey one from the old rule.
+ *
+ * That is the fourth visual bug on this site traced to one class defined
+ * twice. Deleting the dead copy is the fix; there is no third place that
+ * wants these values.
+ */
 
 /* ---------- town search (the most important element on the page) ---------- */
 
@@ -5700,6 +5686,14 @@ select:focus-visible,
 
 .hero-stamp img {
   width: 100%;
+  /*
+   * Hydrogen's <Image> writes height="100" onto the tag when no explicit size
+   * is given. An HTML height attribute is a presentational hint on the height
+   * property, and a specified height defeats aspect-ratio — so the shirt was
+   * rendering 320 wide by 100 tall, letterboxed to a strip inside its own
+   * frame. Restoring `height: auto` hands the box back to the ratio.
+   */
+  height: auto;
   aspect-ratio: 1 / 1;
   object-fit: contain;
   mix-blend-mode: multiply;
