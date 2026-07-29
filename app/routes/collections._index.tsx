@@ -64,11 +64,6 @@ const UTILITY_CARDS = [
     title: 'United States',
     blurb: 'Fifty states, and the towns in them nobody prints a shirt for.',
   },
-  {
-    handle: UTILITY_COLLECTIONS.comingInDueTime,
-    title: 'Coming in due time',
-    blurb: 'What is on the route but not yet on the rack.',
-  },
 ];
 
 export async function loader({context, request}: Route.LoaderArgs) {

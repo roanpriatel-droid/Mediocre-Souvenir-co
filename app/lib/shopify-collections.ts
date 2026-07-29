@@ -63,6 +63,26 @@ export const COLLECTION_REDIRECTS: Record<string, string> = {
   'all-towns': '/collections/all-souvenirs',
   new: '/collections/new-arrivals',
   frontpage: '/',
+
+  /*
+   * Retired curated racks. These were live and in the sitemap before the
+   * catalogue moved to Shopify, so they may be indexed or linked externally.
+   * The three template racks map onto the print-style filter that replaced
+   * them; the rest go to the full rack.
+   */
+  'classic-varsity': '/collections/all-souvenirs?style=varsity',
+  'retro-postcard': '/collections/all-souvenirs?style=greetings',
+  'faded-slogan': '/collections/all-souvenirs?style=tour',
+  'most-overlooked': '/collections/all-souvenirs',
+  'ivory-tees': '/collections/all-souvenirs',
+  'butter-tees': '/collections/all-souvenirs',
+  'blue-jean-tees': '/collections/all-souvenirs',
+  'brick-tees': '/collections/all-souvenirs',
+  'sage-tees': '/collections/all-souvenirs',
+  'village-tees': '/collections/all-souvenirs',
+  'small-town-tees': '/collections/all-souvenirs',
+  'proper-town-tees': '/collections/all-souvenirs',
+  'technically-a-city-tees': '/collections/all-souvenirs',
 };
 
 export function countryCollectionHandle(country: Region['country']): string {

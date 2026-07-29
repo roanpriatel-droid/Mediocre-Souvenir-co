@@ -57,7 +57,15 @@ export async function loader({context, request}: Route.LoaderArgs) {
     : {products: await productsInOpenRegions(context.storefront, 4), total: 0};
 
   const {entries} = await loadDerivedCatalog(context.storefront);
-  const wall = await heroWall(context.storefront, 30);
+
+  // The wall is decoration: 30 cropped, greyscaled, 32%-opacity tiles. It
+  // needs an id and an image, not price ranges, variants, tags and
+  // compare-at ranges — those were ~23KB of hydration payload for pixels
+  // nobody can read.
+  const wall = (await heroWall(context.storefront, 30)).map((product) => ({
+    id: product.id,
+    featuredImage: product.featuredImage,
+  }));
 
   return {
     region,

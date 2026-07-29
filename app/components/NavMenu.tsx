@@ -52,7 +52,6 @@ export function buildNav(): NavEntry[] {
         {title: 'All souvenirs', to: '/collections/all-souvenirs'},
         {title: 'Now open', to: '/collections/now-open'},
         {title: 'New arrivals', to: '/collections/new-arrivals'},
-        {title: 'Coming in due time', to: '/collections/coming-in-due-time'},
         {title: 'All collections', to: '/collections'},
       ],
     },

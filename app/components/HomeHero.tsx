@@ -45,7 +45,8 @@ export function HomeHero({
   city: string | null;
   spotlight: SouvenirCard[];
   spotlightTotal: number;
-  wall: SouvenirCard[];
+  /** Decoration only — trimmed to what the tiles actually render. */
+  wall: {id: string; featuredImage: SouvenirCard['featuredImage']}[];
   totalProducts: number;
   openRegions: number;
 }) {
@@ -58,7 +59,9 @@ export function HomeHero({
   const scale =
     place.length > 18 ? 'long' : place.length > 12 ? 'medium' : 'short';
 
-  const tiles = wall.length ? wall : spotlight;
+  const tiles = wall.length
+    ? wall
+    : spotlight.map((p) => ({id: p.id, featuredImage: p.featuredImage}));
 
   return (
     <section className="hero" aria-label="Greetings">
