@@ -56,13 +56,13 @@ export async function loader({context, request}: Route.LoaderArgs) {
    * product index — which caches its in-flight promise, so concurrency costs
    * one sweep, not three — and each then makes one batched card request.
    *
-   * `heroSlides` always returns eleven: the visitor's own region plus ten
-   * where the edge placed them, eleven others where it did not. The count is
-   * fixed because the CSS that cycles them divides the loop into that many
-   * equal turns.
+   * `heroSlides` always returns eleven — the visitor's own region takes the
+   * first turn where the edge placed them, and another region takes it where
+   * it did not. The count is fixed because the CSS that cycles them divides
+   * one loop into that many equal turns.
    */
   const [slides, rotation, wallProducts, {entries}] = await Promise.all([
-    heroSlides(context.storefront, region ?? undefined, region ? 10 : 11),
+    heroSlides(context.storefront, region ?? undefined, 11),
     heroRotation(context.storefront, region ?? undefined, 15),
     // The wall is decoration: 30 cropped, greyscaled, 32%-opacity tiles. It
     // needs an id and an image, not price ranges, variants, tags and

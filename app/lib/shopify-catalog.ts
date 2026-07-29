@@ -583,11 +583,17 @@ export interface HeroSlide {
 export async function heroSlides(
   storefront: Storefront,
   visitor?: Region,
-  others = 10,
+  total = 11,
 ): Promise<HeroSlide[]> {
   const {byRegion} = await loadDerivedCatalog(storefront);
-  const rotation = await heroRotation(storefront, visitor, others);
 
+  /*
+   * The count is a contract, not a preference: the CSS divides one loop into
+   * `total` equal turns, so a hero that came back with ten slides would leave
+   * half a second of blank card on every rotation. Whether the edge placed the
+   * visitor only decides whether their region takes the first turn — it never
+   * changes how many turns there are.
+   */
   const wanted: {slug: string; name: string; total: number}[] = [];
   if (visitor && (byRegion.get(visitor.slug)?.length ?? 0) > 0) {
     wanted.push({
@@ -596,7 +602,9 @@ export async function heroSlides(
       total: byRegion.get(visitor.slug)!.length,
     });
   }
-  wanted.push(...rotation);
+  wanted.push(
+    ...(await heroRotation(storefront, visitor, total - wanted.length)),
+  );
 
   const seed = daySeed();
   const picks = wanted.map((region) => {
