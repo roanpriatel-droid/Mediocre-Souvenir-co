@@ -526,10 +526,23 @@ export async function heroRotation(
   const usa = stocked.filter((r) => r.country === 'United States').sort(byStock);
 
   const seed = daySeed();
-  const take = (list: typeof canada, n: number) =>
-    list.length <= n
-      ? [...list]
-      : Array.from({length: n}, (_, i) => list[(seed + i * 3) % list.length]);
+
+  /*
+   * Sample n items spread across the (stock-sorted) list.
+   *
+   * A fixed stride collides whenever it shares a factor with the list length —
+   * with 12 stocked Canadian regions and a stride of 3, the 1st and 5th picks
+   * were the same region, so the band rendered 14 items instead of 15.
+   * Stepping by length/n instead spreads evenly and cannot repeat.
+   */
+  const take = (list: typeof canada, n: number) => {
+    if (list.length <= n) return [...list];
+    const step = list.length / n;
+    return Array.from(
+      {length: n},
+      (_, i) => list[(Math.floor(i * step) + seed) % list.length],
+    );
+  };
 
   // Roughly a third Canadian, so the band never reads as one country.
   const wantCa = Math.min(canada.length, Math.round(count / 3));
