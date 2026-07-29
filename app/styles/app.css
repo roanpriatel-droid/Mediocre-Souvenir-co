@@ -5804,3 +5804,134 @@ select:focus-visible,
   color: var(--msc-navy);
   opacity: 0.85;
 }
+
+/* ---------- hero: the breadth band ----------
+   Fifteen stocked regions cycling under the personalised headline. All fifteen
+   are real links in the DOM; CSS does the cycling, so it needs no JavaScript,
+   works before hydration, and gives the crawler fifteen more paths into the
+   region collections. */
+
+.hero-rotation {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 2px;
+  min-height: 26px; /* reserve the row so a swap never shifts the layout */
+}
+
+.hero-rotation-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+  opacity: 0.72;
+  white-space: nowrap;
+}
+
+/* Stack every item in one grid cell so the row is exactly one line tall
+   regardless of which name is showing. */
+.hero-rotation-track {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+
+.hero-rotation-item {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-size: 19px;
+  color: var(--msc-brick-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  animation: hero-region-cycle 45s linear infinite;
+  border-bottom: 1px dotted transparent;
+}
+
+.hero-rotation-item em {
+  font-family: var(--font-body);
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  color: var(--msc-navy);
+  opacity: 0.7;
+}
+
+.hero-rotation-item:hover,
+.hero-rotation-item:focus-visible {
+  color: var(--msc-navy);
+  border-bottom-color: var(--msc-navy);
+}
+
+/* 15 items over 45s — each holds ~3s, with a short fade either side. */
+@keyframes hero-region-cycle {
+  0%,
+  0.4% {
+    opacity: 0;
+  }
+  1.2%,
+  5.5% {
+    opacity: 1;
+  }
+  6.4%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Pause while the visitor is reading or tabbing through it. */
+.hero-rotation:hover .hero-rotation-item,
+.hero-rotation:focus-within .hero-rotation-item {
+  animation-play-state: paused;
+}
+
+/*
+ * Reduced motion: no cycling at all. The first region stays visible and the
+ * rest become a plain wrapped list, so the breadth is still communicated
+ * without anything animating.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .hero-rotation-track {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+  }
+  .hero-rotation-item {
+    animation: none;
+    opacity: 1;
+    font-size: 15px;
+  }
+  .hero-rotation-item:nth-child(n + 7) {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero-rotation {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero-rotation {
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .hero-rotation-track {
+    width: 100%;
+    text-align: center;
+  }
+  .hero-rotation-item {
+    justify-content: center;
+    font-size: 17px;
+  }
+}

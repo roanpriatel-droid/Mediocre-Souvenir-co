@@ -490,6 +490,65 @@ export async function heroWall(
   return hydrateCards(storefront, picked);
 }
 
+/**
+ * Regions for the hero's rotating band.
+ *
+ * The personalised headline shows the visitor their own region, which is the
+ * strongest hook the store has but tells them nothing about the other 62. This
+ * supplies the breadth signal: well-stocked regions, deliberately mixed across
+ * both countries so the band reads as continental rather than as one province,
+ * and excluding whichever region is already the headline.
+ *
+ * Ordered by stock, because a region with 100 shirts is a better advertisement
+ * than one with 6, then rotated by a daily seed so the set is not identical
+ * every day.
+ */
+export async function heroRotation(
+  storefront: Storefront,
+  exclude?: Region,
+  count = 15,
+): Promise<{slug: string; name: string; total: number}[]> {
+  const {byRegion} = await loadDerivedCatalog(storefront);
+
+  const stocked = REGIONS.filter(
+    (region) =>
+      region.slug !== exclude?.slug &&
+      (byRegion.get(region.slug)?.length ?? 0) > 0,
+  ).map((region) => ({
+    slug: region.slug,
+    name: region.name,
+    country: region.country,
+    total: byRegion.get(region.slug)!.length,
+  }));
+
+  const byStock = (a: {total: number}, b: {total: number}) => b.total - a.total;
+  const canada = stocked.filter((r) => r.country === 'Canada').sort(byStock);
+  const usa = stocked.filter((r) => r.country === 'United States').sort(byStock);
+
+  const seed = daySeed();
+  const take = (list: typeof canada, n: number) =>
+    list.length <= n
+      ? [...list]
+      : Array.from({length: n}, (_, i) => list[(seed + i * 3) % list.length]);
+
+  // Roughly a third Canadian, so the band never reads as one country.
+  const wantCa = Math.min(canada.length, Math.round(count / 3));
+  const caPick = take(canada, wantCa);
+  const usPick = take(usa, count - wantCa);
+
+  // Alternate the two so they interleave rather than blocking together.
+  const out: {slug: string; name: string; total: number}[] = [];
+  const seen = new Set<string>();
+  for (let i = 0; i < Math.max(caPick.length, usPick.length); i++) {
+    for (const item of [usPick[i], caPick[i]]) {
+      if (!item || seen.has(item.slug) || out.length >= count) continue;
+      seen.add(item.slug);
+      out.push({slug: item.slug, name: item.name, total: item.total});
+    }
+  }
+  return out;
+}
+
 export async function regionSpotlight(
   storefront: Storefront,
   region: Region,

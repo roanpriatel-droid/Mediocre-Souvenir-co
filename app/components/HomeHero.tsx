@@ -37,6 +37,7 @@ export function HomeHero({
   city,
   spotlight,
   spotlightTotal,
+  rotation,
   wall,
   totalProducts,
   openRegions,
@@ -45,13 +46,18 @@ export function HomeHero({
   city: string | null;
   spotlight: SouvenirCard[];
   spotlightTotal: number;
+  /** Other stocked regions, for the breadth band under the headline. */
+  rotation: {slug: string; name: string; total: number}[];
   /** Decoration only — trimmed to what the tiles actually render. */
   wall: {id: string; featuredImage: SouvenirCard['featuredImage']}[];
   totalProducts: number;
   openRegions: number;
 }) {
   const personalised = Boolean(region && spotlight.length);
-  const place = region?.name ?? 'Nowhere in particular';
+  // Without geo the old headline read "Nowhere in particular" — charming, but
+  // it sold nothing to the sizeable share of traffic behind a VPN, a privacy
+  // browser or an edge we cannot place.
+  const place = region?.name ?? 'Everywhere you have technically been';
   const lead = spotlight[0];
 
   // Long names step down so "Newfoundland and Labrador" does not swamp the
@@ -104,6 +110,42 @@ export function HomeHero({
               </>
             )}
           </p>
+
+          {/*
+            The breadth band.
+            
+            Rotation lives here rather than in the headline on purpose. Cycling
+            the H1 would move the primary CTA under the cursor — you would
+            click "Shop British Columbia" and land in Ohio — and swapping
+            "Ohio" for "Newfoundland and Labrador" at 88px reflows the hero on
+            every tick, which would cost the one Core Web Vital this page
+            currently wins. Down here nothing is width-critical and the CTA
+            never moves.
+
+            All fifteen are in the DOM as real links: CSS does the cycling, so
+            it works before hydration, needs no JavaScript, and hands the
+            crawler fifteen more internal links to region collections.
+          */}
+          {rotation.length > 0 && (
+            <p className="hero-rotation">
+              <span className="hero-rotation-label">
+                {personalised ? 'Also greetings from' : 'Greetings from'}
+              </span>
+              <span className="hero-rotation-track">
+                {rotation.map((r, i) => (
+                  <Link
+                    key={r.slug}
+                    className="hero-rotation-item"
+                    to={`/collections/${r.slug}`}
+                    style={{animationDelay: `${i * 3}s`}}
+                  >
+                    {r.name}
+                    <em>{r.total}</em>
+                  </Link>
+                ))}
+              </span>
+            </p>
+          )}
 
           <div className="hero-actions">
             <Link

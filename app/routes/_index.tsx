@@ -16,6 +16,7 @@ import {
 } from '~/lib/shopify-collections';
 import {
   loadDerivedCatalog,
+  heroRotation,
   heroWall,
   loadNewestProducts,
   productsInOpenRegions,
@@ -62,6 +63,8 @@ export async function loader({context, request}: Route.LoaderArgs) {
   // needs an id and an image, not price ranges, variants, tags and
   // compare-at ranges — those were ~23KB of hydration payload for pixels
   // nobody can read.
+  const rotation = await heroRotation(context.storefront, region ?? undefined, 15);
+
   const wall = (await heroWall(context.storefront, 30)).map((product) => ({
     id: product.id,
     featuredImage: product.featuredImage,
@@ -72,6 +75,7 @@ export async function loader({context, request}: Route.LoaderArgs) {
     city,
     spotlight: spotlight.products,
     spotlightTotal: spotlight.total,
+    rotation,
     wall,
     totalProducts: entries.length,
     regionStatus,
@@ -107,6 +111,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
     city,
     spotlight,
     spotlightTotal,
+    rotation,
     wall,
     totalProducts,
     regionStatus,
@@ -124,6 +129,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         city={city}
         spotlight={spotlight}
         spotlightTotal={spotlightTotal}
+        rotation={rotation}
         wall={wall}
         totalProducts={totalProducts}
         openRegions={openCount}
