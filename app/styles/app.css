@@ -5797,3 +5797,10 @@ select:focus-visible,
     font-size: 11px;
   }
 }
+
+/* Print style on the card — the differentiator when a town appears four
+   times on the same rack. */
+.rack-card-style {
+  color: var(--msc-navy);
+  opacity: 0.85;
+}

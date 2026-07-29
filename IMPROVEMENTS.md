@@ -14,6 +14,86 @@ Anything I could not measure is recorded as unmeasured rather than estimated.
 
 ---
 
+## Cycle 6 — 2026-07-28 — Brief: "make it look like a brand doing 8 figures"
+
+Full autonomous pass. Audited the live site end to end, then fixed in order of
+commercial impact. Both decisions that had been parked for input were taken
+using my own judgement, as instructed.
+
+### 1 · Over 2,000 products were unbuyable — the biggest defect on the store
+
+British Columbia holds **106** products and the page rendered **50**. All
+Souvenirs holds **2,150** and rendered **40**. The derived rack returned a flat
+capped slice with **no pagination controls at all**, so the overwhelming
+majority of the catalogue could not be reached, let alone purchased.
+
+`derivedRack()` replaces the capped slices: 24 per page, page and style in the
+URL so a filtered rack is shareable and survives reload, totals computed before
+paging. Verified live — All Souvenirs now pages to **90 pages**, BC to 5, and
+page 1 / 2 / 5 return different products.
+
+### 2 · The site contradicted itself on one screen
+
+The hero said "108 souvenirs for British Columbia" while `/provinces` told the
+same visitor BC was the only open region and everywhere else was a waitlist.
+All 63 are stocked. Rewrote `/provinces`, `/towns`, the FAQ, Our Story, the
+region-copy template, the waitlist component and the page registry. `status` is
+now a fallback only — the live index is the truth — and defaults to open so an
+outage understates nothing.
+
+### 3 · WCAG AA on text (the parked decision, taken)
+
+Brand brick is 4.09:1 on cream — AA-large, not AA-normal — and carried ~25
+small items including prices. Added `--msc-brick-ink` `#a04530`: same hue, two
+steps darker, **5.12:1** on cream and **4.81:1** on card stock. Applied to
+**text declarations only** (42 of them); fills, rules, borders and button
+backgrounds keep the specified brick, so the palette on screen is unchanged.
+Every text pair now passes AA.
+
+### 4 · Print style was invisible on cards
+
+Every town ships in four prints, so a rack showed "Akron / Ohio / $36" four
+times with only the artwork differing. The style is the differentiator and was
+the one thing not on the card. Added it, and added style filter chips with live
+per-style counts on collection pages — the one facet this catalogue actually
+has.
+
+### 5 · Retired URLs, dead nav, payload
+
+Thirteen curated-rack URLs (`sage-tees`, `classic-varsity`, `most-overlooked`…)
+were live and sitemapped before the Shopify migration and had been 404ing.
+They now 301, with the three template racks mapping onto the print-style filter
+that replaced them. "Coming in due time" was in the Shop menu and rendered an
+empty shelf — removed from nav and the collections index, URL still resolves.
+The 30 decorative hero tiles were serialising full product cards; trimmed to id
+and image.
+
+### Measured
+
+| | before | after |
+| --- | --- | --- |
+| reachable products, All Souvenirs | 40 | **2,150** (90 pages) |
+| reachable products, British Columbia | 50 | **106** (5 pages) |
+| collection page HTML | 216 KB | **137 KB** |
+| brick-on-cream text contrast | 4.09 (fail) | **5.12 (pass)** |
+| text pairs failing AA | 2 | **0** |
+| routes 404ing that should not | 13 | **0** |
+| TTFB, all templates | — | **0.13–0.23s** |
+
+Build, typecheck clean; lint 0 errors, 6 warnings (all pre-existing). Route
+crawl 69/69 collections, 35 links, 0 dead. Live status sweep across 26
+templates: all 200, 404 only where intended.
+
+### The ceiling is now photography, not code
+
+Every product image is the same mockup — measured: identical bounding box,
+36.9% ink, two products differing over 1.5% of the frame. The site has one
+photograph repeated 2,150 times. I built the hero out of the 1.5% that varies,
+but no further engineering changes that. Lifestyle photography and a reviews
+app are the two things that would move this further, and neither is code.
+
+---
+
 ## Cycle 5 — 2026-07-27 — Lens: live production crawl (the preview opened)
 
 **The standing constraint lifted.** The Oxygen preview started answering 200

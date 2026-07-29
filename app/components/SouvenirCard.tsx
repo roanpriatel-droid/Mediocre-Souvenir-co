@@ -4,6 +4,7 @@ import {AddToCartButton} from '~/components/AddToCartButton';
 import {useAside} from '~/components/Aside';
 import {cardPriceLabel, type SouvenirCard as CardData} from '~/lib/shopify-collections';
 import {regionForProduct, townNameFrom} from '~/lib/town-copy';
+import {PRINT_STYLES, styleOfHandle} from '~/lib/shopify-catalog';
 
 /**
  * A Shopify product on the rack tag.
@@ -24,6 +25,11 @@ export function SouvenirProductCard({
 }) {
   const town = townNameFrom(product.title, product.handle);
   const region = regionForProduct(product);
+  // Every town ships in four prints, so a rack showed "Akron" four times with
+  // nothing to tell the cards apart but the artwork. The style is the
+  // differentiator and it was the one thing not on the card.
+  const style = styleOfHandle(product.handle);
+  const styleLabel = PRINT_STYLES.find((s) => s.value === style)?.label;
   const onSale =
     Number(product.compareAtPriceRange?.minVariantPrice?.amount ?? 0) >
     Number(product.priceRange.minVariantPrice.amount);
@@ -55,6 +61,12 @@ export function SouvenirProductCard({
       </div>
       <div className="rack-card-meta">
         {region ? region.name : 'Genuine souvenir'}
+        {styleLabel && (
+          <>
+            {' · '}
+            <span className="rack-card-style">{styleLabel}</span>
+          </>
+        )}
       </div>
       <div className="rack-card-price">
         <span>{product.availableForSale ? 'On the rack' : 'Off the rack'}</span>
