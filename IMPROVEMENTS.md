@@ -14,6 +14,71 @@ Anything I could not measure is recorded as unmeasured rather than estimated.
 
 ---
 
+## Cycle 7 — 2026-07-29 — Brief: "make what we have for BC for 10 others, rotating"
+
+### Done
+
+**The hero rotates as a whole card, not just a name.** `heroSlides()` returns
+eleven regions — the visitor's own first where the edge can place them, ten
+more where it can, eleven others where it cannot — each carrying its stock
+count and one real shirt, preferring that region's "Greetings from…" print so
+the artwork agrees with the headline above it. All eleven shirts are fetched in
+one batched `nodes(ids:)` call, and the three hero queries (slides, strip,
+wall) now run in parallel against the same memoised index, which caches its
+in-flight promise so concurrency costs one sweep rather than three.
+
+The two things that make a rotating hero worse than a static one are both
+handled rather than hoped away:
+
+- **The CTA does not move under the cursor.** Rotation pauses on `:hover` and
+  `:focus-within`, so a hand already travelling toward "Shop Ontario" lands on
+  Ontario.
+- **Layout does not shift.** Every slide sits in the same grid cell, so the
+  hero is as tall as its tallest slide in the first painted frame and the
+  cycling is pure opacity. Utah and Prince Edward Island swap without moving a
+  pixel of the page below — the CLS score is unchanged at zero.
+
+Hidden slides are `visibility: hidden`, not merely transparent: eleven stacked
+invisible cards would otherwise intercept every click meant for the one that is
+showing, with the last in the DOM winning. Only the first slide is focusable
+(the rest keep `tabindex="-1"`), so the hero costs two tab stops instead of
+twenty-two while staying reachable by pointer and by screen reader. The first
+slide keeps the `<h1>`; a negative animation delay starts it past its own
+fade-in so it paints at full opacity rather than easing up out of nothing.
+
+**The breadth strip stopped moving.** Fifteen regions still sit under the card,
+but static. A second animation in the same eyeline would compete with the card
+rather than add to it, and standing still makes all fifteen clickable at every
+moment — which the rotating card deliberately is not.
+
+**The header search is smaller.** It was inheriting the hero's proportions
+(19px type in a 55px box, capped at 520px) and was the loudest object in the
+top row, louder than the wordmark beside it. `.town-search--compact` now sets
+15px type in a ~42px box at 430px, same shape and same shadow.
+
+### Why
+
+The hero showed one region. To a visitor in Ohio that is a personalised hook;
+to everyone else it reads as a store that sells British Columbia. Eleven
+regions above the fold sells the actual claim — a continental catalogue —
+without asking anyone to scroll.
+
+### Verified
+
+Build, typecheck and lint clean (lint at its pre-existing baseline of 6
+warnings, 0 errors, none in touched files). **Not verified in a browser** — see
+the standing constraint.
+
+### Next
+
+- Slide count is fixed at eleven because the CSS divides the loop into that
+  many equal turns. If it ever needs to vary, the keyframe percentages have to
+  come with it.
+- Photography remains the ceiling: one mockup repeated 2,150 times. The
+  rotation makes the catalogue look broad; it cannot make it look photographed.
+
+---
+
 ## Cycle 6 — 2026-07-28 — Brief: "make it look like a brand doing 8 figures"
 
 Full autonomous pass. Audited the live site end to end, then fixed in order of

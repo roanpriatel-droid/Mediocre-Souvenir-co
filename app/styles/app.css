@@ -361,7 +361,7 @@ main {
     grid-area: search;
     display: block;
     padding: 0 28px;
-    max-width: 520px;
+    max-width: 430px;
     justify-self: center;
     width: 100%;
   }
@@ -617,6 +617,30 @@ main {
 
 .town-search-box button:hover {
   background: var(--msc-navy);
+}
+
+/*
+ * The header copy of the search.
+ *
+ * The hero version is a page-sized object — 19px type in a 55px-tall box — and
+ * dropping it straight into the header made it the loudest thing in the top
+ * row, louder than the wordmark next to it. Compact keeps the same shape and
+ * the same shadow, at about three quarters of the height, so it reads as a
+ * tool rather than as a second hero.
+ */
+.town-search--compact .town-search-box {
+  box-shadow: 3px 3px 0 var(--msc-navy);
+}
+
+.town-search--compact .town-search-box input {
+  font-size: 15px;
+  padding: 10px 14px;
+}
+
+.town-search--compact .town-search-box button {
+  font-size: 11.5px;
+  letter-spacing: 2px;
+  padding: 0 16px;
 }
 
 .town-search-hint {
@@ -5511,13 +5535,80 @@ select:focus-visible,
 }
 
 .hero-inner {
+  position: relative;
   max-width: var(--page-max);
   margin: 0 auto;
+  padding-bottom: 28px;
+}
+
+/* ---------- the rotation ----------
+   Eleven regions, one cell. Stacking every slide in a single grid cell is what
+   makes the hero's height the height of its tallest slide from the first
+   painted frame: "Utah" and "Prince Edward Island" then swap without moving a
+   pixel of the page below, so a hero that changes every five seconds still
+   scores a zero on layout shift. */
+
+.hero-slides {
+  display: grid;
+}
+
+.hero-slide {
+  grid-area: 1 / 1;
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr);
   gap: 32px;
   align-items: center;
-  padding-bottom: 28px;
+  opacity: 0;
+  /* Hidden slides must not swallow a click meant for the visible one — and
+     eleven stacked transparent cards would do exactly that, with the last in
+     the DOM winning every time. visibility takes them out of hit-testing
+     entirely. */
+  visibility: hidden;
+  animation-name: hero-slide-cycle;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  /* duration and delay are per-slide, set inline */
+}
+
+/*
+ * Eleven slides over 55s: each holds five seconds with a ~0.55s crossfade
+ * either side (1% of the loop). The incoming slide is painted over the
+ * outgoing one, so a click landing inside the crossfade hits the region that
+ * is arriving rather than the one leaving.
+ */
+@keyframes hero-slide-cycle {
+  0% {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+  }
+  1%,
+  8.1% {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  9.1%,
+  100% {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+  }
+}
+
+/* Pause while someone is reading it, or reaching for the button. A CTA that
+   moves out from under the cursor is the single worst thing a rotating hero
+   can do; this is the whole reason it is allowed to rotate at all. */
+.hero-slides:hover .hero-slide,
+.hero-slides:focus-within .hero-slide {
+  animation-play-state: paused;
+}
+
+/* The no-geo, no-catalogue card does not rotate. */
+.hero-slide--static {
+  opacity: 1;
+  visibility: visible;
+  animation: none;
 }
 
 .hero-copy {
@@ -5686,7 +5777,7 @@ select:focus-visible,
 }
 
 @media (max-width: 900px) {
-  .hero-inner {
+  .hero-slide {
     grid-template-columns: 1fr;
     gap: 20px;
   }
@@ -5722,10 +5813,25 @@ select:focus-visible,
   }
 }
 
-/* The wall is decoration; motion sensitivity gets a flat field. */
+/*
+ * Motion sensitivity gets a flat field and a hero that holds still: the first
+ * slide only, with the rest removed rather than merely stopped, so nothing is
+ * stacked invisibly on top of the card that is showing. The breadth strip
+ * below already names fifteen regions without moving, so nothing is lost but
+ * the movement.
+ */
 @media (prefers-reduced-motion: reduce) {
   .hero-wall {
     transform: none;
+  }
+  .hero-slide {
+    animation: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+  .hero-slide:not(:first-child) {
+    display: none;
   }
 }
 
@@ -5805,18 +5911,22 @@ select:focus-visible,
   opacity: 0.85;
 }
 
-/* ---------- hero: the breadth band ----------
-   Fifteen stocked regions cycling under the personalised headline. All fifteen
-   are real links in the DOM; CSS does the cycling, so it needs no JavaScript,
-   works before hydration, and gives the crawler fifteen more paths into the
-   region collections. */
+/* ---------- hero: the breadth strip ----------
+   Fifteen stocked regions under the rotating card, standing still. The strip
+   used to be what cycled; now that the card above it changes every five
+   seconds, a second animation in the same eyeline would compete rather than
+   inform. Static also makes all fifteen clickable at every moment — which the
+   rotating card deliberately is not — and gives the crawler fifteen more
+   paths into region collections. */
 
 .hero-rotation {
+  position: relative;
+  max-width: var(--page-max);
+  margin: 0 auto;
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  margin-top: 2px;
-  min-height: 26px; /* reserve the row so a swap never shifts the layout */
+  gap: 6px 14px;
+  padding-bottom: 18px;
 }
 
 .hero-rotation-label {
@@ -5828,37 +5938,32 @@ select:focus-visible,
   color: var(--msc-navy);
   opacity: 0.72;
   white-space: nowrap;
+  flex: none;
 }
 
-/* Stack every item in one grid cell so the row is exactly one line tall
-   regardless of which name is showing. */
 .hero-rotation-track {
-  position: relative;
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
   min-width: 0;
-  flex: 1;
 }
 
 .hero-rotation-item {
-  grid-area: 1 / 1;
   display: inline-flex;
   align-items: baseline;
-  gap: 7px;
+  gap: 6px;
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: 16px;
+  line-height: 1.25;
   color: var(--msc-brick-ink);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  opacity: 0;
-  animation: hero-region-cycle 45s linear infinite;
   border-bottom: 1px dotted transparent;
 }
 
 .hero-rotation-item em {
   font-family: var(--font-body);
   font-style: normal;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 1.4px;
   color: var(--msc-navy);
@@ -5871,51 +5976,11 @@ select:focus-visible,
   border-bottom-color: var(--msc-navy);
 }
 
-/* 15 items over 45s — each holds ~3s, with a short fade either side. */
-@keyframes hero-region-cycle {
-  0%,
-  0.4% {
-    opacity: 0;
-  }
-  1.2%,
-  5.5% {
-    opacity: 1;
-  }
-  6.4%,
-  100% {
-    opacity: 0;
-  }
-}
-
-/* Pause while the visitor is reading or tabbing through it. */
-.hero-rotation:hover .hero-rotation-item,
-.hero-rotation:focus-within .hero-rotation-item {
-  animation-play-state: paused;
-}
-
-/*
- * Reduced motion: no cycling at all. The first region stays visible and the
- * rest become a plain wrapped list, so the breadth is still communicated
- * without anything animating.
- */
-@media (prefers-reduced-motion: reduce) {
-  .hero-rotation-track {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 14px;
-  }
-  .hero-rotation-item {
-    animation: none;
-    opacity: 1;
-    font-size: 15px;
-  }
-  .hero-rotation-item:nth-child(n + 7) {
-    display: none;
-  }
-}
-
 @media (max-width: 900px) {
   .hero-rotation {
+    justify-content: center;
+  }
+  .hero-rotation-track {
     justify-content: center;
   }
 }
@@ -5924,14 +5989,13 @@ select:focus-visible,
   .hero-rotation {
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-  }
-  .hero-rotation-track {
-    width: 100%;
-    text-align: center;
+    gap: 6px;
   }
   .hero-rotation-item {
-    justify-content: center;
-    font-size: 17px;
+    font-size: 15px;
+  }
+  /* Six is a strip; fifteen is a wall of small print on a 360px screen. */
+  .hero-rotation-item:nth-child(n + 9) {
+    display: none;
   }
 }

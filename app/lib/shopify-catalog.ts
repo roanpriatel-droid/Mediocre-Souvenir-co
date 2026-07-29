@@ -562,6 +562,64 @@ export async function heroRotation(
   return out;
 }
 
+export interface HeroSlide {
+  slug: string;
+  name: string;
+  total: number;
+  product: SouvenirCard | null;
+}
+
+/**
+ * Full hero slides — a region, its stock count, and one shirt from it.
+ *
+ * The visitor's own region always leads, so the personalised hook is what
+ * lands first and is what gets server-rendered as the H1. The rest cycle
+ * behind it to show the catalogue is continental.
+ *
+ * All the shirts are fetched in ONE batched call rather than one per region,
+ * and each region contributes its "Greetings from…" print where it has one,
+ * so the artwork matches the GREETINGS FROM headline above it.
+ */
+export async function heroSlides(
+  storefront: Storefront,
+  visitor?: Region,
+  others = 10,
+): Promise<HeroSlide[]> {
+  const {byRegion} = await loadDerivedCatalog(storefront);
+  const rotation = await heroRotation(storefront, visitor, others);
+
+  const wanted: {slug: string; name: string; total: number}[] = [];
+  if (visitor && (byRegion.get(visitor.slug)?.length ?? 0) > 0) {
+    wanted.push({
+      slug: visitor.slug,
+      name: visitor.name,
+      total: byRegion.get(visitor.slug)!.length,
+    });
+  }
+  wanted.push(...rotation);
+
+  const seed = daySeed();
+  const picks = wanted.map((region) => {
+    const items = byRegion.get(region.slug) ?? [];
+    const greetings = items.filter((i) => /greetings/i.test(i.handle));
+    const pool = greetings.length ? greetings : items;
+    return pool.length
+      ? pool[(seed + hashString(region.slug)) % pool.length]
+      : undefined;
+  });
+
+  const cards = await hydrateCards(
+    storefront,
+    picks.filter((p): p is ProductIndexEntry => Boolean(p)),
+  );
+  const byId = new Map(cards.map((card) => [card.id, card]));
+
+  return wanted.map((region, i) => ({
+    ...region,
+    product: picks[i] ? (byId.get(picks[i]!.id) ?? null) : null,
+  }));
+}
+
 export async function regionSpotlight(
   storefront: Storefront,
   region: Region,

@@ -17,10 +17,10 @@ import {
 import {
   loadDerivedCatalog,
   heroRotation,
+  heroSlides,
   heroWall,
   loadNewestProducts,
   productsInOpenRegions,
-  regionSpotlight,
 } from '~/lib/shopify-catalog';
 import {buyerCity, buyerRegion} from '~/lib/geo';
 import {ARTICLES} from '~/lib/journal';
@@ -51,30 +51,35 @@ export async function loader({context, request}: Route.LoaderArgs) {
   // is awaited. The product rows sit below the fold and stream in.
   const regionStatus = await loadRegionStatus(context.storefront);
 
-  // The hero needs product above the fold either way: the visitor's own region
-  // when we know it, the best-stocked regions when we do not.
-  const spotlight = region
-    ? await regionSpotlight(context.storefront, region, 4)
-    : {products: await productsInOpenRegions(context.storefront, 4), total: 0};
+  /*
+   * The hero's three pieces, in parallel. They all read the same memoised
+   * product index — which caches its in-flight promise, so concurrency costs
+   * one sweep, not three — and each then makes one batched card request.
+   *
+   * `heroSlides` always returns eleven: the visitor's own region plus ten
+   * where the edge placed them, eleven others where it did not. The count is
+   * fixed because the CSS that cycles them divides the loop into that many
+   * equal turns.
+   */
+  const [slides, rotation, wallProducts, {entries}] = await Promise.all([
+    heroSlides(context.storefront, region ?? undefined, region ? 10 : 11),
+    heroRotation(context.storefront, region ?? undefined, 15),
+    // The wall is decoration: 30 cropped, greyscaled, 32%-opacity tiles. It
+    // needs an id and an image, not price ranges, variants, tags and
+    // compare-at ranges — those were ~23KB of hydration payload for pixels
+    // nobody can read.
+    heroWall(context.storefront, 30),
+    loadDerivedCatalog(context.storefront),
+  ]);
 
-  const {entries} = await loadDerivedCatalog(context.storefront);
-
-  // The wall is decoration: 30 cropped, greyscaled, 32%-opacity tiles. It
-  // needs an id and an image, not price ranges, variants, tags and
-  // compare-at ranges — those were ~23KB of hydration payload for pixels
-  // nobody can read.
-  const rotation = await heroRotation(context.storefront, region ?? undefined, 15);
-
-  const wall = (await heroWall(context.storefront, 30)).map((product) => ({
+  const wall = wallProducts.map((product) => ({
     id: product.id,
     featuredImage: product.featuredImage,
   }));
 
   return {
-    region,
     city,
-    spotlight: spotlight.products,
-    spotlightTotal: spotlight.total,
+    slides,
     rotation,
     wall,
     totalProducts: entries.length,
@@ -107,10 +112,8 @@ export async function loader({context, request}: Route.LoaderArgs) {
 
 export default function Homepage({loaderData}: Route.ComponentProps) {
   const {
-    region,
     city,
-    spotlight,
-    spotlightTotal,
+    slides,
     rotation,
     wall,
     totalProducts,
@@ -123,12 +126,10 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
 
   return (
     <div className="home">
-      {/* 1 · HERO — geo-personalised, product above the fold */}
+      {/* 1 · HERO — geo-personalised, rotating, product above the fold */}
       <HomeHero
-        region={region}
+        slides={slides}
         city={city}
-        spotlight={spotlight}
-        spotlightTotal={spotlightTotal}
         rotation={rotation}
         wall={wall}
         totalProducts={totalProducts}
