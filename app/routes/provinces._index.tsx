@@ -9,9 +9,9 @@ export const meta: Route.MetaFunction = () => [
   {
     name: 'description',
     content:
-      'Souvenir t-shirts by province and state. British Columbia is open — ' +
-      'every town from Tofino to Trail. Every other region has a waitlist, ' +
-      'and the waitlist decides what we print next.',
+      'Souvenir t-shirts for every province, territory and state in Canada ' +
+      'and the United States. Sixty-three regions, all of them open, none of ' +
+      'them famous.',
   },
 ];
 
@@ -30,15 +30,14 @@ export default function ProvincesIndex() {
         <span className="msc-kicker">The territory</span>
         <h1>Browse by region</h1>
         <p className="province-copy">
-          Thirteen provinces and territories, fifty states, and one company
-          working through them at the pace of a company that prints town names
-          on shirts. Regions we have reached are open. The rest have a
-          waitlist, and the waitlist is the whole roadmap — every tile below
-          goes somewhere.
+          Thirteen provinces and territories, fifty states, and a shirt for
+          towns in every one of them. We started with the places other
+          souvenir racks drove past and did not stop. Pick a region below —
+          they are all open, and none of them are famous.
         </p>
         {live && openCount > 0 && (
           <span className="msc-kicker msc-kicker--navy">
-            {openCount} open · {63 - openCount} in due time
+            {openCount} regions open · {openCount === 63 ? 'all of them' : 'more in due time'}
           </span>
         )}
       </div>
@@ -46,9 +45,10 @@ export default function ProvincesIndex() {
       <RegionBrowse open={open} live={live} />
 
       <div className="msc-form-success" style={{marginTop: '48px'}}>
-        <h2>Your town is the whole roadmap.</h2>
+        <h2>Your town not on a shirt yet?</h2>
         <p style={{maxWidth: '46ch'}}>
-          We do not pick regions by market size. We pick them by who asked.
+          Every region is open, but not every town in them is drawn. Tell us
+          which one we missed — that is how the next batch gets chosen.
         </p>
         <div className="route-error-actions">
           <Link className="msc-button" to="/request-a-town">

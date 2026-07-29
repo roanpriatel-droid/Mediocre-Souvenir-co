@@ -33,15 +33,15 @@ export function RegionWaitlist({region}: {region: Region}) {
       </div>
 
       <span className="msc-kicker">
-        {region.status === 'next' ? 'Next on the route' : 'In due time'}
+        Temporarily bare
       </span>
 
       <h2 id="waitlist-heading">{waitlistPrompt(region)}</h2>
 
       <p className="region-waitlist-sub">
-        No shirts here yet. We work one region at a time and the list decides
-        the order — enough people from {region.name} and it stops being a
-        someday.
+        Nothing on the rack for {region.name} at this moment, which is a
+        restocking problem rather than a judgement on the place. Leave your
+        email and we will write the day it is back.
       </p>
 
       {done ? (

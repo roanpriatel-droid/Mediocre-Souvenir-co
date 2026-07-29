@@ -38,7 +38,7 @@ const FAQS = [
   },
   {
     q: 'My town isn’t here. Why not?',
-    a: 'Because we have not gotten to it yet, which is our fault rather than your town’s. There are 63 regions and we are two people working through them in the order people ask. Nominate it on Request A Town and it moves up every time a neighbour does the same. That is the whole system. We are sorry it is not faster.',
+    a: 'Every region is open — all thirteen provinces and territories and all fifty states — so the region is not the problem. Your specific town just has not been drawn yet, and that is our oversight rather than a comment on the town. Nominate it on Request A Town and it goes into the next batch. We are sorry it was not already there.',
   },
   {
     q: 'Can I wear a town I’ve never been to?',

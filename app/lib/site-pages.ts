@@ -101,7 +101,7 @@ const CORE_PAGES: SitePage[] = [
     path: '/provinces',
     title: 'Browse by region',
     summary:
-      'All 63 provinces and states. British Columbia is open; every other region takes a waitlist.',
+      'All 63 provinces, territories and states — every one of them open, none of them famous.',
     keywords: ['provinces', 'states', 'region', 'canada', 'united states', 'map', 'waitlist'],
     group: 'The Co.',
   },

@@ -9,7 +9,16 @@
 :root {
   --msc-cream: #f1e9d6; /* Faded Cream — primary background */
   --msc-cream-deep: #ede2c8; /* card / tag stock */
-  --msc-brick: #b8503a; /* Washed Brick — primary accent */
+  --msc-brick: #b8503a; /* Washed Brick — primary accent (fills, rules, buttons) */
+  /*
+   * Text-only brick. The brand brick measures 4.09:1 on cream — a pass for
+   * large text, a fail for normal text — and it was being used for ~25 small
+   * items including prices and stock notices. This is the same hue two steps
+   * darker, reaching 5.12:1 on cream and 4.81:1 on card stock, which clears AA
+   * everywhere. Fills, rules, borders and button backgrounds keep the
+   * specified --msc-brick, so the palette on screen is unchanged.
+   */
+  --msc-brick-ink: #a04530;
   --msc-navy: #2a3d52; /* Highway Navy — secondary */
   --msc-mustard: #d4a64a; /* Postcard Mustard — accent */
   --msc-asphalt: #1c1c1c; /* Asphalt Black — text only */
@@ -82,7 +91,7 @@ h3 {
 }
 
 a {
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   text-decoration: none;
 }
 
@@ -121,7 +130,7 @@ main {
   font-weight: 700;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 .msc-kicker--navy {
@@ -130,7 +139,7 @@ main {
 
 .msc-marker {
   font-family: var(--font-marker);
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   transform: rotate(-2deg);
   display: inline-block;
 }
@@ -210,7 +219,7 @@ main {
 }
 
 .msc-button--ghost:hover {
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 .msc-input {
@@ -404,7 +413,7 @@ main {
 
 .header-menu-item.active {
   border-bottom-color: var(--msc-brick);
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -553,7 +562,7 @@ main {
   font-weight: 700;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 /* ---------- town search (the most important element on the page) ---------- */
@@ -711,7 +720,7 @@ main {
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 /* Unopened regions are quieter, but they are links — every tile goes to a
@@ -766,7 +775,7 @@ main {
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 .region-card--soon {
@@ -839,7 +848,7 @@ main {
 .region-waitlist-done {
   font-family: var(--font-marker);
   font-size: 20px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   transform: rotate(-2deg);
 }
 
@@ -948,7 +957,7 @@ main {
 
 .product-stock-note {
   font-size: 13.5px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   font-weight: 700;
   margin-top: 10px;
 }
@@ -991,7 +1000,7 @@ main {
 }
 
 .msc-accordion--certificate summary {
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 @media (max-width: 420px) {
@@ -1062,7 +1071,7 @@ main {
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   text-align: center;
 }
 
@@ -1131,7 +1140,7 @@ main {
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 .collect-ladder-each {
@@ -1205,7 +1214,7 @@ main {
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 /* ---------- trust bar ---------- */
@@ -1490,7 +1499,7 @@ main {
 .overlay aside header .close {
   font-size: 26px;
   line-height: 1;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   cursor: pointer;
   background: none;
   border: none;
@@ -1665,7 +1674,7 @@ main {
 }
 
 .product-breadcrumb a:hover {
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 .product-price-row {
@@ -1677,7 +1686,7 @@ main {
 .product-price {
   font-family: var(--font-display);
   font-size: 26px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 .product-price-note {
@@ -1734,7 +1743,7 @@ main {
   font-weight: 700;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   border-bottom: 2px solid var(--msc-brick);
   padding-bottom: 6px;
   text-align: center;
@@ -1883,7 +1892,7 @@ main {
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   transform: rotate(8deg);
   line-height: 1.5;
 }
@@ -1945,7 +1954,7 @@ main {
 .route-error-code {
   font-family: var(--font-display);
   font-size: 20px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   letter-spacing: 4px;
 }
 
@@ -2134,7 +2143,7 @@ main {
   text-transform: uppercase;
   letter-spacing: 2px;
   font-weight: 700;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 .collection-siblings {
@@ -2215,7 +2224,7 @@ main {
   position: absolute;
   left: 0;
   top: 0;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   font-weight: 700;
 }
 
@@ -2283,7 +2292,7 @@ main {
   text-transform: uppercase;
   letter-spacing: 2px;
   font-weight: 700;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 .recommended-products-grid,
@@ -2689,7 +2698,7 @@ p {
   content: '+';
   font-family: var(--font-display);
   font-size: 18px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   line-height: 1;
 }
 
@@ -2984,7 +2993,7 @@ p {
 .lookbook-km {
   font-family: var(--font-display);
   font-size: 15px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   letter-spacing: 2px;
 }
 
@@ -3041,7 +3050,7 @@ p {
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   text-decoration: underline;
   text-underline-offset: 3px;
   padding: 0;
@@ -3223,7 +3232,7 @@ p {
   font-size: 13px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   font-weight: 700;
 }
 
@@ -3260,7 +3269,7 @@ p {
   border: none;
   font-size: 28px;
   line-height: 1;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   cursor: pointer;
 }
 
@@ -3370,7 +3379,7 @@ p {
   letter-spacing: 1.5px;
   text-transform: uppercase;
   font-weight: 700;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 /* email modal */
@@ -3411,7 +3420,7 @@ p {
 
 .email-modal-dismiss:hover {
   opacity: 1;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 /* shop toolbar */
@@ -3967,7 +3976,7 @@ select:focus-visible,
 .story-year {
   font-family: var(--font-display);
   font-size: 24px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   line-height: 1;
 }
 
@@ -4226,7 +4235,7 @@ select:focus-visible,
 .comment-card-intro {
   font-family: var(--font-marker);
   font-size: 17px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   transform: rotate(-1.2deg);
 }
 
@@ -4745,7 +4754,7 @@ select:focus-visible,
   text-transform: uppercase;
   letter-spacing: 2px;
   font-weight: 700;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 .country-finder-empty {
@@ -5009,7 +5018,7 @@ select:focus-visible,
 .pdp-sell {
   font-family: var(--font-marker);
   font-size: 19px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   transform: rotate(-1deg);
   margin: 2px 0;
 }
@@ -5047,7 +5056,7 @@ select:focus-visible,
 .pdp-size-error {
   font-family: var(--font-body);
   font-weight: 700;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   font-size: 14px;
 }
 
@@ -5069,7 +5078,7 @@ select:focus-visible,
 .pdp-soldout {
   font-family: var(--font-display);
   font-size: 19px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   border: 2px dashed var(--msc-brick);
   padding: 12px 14px;
   text-align: center;
@@ -5097,11 +5106,11 @@ select:focus-visible,
 .pdp-notify-done {
   font-family: var(--font-marker);
   font-size: 18px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 .pdp-notify-error {
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   font-weight: 700;
   font-size: 13.5px;
 }
@@ -5525,7 +5534,7 @@ select:focus-visible,
   font-weight: 700;
   letter-spacing: 7px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 /* Off-register dual-colour shadow, per BRAND.md. */
@@ -5563,7 +5572,7 @@ select:focus-visible,
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 20px;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
 }
 
 .hero-actions {
@@ -5640,7 +5649,7 @@ select:focus-visible,
   font-weight: 700;
   letter-spacing: 1.4px;
   text-transform: uppercase;
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   text-align: center;
   padding: 8px;
   line-height: 1.15;
@@ -5672,7 +5681,7 @@ select:focus-visible,
 
 .hero-back span:not(:last-child)::after {
   content: ' ·';
-  color: var(--msc-brick);
+  color: var(--msc-brick-ink);
   padding-left: 22px;
 }
 

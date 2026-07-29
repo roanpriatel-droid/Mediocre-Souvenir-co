@@ -1,17 +1,18 @@
 import type {Region} from './types';
 
-/**
- * Every region we will ever open, in launch order: British Columbia first,
- * then Alberta, then east across Canada, then south. Flipping a status to
- * 'open' lights up its /provinces or /states page, browse card, footer link,
- * and sitemap entry — no other change needed.
+/*
+ * `status` is a fallback only. The catalogue now carries products in all 63
+ * regions, so the live product index is the source of truth for what is open
+ * (see loadRegionStatus). These defaults exist for the case where the
+ * Storefront API cannot be reached, and defaulting them to 'open' means an
+ * outage understates nothing — it previously claimed 62 stocked regions were
+ * an empty waitlist.
  */
-
 const ca = (
   slug: string,
   name: string,
   abbrev: string,
-  status: Region['status'] = 'someday',
+  status: Region['status'] = 'open',
   kind: Region['kind'] = 'province',
 ): Region => ({slug, name, abbrev, country: 'Canada', kind, status});
 
@@ -21,13 +22,13 @@ const us = (slug: string, name: string, abbrev: string): Region => ({
   abbrev,
   country: 'United States',
   kind: 'state',
-  status: 'someday',
+  status: 'open',
 });
 
 export const REGIONS: Region[] = [
   // Canada
   ca('british-columbia', 'British Columbia', 'BC', 'open'),
-  ca('alberta', 'Alberta', 'AB', 'next'),
+  ca('alberta', 'Alberta', 'AB'),
   ca('saskatchewan', 'Saskatchewan', 'SK'),
   ca('manitoba', 'Manitoba', 'MB'),
   ca('ontario', 'Ontario', 'ON'),

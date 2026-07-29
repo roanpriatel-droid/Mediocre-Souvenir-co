@@ -26,8 +26,8 @@ export const meta: Route.MetaFunction = ({data}) => [
   {
     name: 'description',
     content:
-      'Every province and state we cover, alphabetically, with nothing left ' +
-      'out. Some are open. Most are in due time. All of them are somewhere.',
+      'Every province, territory and state we cover, alphabetically, with ' +
+      'nothing left out. All sixty-three are open. None of them are famous.',
   },
   ...(data
     ? [
@@ -79,8 +79,8 @@ export default function TownsIndex() {
         <h1>The Towns</h1>
         <p className="province-copy">
           Sixty-three provinces and states, listed the way a motel lists its
-          amenities: alphabetically, in full, without enthusiasm. Some are
-          open. Most are in due time. Every one of them is a link.
+          amenities: alphabetically, in full, without enthusiasm. Every one of
+          them is open, and every one of them is a link.
         </p>
         <div className="towns-legend">
           <span>
@@ -89,7 +89,7 @@ export default function TownsIndex() {
           </span>
           <span>
             <i className="towns-dot" aria-hidden="true" />
-            In due time — leave your email
+            Not yet drawn — tell us the town
           </span>
         </div>
       </header>

@@ -135,16 +135,13 @@ export function regionDescription(region: Region, isOpen: boolean): string {
     );
   }
 
-  const queuePosition =
-    region.status === 'next'
-      ? 'It is next on the route, which means soon, which means soon-ish.'
-      : 'It is on the route. The route is long and we are driving it in order.';
-
+  // Reached only when a region genuinely has no stock. Every region is open
+  // today, so this is a real empty-shelf state rather than a launch queue.
   return (
-    `${region.name} has ${copy.note}, and not one shirt to show for it. ` +
-    `We have not gotten here yet. ${queuePosition} ` +
-    `Leave your email and we will tell you the day ${region.name} finally ` +
-    `gets the underwhelming tribute it has earned.`
+    `${region.name} has ${copy.note}, and at this moment not one shirt on the ` +
+    `rack to show for it — which is a restocking problem rather than a ` +
+    `judgement. Leave your email and we will write the day ${region.name} is ` +
+    `back, and not before.`
   );
 }
 

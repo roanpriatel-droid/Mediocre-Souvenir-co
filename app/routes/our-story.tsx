@@ -35,7 +35,7 @@ const MILESTONES = [
   {
     year: 'Now',
     label: 'Sixty-three regions',
-    body: 'A collection for every province, territory and state. Most of them are waitlists. That is not a failure state; it is the roadmap, and it is written by the people who live there.',
+    body: 'Two thousand one hundred and fifty souvenirs across every province, territory and state. Not one of the towns is famous. That was the entire specification.',
   },
 ];
 
@@ -101,13 +101,12 @@ export default function OurStory() {
 
             <h2>How a town gets in</h2>
             <p>
-              Somebody asks. That is the entire mechanism. Every region we have
-              not reached has a waitlist, and the waitlist sets the order — not
-              market size, not population, not what an analyst would pick.{' '}
+              Somebody asks. That is the entire mechanism. Every region is
+              open, but no catalogue of 2,150 shirts covers every town in North
+              America — so the gaps get filled in the order people name them.{' '}
               <Link to="/request-a-town">Nominate your hometown</Link> and it
-              moves up the list every time a neighbour does the same. The
-              catalogue is written by homesick people, which we consider the
-              correct authorship.
+              goes into the next batch. The catalogue is written by homesick
+              people, which we consider the correct authorship.
             </p>
           </div>
         </Reveal>
