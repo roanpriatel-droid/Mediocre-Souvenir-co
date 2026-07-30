@@ -14,6 +14,64 @@ Anything I could not measure is recorded as unmeasured rather than estimated.
 
 ---
 
+## Cycle 8 — 2026-07-30 — The wall, and five sections that sell
+
+### Done
+
+**The print wall had never rendered.** It shipped as thirty blank rectangles
+and no screenshot caught it because there was no browser here to take one —
+until Playwright turned up in a sibling project. Two independent causes, both
+fixed: Hydrogen's `<Image>` writes an inline `style="width:100%"`, and an
+inline style beats any stylesheet, so `.hero-wall-cell img { width: 322% }` —
+which *is* the crop mechanism — never applied and the window landed outside
+the image entirely. And the crop box was derived from the print-ready artwork
+rather than the photograph, so even a working window would have framed blank
+fabric. The wall now uses a plain `<img>` with a hand-built CDN URL, and the
+geometry is re-measured off the delivered files across all four print styles
+(ink at x 36.8–71.4%, y 14.8–49.5%).
+
+Two more: the paper veil was `::before`, which put it *under* the wall (same
+z-index, tree order decides) so it protected nothing — now `::after`. And
+`heroWall`'s style cycling advanced per pass rather than per pick, so with 63
+regions and 35 tiles the first pass filled the whole wall and every tile said
+ATHLETIC DEPT.
+
+**A dead `.hero` block** 4,900 lines above the real one was still applying:
+`text-align: center`, `display: flex; align-items: center`, `.hero h1 {
+max-width: 15ch }` (which out-specifies `.hero-place`), and a 3px-tracked
+uppercase `.hero-sub`. The brand's off-register mustard/brick headline shadow
+had never rendered. Fourth visual bug traced to one class defined twice — now
+recorded so the next session greps first.
+
+**Five sections**, each answering a question that otherwise gets answered by
+closing the tab: *Four prints, one rack each* (merchandising entry into the
+style-filtered racks), *What happens after you order* (the wait is the top
+objection — saying it plainly beats being found out), *Size & fit* with the
+real measurements inline, *Every order, every time* (returns, free shipping,
+the ladder, the certificate), and *Before you ask* — five real questions plus
+FAQPage structured data.
+
+### Why
+
+No new claims anywhere: every number and promise is the one already published
+on /materials, /shipping-returns, /size-guide and /faq, repeated where it can
+change a decision instead of only on the page nobody visits.
+
+### Verified
+
+In a browser, finally. 11 hero slides cycling, hero height 559px at every
+point in the loop (zero CLS), all five sections rendering, FAQPage JSON-LD
+present. Build, typecheck and lint clean.
+
+### Next
+
+- Everything visual on this site should now be screenshotted before it is
+  called done. Two of the last three bugs were invisible to code review and
+  obvious in one image.
+- Photography remains the ceiling: one mockup repeated 2,150 times.
+
+---
+
 ## Cycle 7 — 2026-07-29 — Brief: "make what we have for BC for 10 others, rotating"
 
 ### Done
