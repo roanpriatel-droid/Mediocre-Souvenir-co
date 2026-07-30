@@ -18,9 +18,12 @@ import {regionNote} from '~/lib/region-copy';
 export function RegionBrowse({
   open = {},
   live = false,
+  counts = {},
 }: {
   open?: Record<string, boolean>;
   live?: boolean;
+  /** Region slug → how many souvenirs it actually holds. */
+  counts?: Record<string, number>;
 }) {
   // When the store answered, trust it completely. When it did not, say
   // nothing about status rather than falling back to the hand-maintained
@@ -38,12 +41,14 @@ export function RegionBrowse({
         countryHandle="canada"
         regions={getRegionsByCountry('Canada')}
         statusFor={statusFor}
+        counts={counts}
       />
       <RegionGroup
         label="United States"
         countryHandle="united-states"
         regions={getRegionsByCountry('United States')}
         statusFor={statusFor}
+        counts={counts}
       />
       <div className="region-grid" style={{marginTop: '16px'}}>
         <Link className="region-card region-card--request" to="/request-a-town" prefetch="intent">
@@ -60,11 +65,13 @@ function RegionGroup({
   countryHandle,
   regions,
   statusFor,
+  counts,
 }: {
   label: string;
   countryHandle: string;
   regions: Region[];
   statusFor: (region: Region) => 'open' | 'closed' | 'unknown';
+  counts: Record<string, number>;
 }) {
   const openCount = regions.filter((r) => statusFor(r) === 'open').length;
   return (
@@ -83,6 +90,7 @@ function RegionGroup({
             key={region.slug}
             region={region}
             status={statusFor(region)}
+            count={counts[region.slug] ?? 0}
           />
         ))}
       </div>
@@ -93,9 +101,11 @@ function RegionGroup({
 function RegionCard({
   region,
   status,
+  count,
 }: {
   region: Region;
   status: 'open' | 'closed' | 'unknown';
+  count: number;
 }) {
   return (
     <Link
@@ -106,8 +116,16 @@ function RegionCard({
       title={`${region.name} — ${regionNote(region)}`}
     >
       <span className="region-card-name">{region.name}</span>
+      {/*
+        A real number beats a status word. "Now open" told a visitor nothing
+        about whether their province held six shirts or ninety-four; sixty-three
+        tiles all saying the same two words read as a template rather than a
+        catalogue. The count is already in the loader's hands.
+      */}
       <span className="region-card-count">
-        {status === 'open' ? (
+        {count > 0 ? (
+          <span className="region-card-badge">{count} souvenirs</span>
+        ) : status === 'open' ? (
           <span className="region-card-badge">Now open</span>
         ) : status === 'closed' ? (
           'In due time'

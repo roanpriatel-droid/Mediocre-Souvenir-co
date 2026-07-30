@@ -3,6 +3,7 @@ import {useNonce} from '@shopify/hydrogen';
 import {PRINT_STYLES} from '~/lib/shopify-catalog';
 import {SIZE_TABLE} from '~/components/SizeGuide';
 import {SIZES} from '~/lib/catalog';
+import {TownSearch} from '~/components/TownSearch';
 
 /**
  * The homepage's middle game.
@@ -253,5 +254,242 @@ export function HomeFaq({origin}: {origin: string}) {
         }}
       />
     </>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * 6 · Type your town
+ * ------------------------------------------------------------------ */
+
+/**
+ * The highest-intent action on the store, finally given room.
+ *
+ * Somebody who types their own hometown into a search box has already decided
+ * they want the thing; they are only checking whether it exists. Until now
+ * that box lived at 15px in the header, competing with a wordmark and a cart.
+ * The component's full-size mode — bigger field, live suggestions, the hint
+ * line underneath — was written months ago and had no caller.
+ */
+export function TownSearchBlock({total}: {total: number}) {
+  return (
+    <div className="home-search">
+      <span className="msc-kicker">The whole point</span>
+      <h2 id="find-town">Type your town. We probably have it.</h2>
+      <p>
+        {total.toLocaleString('en-CA')} souvenirs across sixty-three regions,
+        and none of them are for anywhere famous. If yours is not on the rack
+        yet, the box will say so and offer to put it on the list.
+      </p>
+      <div className="home-search-field">
+        <TownSearch />
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * 7 · The print, up close
+ * ------------------------------------------------------------------ */
+
+/**
+ * Texture, from the photography that already exists.
+ *
+ * The store owns one mockup repeated two thousand times, which is the ceiling
+ * on how rich this page can look — at normal zoom. At 6x it stops being a
+ * repeated photograph and becomes ink on garment-dyed cotton, which is exactly
+ * the thing the product page is trying to describe in words. Same files, same
+ * CDN, no new assets and no new photography budget.
+ *
+ * Plain <img> rather than Hydrogen's <Image> on purpose: that component writes
+ * an inline style="width:100%", and an inline style beats the stylesheet that
+ * does the zooming. See the hero wall for the bug that taught us this.
+ */
+export function PrintCloseUps({
+  tiles,
+}: {
+  tiles: {id: string; url: string; town: string; handle: string}[];
+}) {
+  if (!tiles.length) return null;
+  return (
+    <div className="home-macro">
+      {tiles.slice(0, 4).map((tile, i) => (
+        <Link
+          className="home-macro-cell"
+          key={tile.id}
+          to={`/products/${tile.handle}`}
+          prefetch="intent"
+          data-slot={i}
+        >
+          <img
+            src={`${tile.url}${tile.url.includes('?') ? '&' : '?'}width=900&height=900&crop=center`}
+            alt={`The print on the ${tile.town} souvenir, close up`}
+            loading="lazy"
+            decoding="async"
+          />
+          <span className="home-macro-label">{tile.town}</span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * 8 · The gift case
+ * ------------------------------------------------------------------ */
+
+export function GiftBlock() {
+  return (
+    <div className="home-gift">
+      <div className="home-gift-copy">
+        <span className="msc-kicker">For someone from there</span>
+        <h2 id="gift">
+          Nobody has ever bought their father a shirt from Trail before.
+        </h2>
+        <p>
+          The best souvenir is not for the person who went. It is for the person
+          who <em>left</em> — who grew up on that highway, who still says the
+          name with a certain defensiveness, and who has never once seen it
+          printed on anything.
+        </p>
+        <p className="home-gift-note">
+          Find the town they are from, not the town they live in. That is the
+          whole trick, and it works every time.
+        </p>
+        <div className="home-fit-actions">
+          <Link className="msc-button" to="/towns">
+            Find their town
+          </Link>
+          <Link className="msc-button msc-button--ghost" to="/certificate">
+            What&rsquo;s in the box
+          </Link>
+        </div>
+      </div>
+      <ul className="home-gift-list">
+        <li>
+          <strong>Arrives with a certificate</strong>
+          <span>
+            Card stock, signed, formally attesting that their hometown is a
+            place. It reads like a joke and hangs like a diploma.
+          </span>
+        </li>
+        <li>
+          <strong>Unisex, S–3XL, true to size</strong>
+          <span>
+            The one measurement you have to guess is the one most forgiving to
+            guess wrong. Exchanges are thirty days, no interrogation.
+          </span>
+        </li>
+        <li>
+          <strong>Two shirts save 15%</strong>
+          <span>
+            Which is convenient, because you are going to want the one from
+            your own town too.
+          </span>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * 9 · The manifesto
+ * ------------------------------------------------------------------ */
+
+export function Manifesto() {
+  return (
+    <div className="home-manifesto">
+      <p className="home-manifesto-mark" aria-hidden="true">
+        &ldquo;
+      </p>
+      <blockquote>
+        <p>
+          Hawaii gets the full treatment. Sunset script, a state flower, four
+          fonts and a hibiscus. Meanwhile a town of nine thousand people with a
+          working mill, one good diner and a hockey rink named after somebody&rsquo;s
+          father gets nothing — not a magnet, not a spoon, not a shirt.
+        </p>
+        <p>
+          We could not find a reason for that. So we print the overlooked places
+          with the exact reverence a gift shop in Maui would use, and we do not
+          wink while we do it. The joke, if there is one, is that there was
+          never anything funny about it.
+        </p>
+      </blockquote>
+      <div className="home-manifesto-sig">
+        <span>Mediocre Souvenir Co.</span>
+        <Link to="/about">Why we do this →</Link>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * 10 · The numbers
+ * ------------------------------------------------------------------ */
+
+export function BigNumbers({
+  total,
+  regions,
+}: {
+  total: number;
+  regions: number;
+}) {
+  const stats = [
+    {n: total.toLocaleString('en-CA'), l: 'Souvenirs in print'},
+    {n: String(regions), l: 'Regions, all open'},
+    {n: '4', l: 'Ways to say a town'},
+    {n: '0', l: 'Famous places'},
+  ];
+  return (
+    <dl className="home-numbers">
+      {stats.map((stat) => (
+        <div key={stat.l}>
+          <dt>{stat.n}</dt>
+          <dd>{stat.l}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * 11 · The biggest racks
+ * ------------------------------------------------------------------ */
+
+/**
+ * Depth as a credibility signal.
+ *
+ * The honest version of a bestseller row. There is no order data here to rank
+ * by and inventing one would be the single most off-brand thing this store
+ * could do — but "Ontario holds 94" is true, checkable, and answers the same
+ * question a shopper is really asking, which is whether anyone is home.
+ */
+export function BiggestRacks({
+  racks,
+}: {
+  racks: {slug: string; name: string; total: number}[];
+}) {
+  if (!racks.length) return null;
+  const most = racks[0]?.total || 1;
+  return (
+    <ol className="home-racks">
+      {racks.map((rack, i) => (
+        <li key={rack.slug}>
+          <Link to={`/collections/${rack.slug}`} prefetch="intent">
+            <span className="home-rack-pos" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span className="home-rack-name">{rack.name}</span>
+            {/* The bar is the ranking, drawn to scale. */}
+            <span
+              className="home-rack-bar"
+              aria-hidden="true"
+              style={{'--fill': `${Math.round((rack.total / most) * 100)}%`} as React.CSSProperties}
+            />
+            <span className="home-rack-total">{rack.total}</span>
+          </Link>
+        </li>
+      ))}
+    </ol>
   );
 }

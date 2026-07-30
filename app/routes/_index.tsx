@@ -9,12 +9,19 @@ import {RegionBrowse} from '~/components/RegionBrowse';
 import {CollectLadder} from '~/components/CollectLadder';
 import {Testimonials} from '~/components/Testimonials';
 import {
+  BiggestRacks,
+  BigNumbers,
+  GiftBlock,
   HomeFaq,
   HowItWorks,
+  Manifesto,
   OrderIncludes,
+  PrintCloseUps,
   PrintStyles,
   SizeAndFit,
+  TownSearchBlock,
 } from '~/components/HomeSections';
+import {StickyShopBar} from '~/components/StickyShopBar';
 import {SouvenirGrid, SouvenirGridSkeleton} from '~/components/SouvenirCard';
 import {
   loadCollectionProducts,
@@ -28,7 +35,10 @@ import {
   heroWall,
   loadNewestProducts,
   productsInOpenRegions,
+  regionSpotlight,
 } from '~/lib/shopify-catalog';
+import {REGIONS} from '~/lib/catalog';
+import {townNameFrom} from '~/lib/town-copy';
 import {buyerCity, buyerRegion} from '~/lib/geo';
 import {ARTICLES} from '~/lib/journal';
 import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
@@ -68,7 +78,7 @@ export async function loader({context, request}: Route.LoaderArgs) {
    * it did not. The count is fixed because the CSS that cycles them divides
    * one loop into that many equal turns.
    */
-  const [slides, rotation, wallProducts, {entries}] = await Promise.all([
+  const [slides, rotation, wallProducts, {entries, byRegion}] = await Promise.all([
     heroSlides(context.storefront, region ?? undefined, 11),
     heroRotation(context.storefront, region ?? undefined, 15),
     // The wall is decoration: 35 cropped, greyscaled, 34%-ink tiles. It needs
@@ -84,12 +94,61 @@ export async function loader({context, request}: Route.LoaderArgs) {
     featuredImage: product.featuredImage,
   }));
 
+  /*
+   * Counts per region, straight off the index that is already in memory. The
+   * grid used to label all sixty-three tiles "Now open", which told nobody
+   * whether their province held six shirts or ninety-four.
+   */
+  const counts: Record<string, number> = {};
+  for (const region of REGIONS) {
+    const n = byRegion.get(region.slug)?.length ?? 0;
+    if (n > 0) counts[region.slug] = n;
+  }
+
+  // Depth as a credibility signal — the honest version of a bestseller row.
+  const biggestRacks = REGIONS.map((region) => ({
+    slug: region.slug,
+    name: region.name,
+    total: counts[region.slug] ?? 0,
+  }))
+    .filter((r) => r.total > 0)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 12);
+
+  /*
+   * The visitor's own rack. The hero says "108 souvenirs for British Columbia"
+   * and then showed them none of them; this is the row that follows through.
+   * Falls back to the best-stocked regions when the edge cannot place anyone.
+   */
+  const spotlight = region
+    ? await regionSpotlight(context.storefront, region, 8)
+    : {products: await productsInOpenRegions(context.storefront, 8), total: 0};
+
+  // Four close-ups, drawn from the same wall products so nothing extra is
+  // fetched. Different products from the ones on the wall's first row.
+  const macro = wallProducts
+    .slice(8, 20)
+    .filter((product) => product.featuredImage?.url)
+    .slice(0, 4)
+    .map((product) => ({
+      id: product.id,
+      url: product.featuredImage!.url,
+      handle: product.handle,
+      town: townNameFrom(product.title, product.handle),
+    }));
+
   return {
     origin: new URL(request.url).origin,
     city,
+    region,
     slides,
     rotation,
     wall,
+    counts,
+    biggestRacks,
+    macro,
+    spotlight: spotlight.products,
+    spotlightTotal: spotlight.total || (region ? counts[region.slug] ?? 0 : 0),
     totalProducts: entries.length,
     regionStatus,
     nowOpen: loadCollectionProducts(
@@ -122,9 +181,15 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
   const {
     origin,
     city,
+    region,
     slides,
     rotation,
     wall,
+    counts,
+    biggestRacks,
+    macro,
+    spotlight,
+    spotlightTotal,
     totalProducts,
     regionStatus,
     nowOpen,
@@ -147,7 +212,35 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
 
       <MarqueeStrip />
 
-      {/* 2 · THE REGION GRID — navigation and waitlist engine in one */}
+      {/* 2 · TYPE YOUR TOWN — the highest-intent action on the store */}
+      <section className="msc-section msc-page" aria-labelledby="find-town">
+        <TownSearchBlock total={totalProducts} />
+      </section>
+
+      {/* 3 · YOUR RACK — the shirts the hero just promised */}
+      {spotlight.length > 0 && (
+        <section
+          className="msc-section msc-section--band msc-page"
+          aria-labelledby="your-rack"
+        >
+          <div className="msc-section-rule">
+            <h2 id="your-rack">
+              {region ? `Your rack: ${region.name}` : 'Straight off the rack'}
+            </h2>
+            <Link
+              className="msc-section-note"
+              to={region ? `/collections/${region.slug}` : '/collections/all-souvenirs'}
+            >
+              {region && spotlightTotal > 0
+                ? `All ${spotlightTotal} →`
+                : 'See all →'}
+            </Link>
+          </div>
+          <SouvenirGrid products={spotlight} eagerCount={4} />
+        </section>
+      )}
+
+      {/* 4 · THE REGION GRID — navigation and waitlist engine in one */}
       <section className="msc-section msc-page" aria-labelledby="browse-region">
         <div className="msc-section-rule">
           <h2 id="browse-region">Browse by region</h2>
@@ -155,10 +248,31 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
             Full directory →
           </Link>
         </div>
-        <RegionBrowse open={regionStatus.open} live={regionStatus.live} />
+        <RegionBrowse
+          open={regionStatus.open}
+          live={regionStatus.live}
+          counts={counts}
+        />
       </section>
 
-      {/* 3 · NOW OPEN — live products */}
+      {/* 5 · THE BIGGEST RACKS — depth, honestly measured */}
+      <section className="msc-section msc-page" aria-labelledby="biggest">
+        <div className="msc-section-rule">
+          <h2 id="biggest">Where we are deepest</h2>
+          <Link className="msc-section-note" to="/towns">
+            The full directory →
+          </Link>
+        </div>
+        <p className="msc-section-lede">
+          No bestseller list, because we are not going to invent one. This is
+          simply where the most towns have been drawn so far.
+        </p>
+        <Reveal>
+          <BiggestRacks racks={biggestRacks} />
+        </Reveal>
+      </section>
+
+      {/* 6 · NOW OPEN — live products */}
       <section className="msc-section msc-page" aria-labelledby="now-open">
         <div className="msc-section-rule">
           <h2 id="now-open">Now open</h2>
@@ -196,7 +310,25 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Reveal>
       </section>
 
-      {/* 5 · RECENTLY INSULTED — new arrivals */}
+      {/* 8 · THE PRINT, UP CLOSE — texture from the files we already have */}
+      <section className="msc-section msc-page" aria-labelledby="up-close">
+        <div className="msc-section-rule">
+          <h2 id="up-close">The ink, up close</h2>
+          <Link className="msc-section-note" to="/materials">
+            What it is printed on →
+          </Link>
+        </div>
+        <p className="msc-section-lede">
+          Heavyweight 6.1 oz cotton, garment-dyed, so the fade is in the fabric
+          rather than printed on top of it. This is what that looks like from
+          six inches away.
+        </p>
+        <Reveal>
+          <PrintCloseUps tiles={macro} />
+        </Reveal>
+      </section>
+
+      {/* 9 · RECENTLY INSULTED — new arrivals */}
       <section
         className="msc-section msc-section--band msc-page"
         aria-labelledby="recently-insulted"
@@ -260,7 +392,17 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Reveal>
       </section>
 
-      {/* 8 · EDITORIAL TEASER — Postcards From Nowhere */}
+      {/* 11 · THE GIFT CASE — the market this page never addressed */}
+      <section
+        className="msc-section msc-section--band msc-page"
+        aria-labelledby="gift"
+      >
+        <Reveal>
+          <GiftBlock />
+        </Reveal>
+      </section>
+
+      {/* 12 · EDITORIAL TEASER — Postcards From Nowhere */}
       <section className="msc-section msc-section--band msc-page" aria-labelledby="postcards">
         <Reveal>
           <div className="msc-section-rule">
@@ -289,7 +431,14 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Reveal>
       </section>
 
-      {/* 7 · THE CERTIFICATE */}
+      {/* 13 · THE MANIFESTO — why any of this exists */}
+      <section className="msc-section msc-page" aria-label="Why we do this">
+        <Reveal>
+          <Manifesto />
+        </Reveal>
+      </section>
+
+      {/* 14 · THE CERTIFICATE */}
       <section className="msc-section msc-page" aria-labelledby="certificate">
         <Reveal>
           <div className="certificate-block">
@@ -369,12 +518,28 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Reveal>
       </section>
 
+      {/* 18 · THE NUMBERS — the claim, set large */}
+      <section className="msc-section msc-page" aria-label="By the numbers">
+        <Reveal>
+          <BigNumbers total={totalProducts} regions={openCount} />
+        </Reveal>
+      </section>
+
       <MarqueeStrip variant="mustard" />
 
       {/* 10 · TRUST */}
       <section className="msc-section" style={{paddingBottom: 0}}>
         <TrustBar />
       </section>
+
+      <StickyShopBar
+        region={
+          region && spotlightTotal > 0
+            ? {slug: region.slug, name: region.name, total: spotlightTotal}
+            : null
+        }
+        total={totalProducts}
+      />
 
       {/* The newsletter lives in the footer — one capture per page, not two
           competing forms with identical headings. */}

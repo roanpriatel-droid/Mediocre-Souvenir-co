@@ -150,6 +150,25 @@ export function HomeHero({
       </div>
 
       {/*
+        The terms.
+
+        $36 did not appear anywhere on this page — the first time a visitor saw
+        a price was the product page, after two clicks of investment. These are
+        the four facts that pre-empt the four most common exits (too expensive,
+        shipping will cost more, what if it doesn't fit, is there a discount),
+        and they sit outside the rotating card because they are true of every
+        region and must not move.
+      */}
+      <p className="hero-terms">
+        <span>
+          <strong>$36</strong> a shirt
+        </span>
+        <span>Free shipping over $75</span>
+        <span>30-day returns</span>
+        <span>15% off two, 20% off three</span>
+      </p>
+
+      {/*
         The breadth strip.
 
         Fifteen stocked regions, all real links, sitting still. It used to

@@ -6335,3 +6335,488 @@ select:focus-visible,
     font-size: 17px;
   }
 }
+
+/* ================================================================== *
+ * Homepage, part two — search block, macro crops, gift, manifesto,
+ * numbers, deepest racks, hero terms, sticky bar.
+ * Same rule as above: `home-` / `sticky-` prefixed, each defined once.
+ * ================================================================== */
+
+/* ---------- the terms line, under the hero card ---------- */
+
+.hero-terms {
+  position: relative;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 26px;
+  padding-bottom: 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+}
+
+.hero-terms strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 19px;
+  letter-spacing: 0;
+  color: var(--msc-brick-ink);
+  margin-right: 4px;
+}
+
+.hero-terms span {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.hero-terms span:not(:last-child)::after {
+  content: '·';
+  color: var(--msc-brick-ink);
+  padding-left: 26px;
+}
+
+/* ---------- 6 · type your town ---------- */
+
+.home-search {
+  text-align: center;
+  border: var(--border-heavy);
+  background: var(--msc-cream-deep);
+  box-shadow: var(--shadow-offset);
+  padding: 40px 28px 44px;
+}
+
+.home-search h2 {
+  margin: 8px 0 10px;
+}
+
+.home-search > p {
+  max-width: 56ch;
+  margin: 0 auto;
+}
+
+.home-search-field {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+/* ---------- 7 · the ink, up close ---------- */
+
+.home-macro {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.home-macro-cell {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: var(--border-std);
+  background: var(--msc-cream);
+  box-shadow: var(--shadow-offset);
+  color: var(--msc-navy);
+}
+
+/*
+ * Six inches from the shirt. The print occupies x 37-71%, y 15-50% of the
+ * frame (measured), so each cell zooms ~3x into a different quarter of that
+ * box — enough to read the ink and the weave rather than the garment.
+ */
+.home-macro-cell img {
+  position: absolute;
+  width: 300%;
+  height: auto;
+  max-width: none;
+  left: -100%;
+  top: -30%;
+  mix-blend-mode: multiply;
+  filter: contrast(1.06) saturate(0.92);
+  transition: transform 0.4s ease;
+}
+
+.home-macro-cell[data-slot='1'] img {
+  left: -118%;
+  top: -22%;
+}
+
+.home-macro-cell[data-slot='2'] img {
+  left: -92%;
+  top: -38%;
+}
+
+.home-macro-cell[data-slot='3'] img {
+  left: -110%;
+  top: -34%;
+}
+
+.home-macro-cell:hover img {
+  transform: scale(1.06);
+}
+
+.home-macro-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 9px 12px;
+  background: rgba(241, 233, 214, 0.92);
+  border-top: 1px dotted var(--msc-navy);
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+}
+
+/* ---------- 8 · the gift case ---------- */
+
+.home-gift {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 34px;
+  align-items: center;
+}
+
+.home-gift-copy h2 {
+  margin: 6px 0 12px;
+  max-width: 18ch;
+}
+
+.home-gift-copy p {
+  max-width: 48ch;
+}
+
+.home-gift-note {
+  margin-top: 12px;
+  padding-left: 14px;
+  border-left: 3px solid var(--msc-mustard);
+  font-style: italic;
+}
+
+.home-gift-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: var(--border-heavy);
+  background: var(--msc-cream-deep);
+  box-shadow: var(--shadow-offset);
+}
+
+.home-gift-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 18px 20px;
+  border-bottom: 1px dashed var(--msc-navy);
+}
+
+.home-gift-list li:last-child {
+  border-bottom: none;
+}
+
+.home-gift-list strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 18px;
+  color: var(--msc-navy);
+}
+
+.home-gift-list span {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---------- 9 · the manifesto ---------- */
+
+.home-manifesto {
+  position: relative;
+  max-width: 74ch;
+  margin: 0 auto;
+  padding: 34px 34px 26px;
+  border-top: var(--border-heavy);
+  border-bottom: var(--border-heavy);
+  text-align: center;
+}
+
+.home-manifesto-mark {
+  font-family: var(--font-display);
+  font-size: 84px;
+  line-height: 0.6;
+  color: var(--msc-mustard);
+  margin-bottom: 10px;
+}
+
+.home-manifesto blockquote {
+  margin: 0;
+}
+
+.home-manifesto blockquote p {
+  font-size: 19px;
+  line-height: 1.55;
+}
+
+.home-manifesto blockquote p + p {
+  margin-top: 14px;
+}
+
+.home-manifesto-sig {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+}
+
+/* ---------- 10 · the numbers ---------- */
+
+.home-numbers {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  border-top: 3px solid var(--msc-navy);
+  border-bottom: 3px solid var(--msc-navy);
+}
+
+.home-numbers > div {
+  padding: 26px 18px;
+  text-align: center;
+  border-right: 1px dashed var(--msc-navy);
+}
+
+.home-numbers > div:last-child {
+  border-right: none;
+}
+
+.home-numbers dt {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(38px, 5vw, 62px);
+  line-height: 1;
+  color: var(--msc-navy);
+  text-shadow:
+    2px 0 0 var(--msc-mustard),
+    4px 3px 0 rgba(184, 80, 58, 0.85);
+}
+
+.home-numbers dd {
+  margin: 12px 0 0;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: var(--msc-brick-ink);
+}
+
+/* ---------- 11 · where we are deepest ---------- */
+
+.home-racks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 34px;
+}
+
+.home-racks a {
+  display: grid;
+  grid-template-columns: 30px minmax(0, auto) minmax(60px, 1fr) 44px;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1px dotted var(--msc-navy);
+  color: var(--msc-asphalt);
+}
+
+.home-racks a:hover {
+  color: var(--msc-brick-ink);
+}
+
+.home-rack-pos {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  color: var(--msc-navy);
+  opacity: 0.5;
+}
+
+.home-rack-name {
+  font-family: var(--font-display);
+  font-size: 19px;
+  white-space: nowrap;
+}
+
+/* The bar is the ranking, drawn to scale — --fill is set per row. */
+.home-rack-bar {
+  height: 7px;
+  background: linear-gradient(
+    to right,
+    var(--msc-brick) 0 var(--fill, 0%),
+    rgba(42, 61, 82, 0.14) var(--fill, 0%) 100%
+  );
+}
+
+.home-rack-total {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-align: right;
+  color: var(--msc-navy);
+}
+
+/* ---------- 12 · the sticky shop bar ---------- */
+
+.sticky-shop {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  background: var(--msc-cream-deep);
+  border-top: var(--border-heavy);
+  box-shadow: 0 -3px 0 rgba(42, 61, 82, 0.12);
+  transform: translateY(110%);
+  transition: transform 0.28s ease;
+  pointer-events: none;
+}
+
+.sticky-shop[data-shown] {
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.sticky-shop-inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 11px 24px;
+}
+
+.sticky-shop-copy {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sticky-shop-copy strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 21px;
+  color: var(--msc-navy);
+  white-space: nowrap;
+}
+
+.sticky-shop-copy span {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--msc-brick-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sticky-shop-actions {
+  display: flex;
+  gap: 10px;
+  flex: none;
+}
+
+.sticky-shop-actions .msc-button {
+  padding: 10px 18px;
+  font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sticky-shop {
+    transition: none;
+  }
+  .home-macro-cell img {
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .home-macro {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .home-gift {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .home-gift-copy h2 {
+    max-width: none;
+  }
+  .home-racks {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .home-numbers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .home-numbers > div:nth-child(2n) {
+    border-right: none;
+  }
+  .home-numbers > div:nth-child(-n + 2) {
+    border-bottom: 1px dashed var(--msc-navy);
+  }
+  .sticky-shop-copy span {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-search {
+    padding: 26px 16px 30px;
+  }
+  .home-macro {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .home-manifesto {
+    padding: 24px 4px 20px;
+  }
+  .home-manifesto blockquote p {
+    font-size: 16.5px;
+  }
+  .sticky-shop-inner {
+    padding: 9px 14px;
+    gap: 10px;
+  }
+  .sticky-shop-copy strong {
+    font-size: 17px;
+  }
+  .sticky-shop-actions .msc-button {
+    padding: 9px 12px;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+  }
+  /* Two buttons will not fit next to a place name on a 360px screen. */
+  .sticky-shop-actions .msc-button--ghost {
+    display: none;
+  }
+}
