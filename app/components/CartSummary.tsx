@@ -89,9 +89,9 @@ function CollectLadderHint({quantity}: {quantity: number}) {
   return <p className="cart-ladder-hint">{message}</p>;
 }
 
-/** Progress toward the real $75 free-shipping threshold (Canada & US). */
+/** Progress toward the real $60 free-shipping threshold (Canada & US). */
 function FreeShippingProgress({subtotal}: {subtotal: number}) {
-  const THRESHOLD = 75;
+  const THRESHOLD = 60;
   if (!subtotal) return null;
   const remaining = THRESHOLD - subtotal;
   const pct = Math.min(100, Math.round((subtotal / THRESHOLD) * 100));

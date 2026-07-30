@@ -481,7 +481,7 @@ export default function ProductPage() {
               <div className="msc-accordion-body">
                 <p>
                   Printed to order — allow 5–10 business days before it moves,
-                  then transit. Free over $75. Thirty-day returns.
+                  then transit. Free over $60. Thirty-day returns.
                 </p>
                 <ul className="policy-list">
                   {CARE_LINES.map((line) => (

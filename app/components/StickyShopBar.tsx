@@ -50,12 +50,12 @@ export function StickyShopBar({
           {region ? (
             <>
               <strong>{region.name}</strong>
-              <span>{region.total} souvenirs · $36 · free shipping over $75</span>
+              <span>{region.total} souvenirs · $36 · free shipping over $60</span>
             </>
           ) : (
             <>
               <strong>{total.toLocaleString('en-CA')} souvenirs</strong>
-              <span>63 regions · $36 · free shipping over $75</span>
+              <span>63 regions · $36 · free shipping over $60</span>
             </>
           )}
         </p>

@@ -166,7 +166,7 @@ const INCLUDED = [
     p: 'No interrogation, no restocking fee, no form asking you to rate your disappointment out of five. Size exchanges work the same way.',
   },
   {
-    h: 'Free shipping over $75',
+    h: 'Free shipping over $60',
     p: 'Canada and the United States, which is two shirts and change — and two shirts is where the discount starts anyway.',
   },
   {
@@ -199,7 +199,7 @@ export function OrderIncludes() {
 const HOME_FAQS = [
   {
     q: 'How long does shipping take? Honestly?',
-    a: 'Longer than you would like, and we are sorry about that. Every shirt is printed after you order it, so allow 5–10 business days before it moves, then transit on top. Free over $75 in Canada and the US, which does not make the wait shorter but does make it cheaper.',
+    a: 'Longer than you would like, and we are sorry about that. Every shirt is printed after you order it, so allow 5–10 business days before it moves, then transit on top. Free over $60 in Canada and the US, which does not make the wait shorter but does make it cheaper.',
   },
   {
     q: 'What if I do not like it?',

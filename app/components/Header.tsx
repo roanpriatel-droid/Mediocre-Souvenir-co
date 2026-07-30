@@ -17,7 +17,7 @@ interface HeaderProps {
 }
 
 /** Free-shipping threshold, matched to the cart summary and the policy page. */
-const FREE_SHIPPING = 75;
+const FREE_SHIPPING = 60;
 
 type Viewport = 'desktop' | 'mobile';
 

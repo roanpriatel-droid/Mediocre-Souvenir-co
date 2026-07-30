@@ -17,7 +17,7 @@ export const meta: Route.MetaFunction = ({data}) => [
     name: 'description',
     content:
       'We ship everywhere, even places nicer than the ones on our shirts. ' +
-      'Printed to order in 5–10 business days, free over $75, and 30-day ' +
+      'Printed to order in 5–10 business days, free over $60, and 30-day ' +
       'returns with no interrogation.',
   },
   ...(data
@@ -49,7 +49,7 @@ const FAQS = [
   },
   {
     q: 'How much is shipping?',
-    a: 'Free on orders over $75 CAD in Canada and over $75 USD in the US. Below that, a flat rate calculated at checkout before you pay. Express where offered.',
+    a: 'Free on orders over $60 in Canada and the United States — which is two shirts once the multi-town discount applies. Below that, a flat $6.95, the same rate to both countries.',
   },
   {
     q: 'What if it does not fit?',
@@ -96,7 +96,7 @@ export default function ShippingReturns() {
         <Reveal>
           <div className="ship-cards">
             <div className="ship-card">
-              <span className="msc-kicker msc-kicker--navy">Free over $75</span>
+              <span className="msc-kicker msc-kicker--navy">Free over $60</span>
               <p>
                 Canada and the United States, same clean number in both
                 currencies. Below it, a flat rate shown before you pay.

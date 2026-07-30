@@ -52,7 +52,7 @@ const shipping: PolicyDoc = {
     'and it is the whole point.',
   description:
     'Shipping times, rates, and tracking for Mediocre Souvenir Co. Printed to ' +
-    'order in North America — free shipping on orders over $75 in Canada and ' +
+    'order in North America — free shipping on orders over $60 in Canada and ' +
     'the US.',
   sections: [
     {
@@ -86,7 +86,7 @@ const shipping: PolicyDoc = {
     {
       heading: 'What it costs',
       bullets: [
-        'Free standard shipping on orders over $75 CAD in Canada and over $75 USD in the United States.',
+        'Free standard shipping on orders over $60 in Canada and the United States; a flat $6.95 below that.',
         'Below that threshold, a flat standard rate is calculated at checkout before you pay.',
         'Express rates, where available, are quoted at checkout.',
       ],

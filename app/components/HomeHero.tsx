@@ -163,7 +163,7 @@ export function HomeHero({
         <span>
           <strong>$36</strong> a shirt
         </span>
-        <span>Free shipping over $75</span>
+        <span>Free shipping over $60</span>
         <span>30-day returns</span>
         <span>15% off two, 20% off three</span>
       </p>
@@ -201,7 +201,7 @@ export function HomeHero({
         <span>{totalProducts.toLocaleString('en-CA')} souvenirs</span>
         <span>{openRegions} regions</span>
         <span>0 famous ones</span>
-        <span>Free shipping over $75</span>
+        <span>Free shipping over $60</span>
       </div>
     </section>
   );
