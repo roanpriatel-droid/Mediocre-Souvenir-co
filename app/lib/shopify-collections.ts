@@ -261,6 +261,19 @@ export const COLLECTION_QUERY_NEUTRAL = `#graphql
  * per-market question for this grid's purposes, and scoping it to a market the
  * catalog is not published to made all 63 regions read "in due time".
  */
+/*
+ * One query for every shelf's size.
+ *
+ * `products(first: 1)` could only ever answer "is this empty?", so the region
+ * grid showed sixty-three tiles that all said the same two words, and any
+ * real number had to come from sweeping the entire 2,150-product catalogue —
+ * which is what put the homepage's TTFB at four times the collection page's.
+ *
+ * The count now lives in a `custom.product_count` metafield written on each
+ * collection by the admin-side sync, so one query returns seventy real
+ * numbers. The `products(first: 1)` selection stays as the fallback for any
+ * collection whose metafield has not been written yet.
+ */
 export const COLLECTIONS_STATUS_QUERY = `#graphql
   query SouvenirCollectionsStatus($first: Int!) {
     collections(first: $first) {
@@ -268,6 +281,9 @@ export const COLLECTIONS_STATUS_QUERY = `#graphql
         id
         handle
         title
+        count: metafield(namespace: "custom", key: "product_count") {
+          value
+        }
         products(first: 1) {
           nodes {
             id
@@ -491,6 +507,12 @@ export async function loadCollectionProducts(
 export interface RegionStatus {
   /** Region slug → true when the region collection holds at least one product. */
   open: Record<string, boolean>;
+  /**
+   * Collection handle → how many products it holds, from the
+   * `custom.product_count` metafield. Empty when the metafields have not been
+   * written; callers must treat a missing entry as "unknown", not as zero.
+   */
+  counts: Record<string, number>;
   /** False when the Storefront lookup failed, so callers can fall back. */
   live: boolean;
 }
@@ -511,12 +533,18 @@ export async function loadRegionStatus(
       cache: storefront.CacheShort(),
     });
     const nodes = data?.collections?.nodes ?? [];
-    if (!nodes.length) return {open: {}, live: false};
+    if (!nodes.length) return {open: {}, counts: {}, live: false};
 
     const open: Record<string, boolean> = {};
+    const counts: Record<string, number> = {};
     for (const node of nodes) {
+      const metaCount = Number(node.count?.value ?? NaN);
+      if (Number.isFinite(metaCount) && metaCount > 0) {
+        counts[node.handle] = metaCount;
+      }
       if (!regionByHandle.has(node.handle)) continue;
-      open[node.handle] = (node.products?.nodes?.length ?? 0) > 0;
+      open[node.handle] =
+        (Number.isFinite(metaCount) ? metaCount : node.products?.nodes?.length ?? 0) > 0;
     }
 
     // Not one region collection is reachable — they are not published to this
@@ -528,13 +556,13 @@ export async function loadRegionStatus(
           'API; deriving region status from products',
       );
       const {regionStatusFromProducts} = await import('./shopify-catalog');
-      return {open: await regionStatusFromProducts(storefront), live: true};
+      return {open: await regionStatusFromProducts(storefront), counts: {}, live: true};
     }
 
-    return {open, live: true};
+    return {open, counts, live: true};
   } catch (error) {
     console.error('[msc:collections] region status failed to load', error);
-    return {open: {}, live: false};
+    return {open: {}, counts: {}, live: false};
   }
 }
 

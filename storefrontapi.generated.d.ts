@@ -687,6 +687,7 @@ export type SouvenirCollectionsStatusQuery = {
   collections: {
     nodes: Array<
       Pick<StorefrontAPI.Collection, 'id' | 'handle' | 'title'> & {
+        count?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>;
         products: {nodes: Array<Pick<StorefrontAPI.Product, 'id'>>};
       }
     >;
@@ -1085,7 +1086,7 @@ interface GeneratedQueryTypes {
     return: SouvenirCollectionNeutralQuery;
     variables: SouvenirCollectionNeutralQueryVariables;
   };
-  '#graphql\n  query SouvenirCollectionsStatus($first: Int!) {\n    collections(first: $first) {\n      nodes {\n        id\n        handle\n        title\n        products(first: 1) {\n          nodes {\n            id\n          }\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  query SouvenirCollectionsStatus($first: Int!) {\n    collections(first: $first) {\n      nodes {\n        id\n        handle\n        title\n        count: metafield(namespace: "custom", key: "product_count") {\n          value\n        }\n        products(first: 1) {\n          nodes {\n            id\n          }\n        }\n      }\n    }\n  }\n': {
     return: SouvenirCollectionsStatusQuery;
     variables: SouvenirCollectionsStatusQueryVariables;
   };

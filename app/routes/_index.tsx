@@ -95,13 +95,18 @@ export async function loader({context, request}: Route.LoaderArgs) {
   }));
 
   /*
-   * Counts per region, straight off the index that is already in memory. The
-   * grid used to label all sixty-three tiles "Now open", which told nobody
-   * whether their province held six shirts or ninety-four.
+   * Counts per region.
+   *
+   * These come from the `custom.product_count` metafield on each collection,
+   * which arrives with the region-status query that this page already makes —
+   * one round trip for all seventy numbers. The product index is the fallback
+   * for a store whose metafields have not been synced, so the grid still
+   * shows real numbers either way, and it is only paid for when needed.
    */
   const counts: Record<string, number> = {};
   for (const region of REGIONS) {
-    const n = byRegion.get(region.slug)?.length ?? 0;
+    const n =
+      regionStatus.counts[region.slug] ?? byRegion.get(region.slug)?.length ?? 0;
     if (n > 0) counts[region.slug] = n;
   }
 
