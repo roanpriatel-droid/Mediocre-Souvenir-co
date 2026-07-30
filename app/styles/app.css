@@ -6880,3 +6880,49 @@ select:focus-visible,
   left: -84%;
   top: -20%;
 }
+
+/* ============================================================
+   390px, after the fact — three overflow bugs the phone showed
+   ============================================================ */
+
+/*
+ * The rack grid was overflowing the viewport on a phone. `repeat(2, 1fr)`
+ * resolves to `minmax(auto, 1fr)`, and an `auto` minimum is min-content — so
+ * one nowrap child inside a card (the price row, the size link) pushed both
+ * columns wider than half the screen and the second card hung off the edge.
+ * minmax(0, 1fr) lets the tracks actually shrink.
+ */
+@media (max-width: 560px) {
+  .rack-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/*
+ * Same failure in the header: a flex item will not shrink below its content
+ * unless told to, so the search box held its width and pushed the menu toggle
+ * clean off the right edge of a 390px screen.
+ */
+@media (max-width: 900px) {
+  .header {
+    gap: 12px;
+  }
+  .header-search {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .header-ctas {
+    flex: none;
+  }
+}
+
+/* The sticky bar is fixed, so the last thing on the page sits under it. */
+.home {
+  padding-bottom: 68px;
+}
+
+@media (max-width: 560px) {
+  .home {
+    padding-bottom: 60px;
+  }
+}
