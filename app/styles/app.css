@@ -5481,7 +5481,7 @@ select:focus-visible,
  * ground would stop disappearing, which is the whole trick.
  */
 .hero-wall {
-  --wall-ink: 0.34;
+  --wall-ink: 0.24;
   position: absolute;
   inset: -4% -2%;
   z-index: -1;
@@ -5491,6 +5491,14 @@ select:focus-visible,
   gap: 7px;
   align-content: center;
   transform: rotate(-3deg) scale(1.14);
+  /* The breadth strip and the dashed rule sit at the bottom of the hero and
+     have to stay readable, so the wall stops before it gets there. */
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 52%,
+    rgba(0, 0, 0, 0) 88%
+  );
   pointer-events: none;
 }
 
@@ -5517,8 +5525,17 @@ select:focus-visible,
   filter: grayscale(1) brightness(1.22) contrast(2.8) opacity(var(--wall-ink));
 }
 
-/* Paper gradient so type always lands on a calm field, wall or no wall. */
-.hero::before {
+/*
+ * Paper veil, so type always lands on a calm field.
+ *
+ * This has to be ::after rather than ::before. Both it and the wall sit at
+ * z-index -1, so tree order decides which is on top — and ::before is the
+ * hero's first child, which put the veil *under* the wall and left it
+ * protecting nothing. As ::after it paints over the tiles while still sitting
+ * below the in-flow content, because negative z-index children are painted
+ * before block content either way.
+ */
+.hero::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -5526,9 +5543,9 @@ select:focus-visible,
   background: linear-gradient(
     100deg,
     var(--msc-cream) 0%,
-    rgba(241, 233, 214, 0.94) 42%,
-    rgba(241, 233, 214, 0.45) 68%,
-    rgba(241, 233, 214, 0.06) 100%
+    rgba(241, 233, 214, 0.97) 44%,
+    rgba(241, 233, 214, 0.66) 72%,
+    rgba(241, 233, 214, 0.34) 100%
   );
   pointer-events: none;
 }
@@ -5790,7 +5807,7 @@ select:focus-visible,
   }
   .hero-wall {
     grid-template-columns: repeat(4, 1fr);
-    --wall-ink: 0.26;
+    --wall-ink: 0.18;
   }
   .hero-stamp {
     max-width: 250px;
@@ -6004,5 +6021,317 @@ select:focus-visible,
   /* Six is a strip; fifteen is a wall of small print on a 360px screen. */
   .hero-rotation-item:nth-child(n + 9) {
     display: none;
+  }
+}
+
+/* ================================================================== *
+ * Homepage middle game — print styles, how it works, fit, includes, FAQ
+ *
+ * Every class here is prefixed `home-` and defined exactly once. Four
+ * separate visual bugs on this site have come from a class being declared
+ * twice with the stale copy silently winning, so new work gets its own
+ * namespace rather than reaching for a name that might already exist.
+ * ================================================================== */
+
+/* ---------- 1 · shop by print ---------- */
+
+.home-styles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.home-style {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 18px 18px;
+  background: var(--msc-cream-deep);
+  border: var(--border-std);
+  box-shadow: var(--shadow-offset);
+  color: var(--msc-asphalt);
+}
+
+.home-style:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 var(--msc-navy);
+  color: var(--msc-asphalt);
+}
+
+.home-style strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 21px;
+  line-height: 1.05;
+  color: var(--msc-navy);
+}
+
+.home-style-note {
+  font-size: 14px;
+  line-height: 1.45;
+  flex: 1;
+}
+
+/* ---------- 2 · how it works ---------- */
+
+.home-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: none;
+}
+
+.home-step {
+  position: relative;
+  padding: 26px 22px 22px;
+  border: var(--border-std);
+  background: var(--msc-cream-deep);
+  box-shadow: var(--shadow-offset);
+}
+
+/* The numeral is the ornament — big, mustard, behind the words. */
+.home-step-n {
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  font-family: var(--font-display);
+  font-size: 58px;
+  line-height: 1;
+  color: var(--msc-mustard);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.home-step h3 {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 23px;
+  line-height: 1.05;
+  color: var(--msc-navy);
+  margin-bottom: 8px;
+  max-width: 14ch;
+}
+
+.home-step p {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ---------- 3 · size and fit ---------- */
+
+.home-fit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 30px;
+  align-items: center;
+}
+
+.home-fit-copy h2 {
+  margin: 6px 0 10px;
+}
+
+.home-fit-copy p {
+  max-width: 46ch;
+}
+
+.home-fit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.home-fit-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--msc-cream-deep);
+  border: var(--border-heavy);
+  box-shadow: var(--shadow-offset);
+  font-family: var(--font-body);
+}
+
+.home-fit-table caption {
+  caption-side: top;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+  padding-bottom: 8px;
+}
+
+.home-fit-table th,
+.home-fit-table td {
+  padding: 11px 8px;
+  text-align: center;
+  font-size: 14px;
+  border-bottom: 1px dotted var(--msc-navy);
+}
+
+.home-fit-table thead th {
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--msc-cream);
+  background: var(--msc-navy);
+  border-bottom: none;
+}
+
+.home-fit-table tbody th {
+  text-align: left;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  font-size: 11.5px;
+  color: var(--msc-brick-ink);
+  padding-left: 14px;
+}
+
+.home-fit-table tbody tr:last-child th,
+.home-fit-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---------- 4 · what every order includes ---------- */
+
+.home-includes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: var(--border-heavy);
+  background: var(--msc-cream-deep);
+  box-shadow: var(--shadow-offset);
+}
+
+.home-includes li {
+  padding: 22px 20px;
+  border-right: 1px dashed var(--msc-navy);
+}
+
+.home-includes li:last-child {
+  border-right: none;
+}
+
+.home-includes h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 19px;
+  line-height: 1.1;
+  color: var(--msc-navy);
+  margin-bottom: 7px;
+}
+
+.home-includes p {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---------- 5 · the five questions ---------- */
+
+.home-faq {
+  border-top: 2px solid var(--msc-navy);
+}
+
+.home-faq-item {
+  border-bottom: 1px dotted var(--msc-navy);
+}
+
+.home-faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 16px 44px 16px 2px;
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 1.15;
+  color: var(--msc-navy);
+}
+
+.home-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A plus that becomes a minus. Rotating a single bar is one property to
+   animate and reads correctly at any size. */
+.home-faq-item summary::after {
+  content: '+';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-body);
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--msc-brick-ink);
+  transition: transform 0.15s ease;
+}
+
+.home-faq-item[open] summary::after {
+  content: '–';
+}
+
+.home-faq-item summary:hover,
+.home-faq-item summary:focus-visible {
+  color: var(--msc-brick-ink);
+}
+
+.home-faq-item p {
+  padding: 0 44px 18px 2px;
+  font-size: 15.5px;
+  line-height: 1.55;
+  max-width: 72ch;
+}
+
+@media (max-width: 900px) {
+  .home-styles,
+  .home-includes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .home-includes li:nth-child(2n) {
+    border-right: none;
+  }
+  .home-includes li:nth-child(-n + 2) {
+    border-bottom: 1px dashed var(--msc-navy);
+  }
+  .home-steps {
+    grid-template-columns: 1fr;
+  }
+  .home-fit {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .home-step h3 {
+    max-width: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-styles,
+  .home-includes {
+    grid-template-columns: 1fr;
+  }
+  .home-includes li {
+    border-right: none;
+    border-bottom: 1px dashed var(--msc-navy);
+  }
+  .home-includes li:last-child {
+    border-bottom: none;
+  }
+  .home-fit-table th,
+  .home-fit-table td {
+    padding: 9px 4px;
+    font-size: 12.5px;
+  }
+  .home-faq-item summary {
+    font-size: 17px;
   }
 }

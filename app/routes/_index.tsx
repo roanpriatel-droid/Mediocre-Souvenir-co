@@ -8,6 +8,13 @@ import {MarqueeStrip, TrustBar} from '~/components/Strips';
 import {RegionBrowse} from '~/components/RegionBrowse';
 import {CollectLadder} from '~/components/CollectLadder';
 import {Testimonials} from '~/components/Testimonials';
+import {
+  HomeFaq,
+  HowItWorks,
+  OrderIncludes,
+  PrintStyles,
+  SizeAndFit,
+} from '~/components/HomeSections';
 import {SouvenirGrid, SouvenirGridSkeleton} from '~/components/SouvenirCard';
 import {
   loadCollectionProducts,
@@ -78,6 +85,7 @@ export async function loader({context, request}: Route.LoaderArgs) {
   }));
 
   return {
+    origin: new URL(request.url).origin,
     city,
     slides,
     rotation,
@@ -112,6 +120,7 @@ export async function loader({context, request}: Route.LoaderArgs) {
 
 export default function Homepage({loaderData}: Route.ComponentProps) {
   const {
+    origin,
     city,
     slides,
     rotation,
@@ -170,7 +179,24 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Suspense>
       </section>
 
-      {/* 4 · RECENTLY INSULTED — new arrivals */}
+      {/* 4 · SHOP BY PRINT — the same towns, four ways to say them */}
+      <section className="msc-section msc-page" aria-labelledby="by-print">
+        <div className="msc-section-rule">
+          <h2 id="by-print">Four prints, one rack each</h2>
+          <Link className="msc-section-note" to="/collections/all-souvenirs">
+            Everything we make →
+          </Link>
+        </div>
+        <p className="msc-section-lede">
+          Every town is drawn four ways. Pick the one that sounds like how you
+          would describe the place out loud.
+        </p>
+        <Reveal>
+          <PrintStyles />
+        </Reveal>
+      </section>
+
+      {/* 5 · RECENTLY INSULTED — new arrivals */}
       <section
         className="msc-section msc-section--band msc-page"
         aria-labelledby="recently-insulted"
@@ -218,7 +244,23 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Reveal>
       </section>
 
-      {/* 6 · EDITORIAL TEASER — Postcards From Nowhere */}
+      {/* 7 · HOW IT WORKS — what happens after the button */}
+      <section
+        className="msc-section msc-page"
+        aria-labelledby="how-it-works"
+      >
+        <div className="msc-section-rule">
+          <h2 id="how-it-works">What happens after you order</h2>
+          <Link className="msc-section-note" to="/shipping-returns">
+            Shipping &amp; returns →
+          </Link>
+        </div>
+        <Reveal>
+          <HowItWorks />
+        </Reveal>
+      </section>
+
+      {/* 8 · EDITORIAL TEASER — Postcards From Nowhere */}
       <section className="msc-section msc-section--band msc-page" aria-labelledby="postcards">
         <Reveal>
           <div className="msc-section-rule">
@@ -276,7 +318,17 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Reveal>
       </section>
 
-      {/* 8 · COLLECT LADDER */}
+      {/* 10 · SIZE & FIT — the last thing between a visitor and a size button */}
+      <section
+        className="msc-section msc-section--band msc-page"
+        aria-labelledby="size-fit"
+      >
+        <Reveal>
+          <SizeAndFit />
+        </Reveal>
+      </section>
+
+      {/* 11 · COLLECT LADDER */}
       <section className="msc-section msc-page">
         <CollectLadder />
       </section>
@@ -285,6 +337,35 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
       <section className="msc-section msc-page">
         <Reveal>
           <Testimonials />
+        </Reveal>
+      </section>
+
+      {/* 13 · WHAT EVERY ORDER INCLUDES — risk taken off the table */}
+      <section className="msc-section msc-page" aria-labelledby="included">
+        <div className="msc-section-rule">
+          <h2 id="included">Every order, every time</h2>
+          <Link className="msc-section-note" to="/shipping-returns">
+            The full policy →
+          </Link>
+        </div>
+        <Reveal>
+          <OrderIncludes />
+        </Reveal>
+      </section>
+
+      {/* 14 · FAQ — the five that get emailed */}
+      <section
+        className="msc-section msc-section--band msc-page"
+        aria-labelledby="home-faq"
+      >
+        <div className="msc-section-rule">
+          <h2 id="home-faq">Before you ask</h2>
+          <Link className="msc-section-note" to="/faq">
+            All questions →
+          </Link>
+        </div>
+        <Reveal>
+          <HomeFaq origin={origin} />
         </Reveal>
       </section>
 
