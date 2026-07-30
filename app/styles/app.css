@@ -6820,3 +6820,63 @@ select:focus-visible,
     display: none;
   }
 }
+
+/* ---------- header: the shipping-to chip ----------
+   These three classes shipped with markup and no styles at all, so the label
+   and the region name ran together as "Shipping toBritish Columbia". */
+
+.header-region {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 12px;
+  border-left: 1px dotted var(--msc-navy);
+  color: var(--msc-navy);
+  max-width: 168px;
+}
+
+.header-region-label {
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--msc-brick-ink);
+}
+
+.header-region-name {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.1;
+  color: var(--msc-navy);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-region:hover .header-region-name {
+  color: var(--msc-brick-ink);
+}
+
+@media (max-width: 900px) {
+  .header-region {
+    display: none;
+  }
+}
+
+/* ---------- the search block's field ----------
+   `.town-search` is capped at 560px for the hero. In a full-width block of its
+   own that left the placeholder clipped mid-word. */
+
+.home-search-field .town-search {
+  max-width: 720px;
+}
+
+/* Slot 1 was cropping a long two-line print on both edges; a shallower zoom
+   fits "SUMMER '04" without losing the macro effect. */
+.home-macro-cell[data-slot='1'] img {
+  width: 250%;
+  left: -84%;
+  top: -20%;
+}
