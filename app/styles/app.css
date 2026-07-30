@@ -5448,60 +5448,73 @@ select:focus-visible,
  * The wall.
  *
  * Every product photo is the same grey tee on pure white; the only unique
- * content is a chest print at x 34-65%, y 28-53% (measured, not guessed). Each
- * cell crops to exactly that box by over-scaling the image and offsetting it:
+ * content is the chest print. Measured off the delivered files across all four
+ * print styles — Greetings sits highest and tallest, Varsity lowest and
+ * tightest — the widest ink spans **x 36.8-71.4%, y 14.8-49.5%** (long town names in
+ * Varsity run furthest right). (The first version
+ * of these numbers was derived from the print-ready artwork, which is a
+ * different aspect ratio to the photograph, and it put the window over blank
+ * fabric.) Each cell shows that box plus air: x 28-76%, y 10-54.6%.
  *
- *   width  = 100 / 0.31 = 322.6%
- *   left   = -34 / 31   = -109.7%
- *   top    = -28 / 25   = -112%
+ * The CDN does the coarse crop and CSS the fine one. Asking Shopify for a
+ * 364x196 centre crop returns full width and the middle 54% of the height,
+ * which is a third of the pixels a square costs for the same result. Against
+ * that source:
  *
- * multiply then drops the white ground onto the cream so the artwork reads as
- * ink printed on the page rather than a photograph pasted over it.
+ *   width = 100 / 48     = 208.3%   (of the cell's width)
+ *   left  = -28 / 48     = -58.33%  (of the cell's width)
+ *   top   = -10 / 44.57  = -22.44%  (of the cell's height)
+ *
+ * The cell's aspect ratio is not a free choice — it must satisfy
+ * cellW/cellH = fw x sourceAspect / fh — which puts it at 2/1.
+ *
+ * Showing roughly half a frame in each dimension costs ~2.1x the display
+ * width in source pixels: a 364px file rendering at ~495px. At 34% ink, greyscaled and contrast-crushed, soft is
+ * what this wants to be; sharpness here would be paying for something nobody
+ * can see.
+ *
+ * multiply drops the white ground onto the cream so the artwork reads as ink
+ * printed on the page rather than a photograph pasted over it. The fade is an
+ * opacity() step *inside* the filter rather than `opacity` on the container,
+ * because opacity on an ancestor isolates the group — the tiles would then
+ * multiply against transparency instead of against the cream, and the white
+ * ground would stop disappearing, which is the whole trick.
  */
 .hero-wall {
+  --wall-ink: 0.34;
   position: absolute;
   inset: -4% -2%;
   z-index: -1;
   display: grid;
-  /*
-   * Density is the message. At 6 columns the tiles are large enough to read as
-   * individual ghost words, which looks like smudging; at 11 they read as a
-   * wall of many different cards, which is the actual claim — there is a shirt
-   * for everywhere. Tiles need a source roughly 3.2x their display width
-   * because only 31% of each image is shown, so this is also the point where
-   * the payload stops being free.
-   */
-  grid-template-columns: repeat(11, 1fr);
+  /* Seven columns; five rows of them cover the hero at this cell ratio. */
+  grid-template-columns: repeat(7, 1fr);
   gap: 7px;
-  opacity: 0.32;
+  align-content: center;
   transform: rotate(-3deg) scale(1.14);
   pointer-events: none;
 }
 
 .hero-wall-cell {
   position: relative;
-  aspect-ratio: 31 / 25;
+  aspect-ratio: 2 / 1;
   overflow: hidden;
 }
 
 .hero-wall-cell img {
   position: absolute;
-  width: 322.6%;
+  width: 208.3%;
   height: auto;
-  left: -109.7%;
-  top: -112%;
+  left: -58.33%;
+  top: -22.44%;
   max-width: none;
   mix-blend-mode: multiply;
   /*
    * Measured, not eyeballed. Contrast alone dragged the near-white ground
    * down with the ink and left a grey block behind every tile. Brightening
    * FIRST clips the ground to pure white — which multiply then makes
-   * invisible — and only then does contrast deepen the artwork. Sampled
-   * across 12 real prints this holds the paper at 229/229 while taking the
-   * ink from 55 to 41, so the light "Greetings" script stays legible at low
-   * opacity without the bold Varsity prints turning to blobs.
+   * invisible — and only then does contrast deepen the artwork.
    */
-  filter: grayscale(1) brightness(1.22) contrast(2.8);
+  filter: grayscale(1) brightness(1.22) contrast(2.8) opacity(var(--wall-ink));
 }
 
 /* Paper gradient so type always lands on a calm field, wall or no wall. */
@@ -5776,8 +5789,8 @@ select:focus-visible,
     gap: 20px;
   }
   .hero-wall {
-    grid-template-columns: repeat(7, 1fr);
-    opacity: 0.26;
+    grid-template-columns: repeat(4, 1fr);
+    --wall-ink: 0.26;
   }
   .hero-stamp {
     max-width: 250px;
@@ -5796,7 +5809,7 @@ select:focus-visible,
     letter-spacing: 4px;
   }
   .hero-wall {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
   .hero-back {
     font-size: 10.5px;

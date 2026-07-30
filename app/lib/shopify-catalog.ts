@@ -455,9 +455,15 @@ export async function heroWall(
     STYLES.find((style) => handle.endsWith(style)) ?? 'other';
 
   for (let pass = 0; picked.length < count && pass < 8; pass++) {
-    const wantStyle = STYLES[pass % STYLES.length];
     for (const bucket of buckets) {
       if (picked.length >= count) break;
+      /*
+       * The style advances per *pick*, not per pass. Cycling it per pass read
+       * as style-cycling but was not: there are 63 regions and 35 tiles, so
+       * the first pass filled the entire wall from one bucket of the loop and
+       * every tile on it said ATHLETIC DEPT.
+       */
+      const wantStyle = STYLES[(picked.length + pass) % STYLES.length];
       // Prefer this pass's style within the region; fall back to anything.
       const offset = (seed + pass * 7) % bucket.length;
       const rotated = [...bucket.slice(offset), ...bucket.slice(0, offset)];

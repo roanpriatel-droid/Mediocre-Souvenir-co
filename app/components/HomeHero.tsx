@@ -51,6 +51,25 @@ import {townNameFrom} from '~/lib/town-copy';
 const HOLD = 5;
 const FADE = 0.55;
 
+/** Five full rows of seven. A ragged last row reads as a mistake. */
+const WALL_TILES = 35;
+
+/**
+ * A 13/7 centre-cropped CDN variant — the coarse half of the wall's crop.
+ *
+ * Asking for this aspect rather than a square returns full width and the
+ * middle 54% of the height, which is where every chest print lives, for a
+ * third of the pixels. The stylesheet then does the fine crop; see the wall
+ * comment in app.css for the arithmetic that ties the two together.
+ */
+function tileSrc(url: string, width: number): string {
+  const next = new URL(url);
+  next.searchParams.set('width', String(width));
+  next.searchParams.set('height', String(Math.round((width * 7) / 13)));
+  next.searchParams.set('crop', 'center');
+  return next.toString();
+}
+
 export function HomeHero({
   slides,
   city,
@@ -75,27 +94,29 @@ export function HomeHero({
       {/* ── the wall: cropped town prints, multiplied onto the paper ── */}
       {wall.length > 0 && (
         <div className="hero-wall" aria-hidden="true">
-          {wall.slice(0, 30).map((product, i) => (
-            <div className="hero-wall-cell" key={product.id}>
-              {product.featuredImage && (
-                <Image
-                  data={product.featuredImage}
+          {wall.slice(0, WALL_TILES).map((product, i) =>
+            product.featuredImage?.url ? (
+              <div className="hero-wall-cell" key={product.id}>
+                {/*
+                  A plain <img>, deliberately, where the rest of the site uses
+                  Hydrogen's <Image>. That component writes an inline
+                  style="width:100%" onto the tag, and an inline style beats
+                  any stylesheet — so `.hero-wall-cell img { width: 357% }`,
+                  which is the entire crop mechanism, never applied. The tiles
+                  rendered at cell size with the crop window landing outside
+                  the image, which is why the wall has been thirty blank
+                  rectangles in production since the day it shipped.
+                */}
+                <img
+                  src={tileSrc(product.featuredImage.url, 364)}
                   alt=""
-                  /*
-                   * Each tile shows 31% of its image, so the tag renders at
-                   * roughly 3.2x the cell — about 480px for a 150px cell.
-                   * Asking for 180px picked a 200w source and upscaled it two
-                   * and a half times. 320 lands on the 400w file: still under
-                   * the true render width, which is the right trade for
-                   * thirty greyscaled tiles at 32% opacity, but no longer
-                   * mush.
-                   */
-                  sizes="320px"
-                  loading={i < 6 ? 'eager' : 'lazy'}
+                  loading={i < 7 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  fetchPriority="low"
                 />
-              )}
-            </div>
-          ))}
+              </div>
+            ) : null,
+          )}
         </div>
       )}
 

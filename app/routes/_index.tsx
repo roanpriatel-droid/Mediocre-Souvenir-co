@@ -64,11 +64,11 @@ export async function loader({context, request}: Route.LoaderArgs) {
   const [slides, rotation, wallProducts, {entries}] = await Promise.all([
     heroSlides(context.storefront, region ?? undefined, 11),
     heroRotation(context.storefront, region ?? undefined, 15),
-    // The wall is decoration: 30 cropped, greyscaled, 32%-opacity tiles. It
-    // needs an id and an image, not price ranges, variants, tags and
-    // compare-at ranges — those were ~23KB of hydration payload for pixels
-    // nobody can read.
-    heroWall(context.storefront, 30),
+    // The wall is decoration: 35 cropped, greyscaled, 34%-ink tiles. It needs
+    // an id and an image, not price ranges, variants, tags and compare-at
+    // ranges — those were ~23KB of hydration payload for pixels nobody can
+    // read.
+    heroWall(context.storefront, 35),
     loadDerivedCatalog(context.storefront),
   ]);
 
