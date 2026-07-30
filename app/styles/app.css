@@ -6926,3 +6926,16 @@ select:focus-visible,
     padding-bottom: 60px;
   }
 }
+
+/*
+ * Below 560px the header search had shrunk to a 60px slot showing "Fin" — a
+ * field too small to type a town into, taking the space the menu and cart
+ * need. The page now opens with a full-width search block of its own a
+ * screen down, and the nav aside has one too, so the header row gets its
+ * space back.
+ */
+@media (max-width: 560px) {
+  .header-search {
+    display: none;
+  }
+}
