@@ -1,7 +1,7 @@
 import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/postcards.$slug';
 import {useNonce} from '@shopify/hydrogen';
-import {getArticle} from '~/lib/journal';
+import {getArticle, articleDate} from '~/lib/journal';
 import {productsByHandle} from '~/lib/shopify-search';
 import {SouvenirGrid} from '~/components/SouvenirCard';
 import {SITE_NAME} from '~/lib/seo';
@@ -41,11 +41,7 @@ export default function JournalArticle() {
       <header className="article-header">
         <span className="msc-kicker">
           The Journal ·{' '}
-          {new Date(article.date).toLocaleDateString('en-CA', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
+          {articleDate(article.date)}
         </span>
         <h1>{article.title}</h1>
         <p style={{fontSize: '18px', maxWidth: '52ch'}}>{article.dek}</p>

@@ -3,7 +3,7 @@ import {useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/postcards._index';
 import {EmailCapture} from '~/components/EmailCapture';
 import {Reveal} from '~/components/Reveal';
-import {ARTICLES} from '~/lib/journal';
+import {ARTICLES, articleDate} from '~/lib/journal';
 import {getTownByHandle} from '~/lib/catalog';
 import {SITE_NAME} from '~/lib/seo';
 
@@ -42,12 +42,6 @@ export async function loader({request}: Route.LoaderArgs) {
   return {articles, origin: new URL(request.url).origin};
 }
 
-const DATE_FORMAT: Intl.DateTimeFormatOptions = {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-};
-
 export default function JournalIndex() {
   const {articles, origin} = useLoaderData<typeof loader>();
   const nonce = useNonce();
@@ -71,7 +65,7 @@ export default function JournalIndex() {
             <div className="journal-lead-copy">
               <span className="msc-kicker msc-kicker--navy">
                 Latest ·{' '}
-                {new Date(lead.date).toLocaleDateString('en-CA', DATE_FORMAT)} ·{' '}
+                {articleDate(lead.date)} ·{' '}
                 {lead.readingMinutes} min
               </span>
               <h2>{lead.title}</h2>
@@ -104,7 +98,7 @@ export default function JournalIndex() {
                 prefetch="intent"
               >
                 <span className="msc-kicker">
-                  {new Date(article.date).toLocaleDateString('en-CA', DATE_FORMAT)}{' '}
+                  {articleDate(article.date)}{' '}
                   · {article.readingMinutes} min
                 </span>
                 <h3>{article.title}</h3>

@@ -160,8 +160,21 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     ? await loadRegionStatus(context.storefront)
     : {open: {} as Record<string, boolean>, live: false};
 
-  // ── Shopify non-region collection (All Souvenirs, Now Open, …) ────────
-  if (shopifyCollection) {
+  /*
+   * ── Shopify non-region collection (All Souvenirs, Now Open, …) ────────
+   *
+   * A published-but-empty collection must not short-circuit the derived rack.
+   * Publishing all seventy collections to the headless channel made
+   * `new-arrivals` visible for the first time — and it holds no products, so
+   * this branch started returning an empty page for a handle that is in the
+   * nav on every page. Before it was published the lookup returned null and
+   * the fallback below filled it. Visibility should not be able to empty a
+   * shelf that was previously stocked.
+   */
+  const emptyUtility =
+    shopifyCollection && !products.length && KNOWN_HANDLES.has(handle);
+
+  if (shopifyCollection && !emptyUtility) {
     return {
       kind: 'shopify' as const,
       connection,
@@ -202,8 +215,10 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       countryLive: countryStatus.live,
       region: null,
       open: rack.products.length > 0,
-      heading: titleForHandle(handle),
-      description: '',
+      // Keep the store's own title and copy when the collection exists and is
+      // merely empty; only invent them when it does not exist at all.
+      heading: shopifyCollection?.title || titleForHandle(handle),
+      description: shopifyCollection?.description || '',
       products: rack.products,
       origin,
       seo: {

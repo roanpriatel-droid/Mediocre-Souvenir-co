@@ -149,3 +149,25 @@ export const ARTICLES: Article[] = [
 export function getArticle(slug: string): Article | undefined {
   return ARTICLES.find((a) => a.slug === slug);
 }
+
+/**
+ * A date string that is identical on the server and in the browser.
+ *
+ * `new Date('2026-07-24').toLocaleDateString('en-CA', …)` parses an ISO date
+ * as UTC midnight and then formats it in the *local* zone. On Oxygen that zone
+ * is UTC; in a browser west of Greenwich it is not, so the server rendered
+ * "July 24, 2026" and the client rendered "July 23, 2026" — a hydration
+ * mismatch, which is React error #418 on /postcards.
+ *
+ * Pinning the format to UTC makes both sides agree, and the date shown is the
+ * one written in the article data rather than one shifted by the reader's
+ * timezone.
+ */
+export function articleDate(iso: string): string {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-CA', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+}

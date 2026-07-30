@@ -16,9 +16,27 @@ export default async function handleRequest(
 ) {
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
     shop: {
-      checkoutDomain: context.env.PUBLIC_CHECKOUT_DOMAIN,
+      // Falling back to the store domain matters: with this unset, Hydrogen's
+      // Analytics.Provider throws "consent.checkoutDomain is required" on
+      // every page, which was disabling customer-privacy consent and all
+      // Shopify analytics site-wide.
+      checkoutDomain:
+        context.env.PUBLIC_CHECKOUT_DOMAIN ?? context.env.PUBLIC_STORE_DOMAIN,
       storeDomain: context.env.PUBLIC_STORE_DOMAIN,
     },
+    /*
+     * Without an explicit img-src, images fall back to default-src — which is
+     * 'self' plus the Shopify CDNs and does NOT include `data:`. The paper
+     * grain behind every surface on this site (--worn-noise) is an inline SVG
+     * data URI, so the brand's core texture was being blocked by our own
+     * policy on every page, silently, since launch.
+     */
+    imgSrc: [
+      "'self'",
+      'data:',
+      'https://cdn.shopify.com',
+      'https://shopify.com',
+    ],
     // Brand fonts (Alfa Slab One / Archivo Narrow / Permanent Marker) load from Google Fonts
     styleSrc: [
       "'self'",
