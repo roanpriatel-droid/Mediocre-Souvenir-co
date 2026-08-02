@@ -2948,6 +2948,20 @@ p {
   align-items: center;
 }
 
+/*
+ * A centred flex column shrink-wraps its children, so a <Reveal> wrapper
+ * collapsed to its content's min-content width — a grid inside one wrapped to
+ * a word per line. Reveals are transparent wrappers; give them the column.
+ */
+.article-body > .reveal {
+  width: 100%;
+}
+
+/* ...and keep the centring the wrapper used to do for narrower children. */
+.article-body > .reveal > * {
+  margin-inline: auto;
+}
+
 /* lookbook — the road trip */
 .lookbook-stop {
   display: grid;
@@ -4142,77 +4156,550 @@ select:focus-visible,
   }
 }
 
-/* ---------- Shipping & returns ---------- */
+/* ---------- Shipping & returns ----------
+   The page is a parcel: a waybill at the top, a route down the middle, a
+   rate card, and a return slip you could tear off. Hard offsets, dotted
+   leaders, one stamp. Nothing here was designed in 2026. */
 
-.ship-timeline {
-  list-style: none;
-  counter-reset: ship;
+.ship-page {
+  padding-bottom: 8px;
+}
+
+/* the waybill header */
+
+.ship-hero {
+  padding-top: 40px;
+}
+
+.ship-waybill {
+  border: var(--border-heavy);
+  background: var(--msc-cream-deep);
+  box-shadow: 6px 6px 0 var(--msc-navy);
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+}
+
+.ship-waybill-main {
+  padding: 40px 34px;
+  border-right: 2px dashed var(--msc-asphalt);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ship-waybill-main h1 {
+  font-size: clamp(2.1rem, 5.2vw, 3.6rem);
+}
+
+.ship-lede {
+  font-size: 17px;
+  line-height: 1.55;
+  max-width: 48ch;
+}
+
+/* jump links — a long page, so say where it goes */
+.ship-jump {
+  margin-top: auto;
+  padding-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.ship-jump a {
+  border-bottom: 2px dotted var(--msc-brick);
+  padding-bottom: 2px;
+}
+
+.ship-jump a:hover {
+  border-bottom-color: var(--msc-navy);
+}
+
+.ship-waybill-side {
+  padding: 30px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* FROM / TO / CONTENTS, ruled like a real label */
+.ship-label-lines {
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ship-label-lines > div {
+  border-bottom: 1.5px solid var(--msc-navy);
+  padding-bottom: 6px;
+}
+
+.ship-label-lines dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--msc-brick-ink);
+}
+
+.ship-label-lines dd {
+  margin: 2px 0 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--msc-navy);
+}
+
+.ship-waybill-side .msc-stamp {
+  align-self: flex-end;
+  margin-top: auto;
+}
+
+/* the four numbers people came for */
+
+.ship-facts {
+  list-style: none;
+  margin: 26px 0 0;
   padding: 0;
-  width: 100%;
-  max-width: 720px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: var(--border-std);
+  background: var(--msc-cream);
+}
+
+.ship-fact {
+  padding: 16px 18px;
+  border-right: 2px dashed var(--msc-asphalt);
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.ship-timeline li {
-  counter-increment: ship;
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 16px;
-  align-items: start;
-  padding: 18px 0;
-  border-bottom: 1px dotted var(--msc-asphalt);
+.ship-fact:last-child {
+  border-right: none;
 }
 
-.ship-timeline li::before {
-  content: counter(ship);
+.ship-fact b {
   font-family: var(--font-display);
-  font-size: 20px;
-  color: var(--msc-cream);
-  background: var(--msc-navy);
-  width: 34px;
-  height: 34px;
+  font-weight: 400;
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1;
+  color: var(--msc-navy);
+}
+
+.ship-fact span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--msc-brick-ink);
+}
+
+/* the route — four stops, dotted line between them */
+
+.ship-route {
+  list-style: none;
+  counter-reset: stop;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ship-stop {
+  counter-increment: stop;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 22px;
+}
+
+.ship-stop-rail {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.ship-stop-rail::after {
+  content: '';
+  flex: 1;
+  border-top: 2px dotted var(--msc-navy);
+  margin-left: 10px;
+}
+
+.ship-stop:last-child .ship-stop-rail::after {
+  border-top-style: none;
+}
+
+.ship-stop-n {
+  flex: none;
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
+  background: var(--msc-navy);
+  color: var(--msc-cream);
+  font-family: var(--font-display);
+  font-size: 18px;
+  box-shadow: 3px 3px 0 var(--msc-brick);
 }
 
-.ship-timeline strong {
-  display: block;
+.ship-stop-n::before {
+  content: counter(stop);
+}
+
+.ship-stop-label {
   font-family: var(--font-body);
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.6px;
+  letter-spacing: 1.8px;
   font-size: 13.5px;
   color: var(--msc-navy);
-  margin-bottom: 4px;
 }
 
-.ship-timeline span {
+.ship-stop-when {
+  font-family: var(--font-marker);
+  font-size: 15px;
+  color: var(--msc-brick-ink);
+  transform: rotate(-2deg);
+  transform-origin: left center;
+}
+
+.ship-stop-note {
   font-size: 15px;
   line-height: 1.55;
 }
 
-.ship-cards {
+.ship-note {
+  max-width: 62ch;
+  margin-top: 26px;
+  font-size: 15px;
+  line-height: 1.6;
+  border-left: 3px solid var(--msc-sage);
+  padding-left: 16px;
+}
+
+/* rate card — dotted leaders, price on the right */
+
+.ship-rates-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-  width: 100%;
-  max-width: 720px;
-  margin-top: 32px;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 26px;
+  align-items: start;
 }
 
-.ship-card {
-  border: 2px dashed var(--msc-navy);
-  padding: 20px 18px;
+.ship-rates {
+  border: var(--border-std);
+  background: var(--msc-cream);
+  box-shadow: var(--shadow-offset);
+}
+
+.ship-rate {
+  padding: 18px 22px;
+  border-bottom: 2px dashed var(--msc-asphalt);
+}
+
+.ship-rate:last-child {
+  border-bottom: none;
+}
+
+.ship-rate-head {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.ship-card p {
+.ship-rate-name {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  font-size: 13.5px;
+  color: var(--msc-navy);
+}
+
+.ship-rate-leader {
+  flex: 1 1 30px;
+  border-bottom: 2px dotted var(--msc-asphalt);
+  opacity: 0.45;
+  transform: translateY(-4px);
+}
+
+.ship-rate-price {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--msc-brick-ink);
+  white-space: nowrap;
+}
+
+.ship-rate-note {
+  margin-top: 8px;
   font-size: 14.5px;
   line-height: 1.55;
+  max-width: 62ch;
+}
+
+.ship-nudge {
+  border: 2px dashed var(--msc-navy);
+  padding: 24px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.ship-nudge .msc-marker {
+  font-size: 16px;
+}
+
+/* the return slip */
+
+.ship-returns-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px;
+  align-items: start;
+}
+
+.ship-slip {
+  border: var(--border-std);
+  background: var(--msc-cream-deep);
+  box-shadow: var(--shadow-offset);
+}
+
+.ship-slip-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 20px;
+  background: var(--msc-navy);
+  color: var(--msc-cream);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.ship-slip-body {
+  padding: 24px 22px 22px;
+}
+
+.ship-slip-steps {
+  list-style: none;
+  counter-reset: slip;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ship-slip-step {
+  counter-increment: slip;
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 14px;
+  align-items: start;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.ship-slip-step::before {
+  content: counter(slip);
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  background: var(--msc-brick);
+  color: var(--msc-cream);
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+
+.ship-slip-tear {
+  margin: 22px 0 14px;
+  border-top: 2px dashed var(--msc-asphalt);
+  opacity: 0.7;
+}
+
+/* covered / not a defect */
+
+.ship-cols {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ship-col {
+  border: var(--border-std);
+  padding: 20px 20px 22px;
+  background: var(--msc-cream);
+}
+
+.ship-col--muted {
+  border-style: dashed;
+  border-color: var(--msc-navy);
+  background: transparent;
+}
+
+.ship-col h3 {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+}
+
+.ship-col ul {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.ship-col li {
+  position: relative;
+  padding-left: 18px;
+}
+
+.ship-col li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--msc-brick-ink);
+  font-weight: 700;
+}
+
+.ship-faq {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+/* Each column is its own stack, so the collapsed-border trick still holds. */
+.ship-faq-col {
+  border-bottom: none;
+}
+
+@media (max-width: 900px) {
+  .ship-waybill {
+    grid-template-columns: 1fr;
+  }
+
+  .ship-waybill-main {
+    border-right: none;
+    border-bottom: 2px dashed var(--msc-asphalt);
+  }
+
+  .ship-waybill-side .msc-stamp {
+    margin-top: 0;
+  }
+
+  .ship-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ship-fact:nth-child(2n) {
+    border-right: none;
+  }
+
+  .ship-fact:nth-child(-n + 2) {
+    border-bottom: 2px dashed var(--msc-asphalt);
+  }
+
+  .ship-route {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 0;
+  }
+
+  /* the dotted line should not run off the end of a row */
+  .ship-stop:nth-child(2n) .ship-stop-rail::after {
+    border-top-style: none;
+  }
+
+  .ship-rates-layout,
+  .ship-returns-layout,
+  .ship-faq {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .ship-hero {
+    padding-top: 26px;
+  }
+
+  .ship-waybill {
+    box-shadow: 4px 4px 0 var(--msc-navy);
+  }
+
+  .ship-waybill-main {
+    padding: 28px 20px;
+  }
+
+  .ship-waybill-side {
+    padding: 24px 20px;
+  }
+
+  .ship-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .ship-fact {
+    border-right: none;
+    border-bottom: 2px dashed var(--msc-asphalt);
+    flex-direction: row;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .ship-fact:last-child {
+    border-bottom: none;
+  }
+
+  .ship-fact b {
+    font-size: 22px;
+    min-width: 62px;
+  }
+
+  .ship-route {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .ship-stop {
+    padding: 0 0 16px;
+    border-bottom: 1px dotted var(--msc-asphalt);
+  }
+
+  .ship-stop:last-child {
+    border-bottom: none;
+  }
+
+  .ship-stop-rail::after {
+    border-top-style: none;
+  }
+
+  .ship-rate,
+  .ship-slip-body,
+  .ship-col {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
 }
 
 /* ---------- comment card (contact) ---------- */
