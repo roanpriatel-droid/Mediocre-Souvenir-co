@@ -1,7 +1,7 @@
 /** The horizontal furniture: announcement bar, marquee, trust bar. */
 
 const ANNOUNCEMENTS = [
-  'FREE SHIPPING OVER $60 · CANADA & USA',
+  'FREE SHIPPING OVER $60 USD · CANADA & USA',
   'NEW TOWNS IN DUE TIME',
   'NOW OPEN: THE GREAT LAKES · TOLEDO, PITTSBURGH, DETROIT, GARY, ROCKFORD',
   'COLLECT 2 SAVE 15% · COLLECT 3 SAVE 20%',
@@ -36,7 +36,7 @@ const MARQUEE_ITEMS = [
   'COLLECT 2 SAVE 15%',
   'NEW TOWNS WEEKLY',
   'GENUINE SOUVENIR',
-  'FREE SHIPPING $60+',
+  'FREE SHIPPING $60+ USD',
   'CANADA & USA',
 ];
 
@@ -66,7 +66,7 @@ const TRUST_ITEMS = [
   },
   {
     title: 'Free shipping over $60',
-    note: 'Canada and the US. The mail knows where your town is.',
+    note: 'Canada and the US, in US dollars. The mail knows where your town is.',
   },
   {
     title: 'Secure checkout',

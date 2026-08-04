@@ -109,7 +109,7 @@ function FreeShippingProgress({subtotal}: {subtotal: number}) {
       </div>
       <p>
         {remaining > 0
-          ? `$${remaining.toFixed(2)} away from free shipping.`
+          ? `$${remaining.toFixed(2)} USD away from free shipping.`
           : 'Free shipping unlocked. The mail is on us.'}
       </p>
     </div>

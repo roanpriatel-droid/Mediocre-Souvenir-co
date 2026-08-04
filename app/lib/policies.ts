@@ -52,8 +52,8 @@ const shipping: PolicyDoc = {
     'and it is the whole point.',
   description:
     'Shipping times, rates, and tracking for Mediocre Souvenir Co. Printed to ' +
-    'order in North America — free shipping on orders over $60 in Canada and ' +
-    'the US.',
+    'order in North America — free shipping on orders over $60 USD in Canada ' +
+    'and the US.',
   sections: [
     {
       heading: 'Where we ship',
@@ -74,7 +74,6 @@ const shipping: PolicyDoc = {
         'Printing: 5–10 business days from the time the order is placed.',
         'Standard transit: 3–8 business days within Canada or within the US.',
         'Cross-border transit: 6–12 business days, customs permitting.',
-        'Express transit: 2–3 business days, where offered at checkout.',
       ],
     },
     {
@@ -86,9 +85,9 @@ const shipping: PolicyDoc = {
     {
       heading: 'What it costs',
       bullets: [
-        'Free standard shipping on orders over $60 in Canada and the United States; a flat $6.95 below that.',
-        'Below that threshold, a flat standard rate is calculated at checkout before you pay.',
-        'Express rates, where available, are quoted at checkout.',
+        'Free standard shipping on orders over $60 in Canada and the United States; a flat $6.95 below that. Both figures, like every price on this store, are US dollars.',
+        'The rate is shown at checkout before you pay.',
+        'There is one shipping speed. We offer no expedited option, because printing sets the floor and no carrier can move it.',
       ],
     },
     {
@@ -340,7 +339,7 @@ const terms: PolicyDoc = {
     {
       heading: 'Pricing and the discount ladder',
       bullets: [
-        'Shirts are $36 CAD in Canada and $36 USD in the United States. Parity is deliberate.',
+        'Shirts are $36 USD, to Canada and the United States alike. The store prices, charges, and refunds in US dollars; a Canadian card is billed in USD and your bank applies its own conversion.',
         'Two or more shirts save 15%; three or more save 20%. It applies automatically at checkout, mixes and matches across any towns, and needs no code.',
         'Prices exclude tax and shipping, both shown before you pay.',
         'Prices can change, but never for an order already confirmed.',

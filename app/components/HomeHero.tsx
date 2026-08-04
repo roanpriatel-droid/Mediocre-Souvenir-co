@@ -161,7 +161,7 @@ export function HomeHero({
       */}
       <p className="hero-terms">
         <span>
-          <strong>$36</strong> a shirt
+          <strong>$36</strong> a shirt, USD
         </span>
         <span>Free shipping over $60</span>
         <span>30-day returns</span>

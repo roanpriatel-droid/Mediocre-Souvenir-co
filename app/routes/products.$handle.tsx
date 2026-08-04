@@ -287,8 +287,8 @@ export default function ProductPage() {
               <span className="product-price-was">{formatMoney(compareAt)}</span>
             )}
             <span className="product-price-note">
-              {variant ? 'In your market' : 'From'} · Comfort Colors 1717 ·
-              collect 2 save 15%
+              {variant ? 'USD' : 'From, USD'} · Comfort Colors 1717 · collect 2
+              save 15%
             </span>
           </div>
 

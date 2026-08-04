@@ -4,7 +4,6 @@ import {
   DISPLAY_PRICE,
   localeFor,
   PRICE,
-  PRICE_US,
   TIER_LABELS,
   type Region,
   type TownProduct,
@@ -15,7 +14,7 @@ import {
  * landing page for "[city] t-shirt" — title tag, meta description, H1,
  * alt text, and structured data are all derived from the town fields, so
  * a new SKU is fully SEO-complete on creation with zero manual work.
- * Prices read "$36" everywhere — CAD in Canada, USD in the US (parity).
+ * Prices are $36 USD to both countries — see PRICE in catalog/types.
  */
 
 export const SITE_NAME = 'Mediocre Souvenir Co.';
@@ -103,24 +102,19 @@ export function townJsonLd(town: TownProduct, origin: string) {
       {'@type': 'PropertyValue', name: 'Country', value: town.country},
       {'@type': 'PropertyValue', name: 'Population tier', value: TIER_LABELS[town.populationTier]},
     ],
-    offers: [
-      {
-        '@type': 'Offer',
-        price: PRICE.amount,
-        priceCurrency: PRICE.currencyCode,
-        availability: 'https://schema.org/InStock',
-        eligibleRegion: {'@type': 'Country', name: 'CA'},
-        url,
-      },
-      {
-        '@type': 'Offer',
-        price: PRICE_US.amount,
-        priceCurrency: PRICE_US.currencyCode,
-        availability: 'https://schema.org/InStock',
-        eligibleRegion: {'@type': 'Country', name: 'US'},
-        url,
-      },
-    ],
+    // One offer, because there is one currency. Advertising a CAD price the
+    // checkout will not honour is how a store earns a Merchant Center strike.
+    offers: {
+      '@type': 'Offer',
+      price: PRICE.amount,
+      priceCurrency: PRICE.currencyCode,
+      availability: 'https://schema.org/InStock',
+      eligibleRegion: [
+        {'@type': 'Country', name: 'CA'},
+        {'@type': 'Country', name: 'US'},
+      ],
+      url,
+    },
   };
 }
 

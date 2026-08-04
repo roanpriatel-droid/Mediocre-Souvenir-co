@@ -59,8 +59,10 @@ Tagline: **Genuine Merch for Overlooked Places** · Est. 2026 · North America
 - Blank: **Comfort Colors 1717** garment-dyed heavyweight — the blank does
   the faded-vintage work. Never substitute a standard Bella+Canvas.
 - Unisex S–3XL. Colorways: Ivory, Butter, Blue Jean, Brick, Sage.
-- Price: **$36 CAD / $36 USD** (parity). Ladder: 2+ save 15%, 3+ save 20%,
-  automatic, mix-and-match, no code.
+- Price: **$36 USD** to both countries — the store's currency is USD and USD
+  is its only presentment currency, so a Canadian buyer is billed in USD.
+  Say "USD" wherever a figure appears; "$36" reads as CAD in Canada.
+  Ladder: 2+ save 15%, 3+ save 20%, automatic, mix-and-match, no code.
 - Three shirt templates: **A Classic Varsity** (arched town, landmark, est.
   year) · **B Retro Postcard** ("greetings from…", souvenir stripe) ·
   **C Faded Slogan** (one deadpan line at 88% ink).

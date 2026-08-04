@@ -18,7 +18,7 @@ export const meta: Route.MetaFunction = ({data}) => [
     name: 'description',
     content:
       'We ship everywhere, even places nicer than the ones on our shirts. ' +
-      'Printed to order in 5–10 business days, free over $60, and 30-day ' +
+      'Printed to order in 5–10 business days, free over $60 USD, and 30-day ' +
       'returns with no interrogation.',
   },
   ...(data
@@ -38,7 +38,7 @@ export async function loader({request}: Route.LoaderArgs) {
 
 /** The four numbers people actually came for. */
 const FACTS = [
-  ['Free', 'Shipping over $60'],
+  ['Free', 'Shipping over $60 USD'],
   ['5–10', 'Business days to print'],
   ['3–8', 'Business days in transit'],
   ['30', 'Days to send it back'],
@@ -71,7 +71,7 @@ const RATES = [
   {
     name: 'Standard · Canada or the US',
     price: 'Free over $60',
-    note: 'Under $60 it is a flat $6.95 — the same number in both currencies, shown before you pay. Three to eight business days once the shirt is printed.',
+    note: 'Under $60 it is a flat $6.95, shown before you pay. Three to eight business days once the shirt is printed. Prices and thresholds are in US dollars, in both countries.',
   },
   {
     name: 'Cross-border',
@@ -79,9 +79,9 @@ const RATES = [
     note: 'Six to twelve business days, customs permitting. Where a carrier collects duties or import fees they are the recipient’s. We do not mark parcels as gifts and we do not understate their value.',
   },
   {
-    name: 'Express',
-    price: 'Quoted at checkout',
-    note: 'Two to three business days in transit, where the carrier offers it. Printing time is unchanged; nothing makes the press go faster.',
+    name: 'One speed',
+    price: 'No express',
+    note: 'There is no expedited option, because the honest bottleneck is the press, not the post. Five to ten business days to print is the floor no carrier can move.',
   },
 ];
 
@@ -123,7 +123,7 @@ const FAQS = [
   },
   {
     q: 'How much is shipping?',
-    a: 'Free on orders over $60 in Canada and the United States — which is two shirts once the multi-town discount applies. Below that, a flat $6.95, the same rate to both countries.',
+    a: 'Free on orders over $60 in Canada and the United States — which is two shirts once the multi-town discount applies. Below that, a flat $6.95, the same rate to both countries. The store prices in US dollars, so a Canadian order is charged in USD too.',
   },
   {
     q: 'How long until it arrives?',
@@ -279,7 +279,7 @@ export default function ShippingReturns() {
               <p>
                 Free shipping is two shirts. Two shirts is 15% off anyway — the
                 ladder applies automatically, mix-and-match, no code to
-                remember.
+                remember. Every figure on this page is US dollars.
               </p>
               <Link className="msc-button msc-button--navy" to="/shop">
                 Pick a town

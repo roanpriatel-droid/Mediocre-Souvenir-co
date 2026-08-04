@@ -166,7 +166,7 @@ const INCLUDED = [
     p: 'No interrogation, no restocking fee, no form asking you to rate your disappointment out of five. Size exchanges work the same way.',
   },
   {
-    h: 'Free shipping over $60',
+    h: 'Free shipping over $60 USD',
     p: 'Canada and the United States, which is two shirts and change — and two shirts is where the discount starts anyway.',
   },
   {

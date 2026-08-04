@@ -64,13 +64,15 @@ export interface Region {
 }
 
 /**
- * Currency parity: $36 CAD in Canada, $36 USD in the US, one "$36" promise
- * everywhere. Shopify Markets enforces the per-market currency at checkout
- * (see README LAUNCH TODO); these constants drive display and JSON-LD.
+ * One price, one currency: $36 USD to both markets. The store's currency is
+ * USD and USD is its only presentment currency, so a Canadian buyer is quoted
+ * and charged US dollars too — say so wherever a number appears, because "$36"
+ * reads as CAD in Canada and a surprise at checkout is how you earn a
+ * chargeback. (Selling CAD at home would mean changing the shop currency and
+ * adding a fixed-price USD catalogue for the US market.)
  */
-export const PRICE = {amount: '36.00', currencyCode: 'CAD'} as const;
-export const PRICE_US = {amount: '36.00', currencyCode: 'USD'} as const;
-export const DISPLAY_PRICE = '$36';
+export const PRICE = {amount: '36.00', currencyCode: 'USD'} as const;
+export const DISPLAY_PRICE = '$36 USD';
 
 export function localeFor(country: Region['country']): string {
   return country === 'United States' ? 'en-US' : 'en-CA';
