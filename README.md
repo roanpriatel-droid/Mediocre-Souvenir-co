@@ -93,4 +93,5 @@ Follow steps 1 and 2 of the
 - [ ] Swap `app/lib/submissions.ts` in-memory store for a durable backend (Klaviyo / Shopify customer tags / KV) — town requests, Postcards signups, and contact messages currently persist only in Oxygen logs
 - [ ] Replace placeholder logo SVGs in `app/components/Brand.tsx` with the committed brand assets
 - [ ] Verify Certificate of Souvenir facts (population, est. year, known-for) per town before printing
-- [ ] Set real contact email + Instagram handles (placeholders: hello@mediocresouvenir.co, @mediocresouvenirco)
+- [ ] Set real Instagram handle (placeholder: @mediocresouvenirco). Contact email is
+      mediocresouvenir@stratosync.solutions — live, Microsoft 365 MX.

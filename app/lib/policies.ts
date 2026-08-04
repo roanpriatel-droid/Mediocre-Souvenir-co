@@ -40,7 +40,7 @@ export const POLICY_UPDATED = '2026-08-04';
 
 export const POLICY_UPDATED_LABEL = 'August 4, 2026';
 
-export const SUPPORT_EMAIL = 'hello@mediocresouvenir.co';
+export const SUPPORT_EMAIL = 'mediocresouvenir@stratosync.solutions';
 
 const shipping: PolicyDoc = {
   handle: 'shipping-policy',

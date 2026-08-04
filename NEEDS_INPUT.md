@@ -15,8 +15,8 @@ placeholders/omissions resolve.
    Printify routing before launch.
 5. **Real review/UGC content** — guest book and Spotted in the Wild are
    structurally ready, honestly empty.
-6. **Contact email + Instagram** — placeholders: hello@mediocresouvenir.co,
-   @mediocresouvenirco.
+6. **Instagram** — placeholder: @mediocresouvenirco. (Contact email settled:
+   mediocresouvenir@stratosync.solutions.)
 7. **Town facts** — populations / est. years / known-for lines are
    researched approximations; verify per town before printing certificates.
 8. **Email marketing backend** — submissions store is in-memory + Oxygen
@@ -32,8 +32,8 @@ placeholders/omissions resolve.
    into Shopify admin and the routes prefer that copy automatically.
 10. **Support inbox routing** — the contact form files messages under a
     topic (order / sizing / town-correction / wholesale / other). Whoever
-    reads `hello@mediocresouvenir.co` needs a rule per topic, and the
-    two-business-day reply promise on the page needs someone behind it.
+    reads `mediocresouvenir@stratosync.solutions` needs a rule per topic, and
+    the two-business-day reply promise on the page needs someone behind it.
 11. **Analytics destination** — `app/lib/analytics.ts` pushes events to
    `window.dataLayer` (view_item, add_to_cart, begin_checkout,
    newsletter_signup). Connect GTM / a pixel to consume them.
