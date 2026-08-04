@@ -36,9 +36,9 @@ export interface PolicyDoc {
 }
 
 /** When these documents were last written. Shown on every policy page. */
-export const POLICY_UPDATED = '2026-07-25';
+export const POLICY_UPDATED = '2026-08-04';
 
-export const POLICY_UPDATED_LABEL = 'July 25, 2026';
+export const POLICY_UPDATED_LABEL = 'August 4, 2026';
 
 export const SUPPORT_EMAIL = 'hello@mediocresouvenir.co';
 
@@ -56,11 +56,15 @@ const shipping: PolicyDoc = {
     'and the US.',
   sections: [
     {
-      heading: 'Where we ship',
+      heading: 'Where we ship, and where from',
       paragraphs: [
         'We ship to street addresses in Canada and the United States. We do not ' +
           'currently ship anywhere else, which is consistent with a company that ' +
           'makes souvenirs for places most people drive past.',
+        'Every shirt is printed and dispatched from our print partner in Dania ' +
+          'Beach, Florida. A US order therefore stays inside the country; a ' +
+          'Canadian order is an import, with the border time and border charges ' +
+          'that implies. See "Duties and taxes" below.',
       ],
     },
     {
@@ -72,8 +76,8 @@ const shipping: PolicyDoc = {
       ],
       bullets: [
         'Printing: 5–10 business days from the time the order is placed.',
-        'Standard transit: 3–8 business days within Canada or within the US.',
-        'Cross-border transit: 6–12 business days, customs permitting.',
+        'Transit within the US: 3–8 business days.',
+        'Transit into Canada: 6–12 business days, customs permitting.',
       ],
     },
     {
@@ -93,12 +97,15 @@ const shipping: PolicyDoc = {
     {
       heading: 'Duties and taxes',
       paragraphs: [
-        'Orders are printed and dispatched within North America, so a Canadian ' +
-          'order shipping inside Canada and a US order shipping inside the US ' +
-          'clear no border. Applicable sales tax is calculated at checkout.',
-        'On the occasional cross-border parcel, the recipient is responsible for ' +
-          'any duties or import fees the carrier collects. We do not mark parcels ' +
-          'as gifts and we do not understate their value.',
+        'A US order ships within the US and clears no border. We are not ' +
+          'currently registered to collect sales tax, so none is added at ' +
+          'checkout.',
+        'A Canadian order is imported from the United States. The carrier may ' +
+          'collect GST or HST, and its own handling or brokerage fee, before it ' +
+          'releases the parcel. Those charges are the recipient\'s, they are not ' +
+          'ours to waive, and they are the reason this paragraph exists rather ' +
+          'than a surprise at your door. We do not mark parcels as gifts and we ' +
+          'do not understate their value.',
       ],
     },
     {

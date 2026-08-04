@@ -40,7 +40,7 @@ export async function loader({request}: Route.LoaderArgs) {
 const FACTS = [
   ['Free', 'Shipping over $60 USD'],
   ['5–10', 'Business days to print'],
-  ['3–8', 'Business days in transit'],
+  ['3–12', 'Business days in transit'],
   ['30', 'Days to send it back'],
 ];
 
@@ -57,8 +57,8 @@ const ROUTE_STOPS = [
   },
   {
     label: 'In transit',
-    when: '3–8 days',
-    note: 'Standard post, within Canada or within the US. Tracking is emailed when the carrier takes it.',
+    when: '3–12 days',
+    note: 'Standard post from Florida — three to eight business days inside the US, six to twelve into Canada. Tracking is emailed when the carrier takes it.',
   },
   {
     label: 'It arrives',
@@ -74,9 +74,9 @@ const RATES = [
     note: 'Under $60 it is a flat $6.95, shown before you pay. Three to eight business days once the shirt is printed. Prices and thresholds are in US dollars, in both countries.',
   },
   {
-    name: 'Cross-border',
+    name: 'Into Canada · the border',
     price: 'Same rates',
-    note: 'Six to twelve business days, customs permitting. Where a carrier collects duties or import fees they are the recipient’s. We do not mark parcels as gifts and we do not understate their value.',
+    note: 'The shirts are printed in Dania Beach, Florida, so a Canadian parcel is an import. Six to twelve business days, customs permitting, and the carrier may collect GST/HST and a handling fee on delivery — those are the recipient’s. We do not mark parcels as gifts and we do not understate their value.',
   },
   {
     name: 'One speed',
@@ -127,11 +127,11 @@ const FAQS = [
   },
   {
     q: 'How long until it arrives?',
-    a: 'Five to ten business days to print, then three to eight in transit within Canada or within the US. Cross-border runs six to twelve, customs permitting. Orders placed on a weekend or a statutory holiday start their clock on the next business day.',
+    a: 'Five to ten business days to print, then three to eight in transit inside the US. Canadian orders cross the border from Florida, so allow six to twelve. Orders placed on a weekend or a statutory holiday start their clock on the next business day.',
   },
   {
     q: 'Where does it ship from?',
-    a: 'Printed to order in North America and dispatched from somewhere unremarkable, which we consider on brand.',
+    a: 'A print shop in Dania Beach, Florida — an unremarkable place, which we consider on brand. Everything ships from there, including the Canadian orders.',
   },
   {
     q: 'I typed my address wrong.',
@@ -151,7 +151,7 @@ const FAQS = [
   },
   {
     q: 'Will I pay duties?',
-    a: 'A Canadian order shipping inside Canada and a US order shipping inside the US clear no border, so there are none. Applicable sales tax is calculated at checkout. On the occasional cross-border parcel, any duties the carrier collects are the recipient’s.',
+    a: 'A US order never leaves the country, so no. A Canadian order does: it ships from Florida, and the carrier may collect GST/HST and a handling fee before it hands the parcel over. That charge is the recipient’s and we cannot waive it. We would rather say this here than let a courier say it at your door.',
   },
 ];
 

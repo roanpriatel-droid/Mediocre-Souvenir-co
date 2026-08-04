@@ -46,7 +46,7 @@ const FAQS = [
   },
   {
     q: 'Where does it actually come from?',
-    a: 'Somewhere unremarkable in North America. We would tell you the town but it is not on the rack yet either, which we recognise is a little embarrassing given the entire premise.',
+    a: 'Dania Beach, Florida — a town that is not on the rack yet either, which we recognise is a little embarrassing given the entire premise. Canadian orders therefore cross the border; the shipping page explains what that means for timing and any charges the carrier collects.',
   },
 ];
 
