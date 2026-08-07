@@ -25,7 +25,10 @@ type ActionData =
   | {ok: true; town: string}
   | {ok: false; error: string};
 
-export async function action({request}: Route.ActionArgs): Promise<ActionData> {
+export async function action({
+  request,
+  context,
+}: Route.ActionArgs): Promise<ActionData> {
   const form = await request.formData();
   const town = String(form.get('town') ?? '').trim();
   const provinceState = String(form.get('provinceState') ?? '').trim();
@@ -40,7 +43,7 @@ export async function action({request}: Route.ActionArgs): Promise<ActionData> {
   }
 
   const submittedAt = new Date().toISOString();
-  const store = getSubmissionStore();
+  const store = getSubmissionStore(context.env);
 
   // Two things happen here, and both matter. The request is the product
   // pipeline — it decides what gets printed next. The subscriber record is the

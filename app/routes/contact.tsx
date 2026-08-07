@@ -39,7 +39,10 @@ const VALID_TOPICS = new Set<string>(TOPICS.map((topic) => topic.value));
 
 type ActionData = {ok: true; name: string} | {ok: false; error: string};
 
-export async function action({request}: Route.ActionArgs): Promise<ActionData> {
+export async function action({
+  request,
+  context,
+}: Route.ActionArgs): Promise<ActionData> {
   const form = await request.formData();
 
   // Honeypot: a field no person sees and every naive bot fills in. Accept the
@@ -70,7 +73,7 @@ export async function action({request}: Route.ActionArgs): Promise<ActionData> {
     };
   }
 
-  await getSubmissionStore().addMessage({
+  await getSubmissionStore(context.env).addMessage({
     name,
     email,
     topic: (VALID_TOPICS.has(topicRaw) ? topicRaw : 'other') as MessageTopic,

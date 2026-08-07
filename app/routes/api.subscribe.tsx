@@ -8,7 +8,7 @@ import {getRegion} from '~/lib/catalog';
  * and stored as a tag, so the waitlist can be segmented by province or state
  * when it is wired to a real ESP.
  */
-export async function action({request}: Route.ActionArgs) {
+export async function action({request, context}: Route.ActionArgs) {
   const form = await request.formData();
   const email = String(form.get('email') ?? '').trim();
   const source = String(form.get('source') ?? 'unknown');
@@ -28,7 +28,7 @@ export async function action({request}: Route.ActionArgs) {
     }`, 'waitlist');
   }
 
-  await getSubmissionStore().addSubscriber({
+  await getSubmissionStore(context.env).addSubscriber({
     email,
     source,
     region: region?.slug,
