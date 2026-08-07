@@ -14,7 +14,7 @@ import {
  * landing page for "[city] t-shirt" — title tag, meta description, H1,
  * alt text, and structured data are all derived from the town fields, so
  * a new SKU is fully SEO-complete on creation with zero manual work.
- * Prices are $36 USD to both countries — see PRICE in catalog/types.
+ * Prices are $36 USD everywhere — see PRICE in catalog/types.
  */
 
 export const SITE_NAME = 'Mediocre Souvenir Co.';
@@ -29,7 +29,7 @@ export function townDescription(town: TownProduct): string {
     `A genuine faux-vintage ${town.city}, ${town.provinceState} souvenir t-shirt. ` +
     `${town.knownFor}. Garment-dyed Comfort Colors 1717 heavyweight cotton, ` +
     `printed with the respect a town of ${town.population.toLocaleString(localeFor(town.country))} deserves. ` +
-    `${DISPLAY_PRICE} — collect 2 and save 15%. Ships across Canada and the US.`
+    `${DISPLAY_PRICE} — collect 2 and save 15%. Ships worldwide from the US.`
   );
 }
 
@@ -109,10 +109,11 @@ export function townJsonLd(town: TownProduct, origin: string) {
       price: PRICE.amount,
       priceCurrency: PRICE.currencyCode,
       availability: 'https://schema.org/InStock',
-      eligibleRegion: [
-        {'@type': 'Country', name: 'CA'},
-        {'@type': 'Country', name: 'US'},
-      ],
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingDestination: {'@type': 'DefinedRegion', addressCountry: ['CA', 'US']},
+        shippingRate: {'@type': 'MonetaryAmount', value: '6.95', currency: 'USD'},
+      },
       url,
     },
   };

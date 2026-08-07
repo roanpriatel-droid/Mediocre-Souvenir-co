@@ -197,7 +197,7 @@ export function buildDescription(
     copy.tourism,
     `A ${SPEC_LINES[1][1]} on a ${SPEC_LINES[0][1]}. ${SPEC_LINES[2][1]}.`,
     CARE_LINES[0],
-    region ? `Ships across Canada and the United States.` : '',
+    region ? `Ships worldwide. Free over $60 in Canada and the US.` : '',
   ]
     .filter(Boolean)
     .join(' ');

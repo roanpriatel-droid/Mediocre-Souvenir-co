@@ -58,12 +58,13 @@ const shipping: PolicyDoc = {
     {
       heading: 'Where we ship, and where from',
       paragraphs: [
-        'We ship to street addresses in Canada and the United States. We do not ' +
-          'currently ship anywhere else, which is consistent with a company that ' +
-          'makes souvenirs for places most people drive past.',
+        'We ship to street addresses in 235 countries. The shirts commemorate ' +
+          'North American towns, but we will post one to anywhere the mail ' +
+          'goes, which we recognise is a strange service to offer and offer ' +
+          'anyway.',
         'Every shirt is printed and dispatched from our print partner in Dania ' +
-          'Beach, Florida. A US order therefore stays inside the country; a ' +
-          'Canadian order is an import, with the border time and border charges ' +
+          'Beach, Florida. A US order therefore stays inside the country; every ' +
+          'other order is an import, with the border time and border charges ' +
           'that implies. See "Duties and taxes" below.',
       ],
     },
@@ -78,6 +79,7 @@ const shipping: PolicyDoc = {
         'Printing: 5–10 business days from the time the order is placed.',
         'Transit within the US: 3–8 business days.',
         'Transit into Canada: 6–12 business days, customs permitting.',
+        'Transit everywhere else: 13–35 business days, customs permitting.',
       ],
     },
     {
@@ -89,7 +91,9 @@ const shipping: PolicyDoc = {
     {
       heading: 'What it costs',
       bullets: [
-        'Free standard shipping on orders over $60 in Canada and the United States; a flat $6.95 below that. Both figures, like every price on this store, are US dollars.',
+        'Canada and the United States: free standard shipping on orders over $60, and a flat $6.95 below that.',
+        'Everywhere else: $10 for the first shirt and $4 for each additional shirt. The free-shipping threshold does not apply outside North America.',
+        'Every figure on this store, shipping included, is US dollars.',
         'The rate is shown at checkout before you pay.',
         'There is one shipping speed. We offer no expedited option, because printing sets the floor and no carrier can move it.',
       ],
@@ -100,12 +104,14 @@ const shipping: PolicyDoc = {
         'A US order ships within the US and clears no border. We are not ' +
           'currently registered to collect sales tax, so none is added at ' +
           'checkout.',
-        'A Canadian order is imported from the United States. The carrier may ' +
-          'collect GST or HST, and its own handling or brokerage fee, before it ' +
-          'releases the parcel. Those charges are the recipient\'s, they are not ' +
-          'ours to waive, and they are the reason this paragraph exists rather ' +
-          'than a surprise at your door. We do not mark parcels as gifts and we ' +
-          'do not understate their value.',
+        'Every other order is imported from the United States. A Canadian ' +
+          'parcel may be charged GST or HST; a parcel anywhere else may be ' +
+          'charged VAT, duty, or both. Carriers add their own handling or ' +
+          'brokerage fee on top and collect before releasing the parcel. Those ' +
+          'charges are the recipient\'s, they are not ours to waive, they are ' +
+          'not included in what you pay us, and they are the reason this ' +
+          'paragraph exists rather than a surprise at your door. We do not mark ' +
+          'parcels as gifts and we do not understate their value.',
       ],
     },
     {
@@ -346,7 +352,7 @@ const terms: PolicyDoc = {
     {
       heading: 'Pricing and the discount ladder',
       bullets: [
-        'Shirts are $36 USD, to Canada and the United States alike. The store prices, charges, and refunds in US dollars; a Canadian card is billed in USD and your bank applies its own conversion.',
+        'Shirts are $36 USD everywhere we ship. The store prices, charges, and refunds in US dollars; a card issued elsewhere is billed in USD and your bank applies its own conversion.',
         'Two or more shirts save 15%; three or more save 20%. It applies automatically at checkout, mixes and matches across any towns, and needs no code.',
         'Prices exclude tax and shipping, both shown before you pay.',
         'Prices can change, but never for an order already confirmed.',

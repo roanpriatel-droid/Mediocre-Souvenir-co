@@ -49,8 +49,9 @@ export const meta: Route.MetaFunction = () => [
     name: 'description',
     content:
       'Faux-vintage souvenir t-shirts for overlooked towns across Canada and ' +
-      'the US. Sixty-three regions, one rack each, and a certificate that ' +
-      'claims nothing. Souvenirs from places you have technically been.',
+      'the US, shipped worldwide. Sixty-three regions, one rack each, and a ' +
+      'certificate that claims nothing. Souvenirs from places you have ' +
+      'technically been.',
   },
   {property: 'og:title', content: `${SITE_NAME} — ${SITE_TAGLINE}`},
   {

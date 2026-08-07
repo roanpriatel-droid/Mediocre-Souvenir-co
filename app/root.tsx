@@ -194,8 +194,8 @@ export function Layout({children}: {children?: React.ReactNode}) {
               description:
                 'Faux-vintage souvenir t-shirts for overlooked towns across ' +
                 'Canada and the US, made with the reverence a Hawaii gift ' +
-                'shop would use.',
-              areaServed: ['CA', 'US'],
+                'shop would use. Shipped worldwide.',
+              areaServed: 'Worldwide',
               sameAs: ['https://instagram.com/mediocresouvenirco'],
             }),
           }}

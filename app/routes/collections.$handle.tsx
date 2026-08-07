@@ -224,7 +224,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       seo: {
         title: `${titleForHandle(handle)} | ${SITE_NAME}`,
         description:
-          'Faux-vintage souvenir t-shirts for overlooked towns across Canada and the US.',
+          'Faux-vintage souvenir t-shirts for overlooked towns across Canada and the US. Ships worldwide.',
         canonical: `${origin}/collections/${handle}`,
       },
     };

@@ -37,7 +37,7 @@ const MARQUEE_ITEMS = [
   'NEW TOWNS WEEKLY',
   'GENUINE SOUVENIR',
   'FREE SHIPPING $60+ USD',
-  'CANADA & USA',
+  'NOW SHIPPING WORLDWIDE',
 ];
 
 export function MarqueeStrip({variant}: {variant?: 'mustard'}) {
@@ -66,7 +66,7 @@ const TRUST_ITEMS = [
   },
   {
     title: 'Free shipping over $60',
-    note: 'Canada and the US, in US dollars. The mail knows where your town is.',
+    note: 'In Canada and the US, in US dollars. Worldwide from $10.',
   },
   {
     title: 'Secure checkout',

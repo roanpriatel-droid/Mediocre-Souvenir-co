@@ -40,7 +40,7 @@ export async function loader({request}: Route.LoaderArgs) {
 const FACTS = [
   ['Free', 'Shipping over $60 USD'],
   ['5–10', 'Business days to print'],
-  ['3–12', 'Business days in transit'],
+  ['3–35', 'Business days in transit'],
   ['30', 'Days to send it back'],
 ];
 
@@ -58,7 +58,7 @@ const ROUTE_STOPS = [
   {
     label: 'In transit',
     when: '3–12 days',
-    note: 'Standard post from Florida — three to eight business days inside the US, six to twelve into Canada. Tracking is emailed when the carrier takes it.',
+    note: 'Standard post from Florida — three to eight business days inside the US, six to twelve into Canada, thirteen to thirty-five for the rest of the world. Tracking is emailed when the carrier takes it.',
   },
   {
     label: 'It arrives',
@@ -77,6 +77,11 @@ const RATES = [
     name: 'Into Canada · the border',
     price: 'Same rates',
     note: 'The shirts are printed in Dania Beach, Florida, so a Canadian parcel is an import. Six to twelve business days, customs permitting, and the carrier may collect GST/HST and a handling fee on delivery — those are the recipient’s. We do not mark parcels as gifts and we do not understate their value.',
+  },
+  {
+    name: 'Everywhere else',
+    price: 'From $10',
+    note: 'We ship worldwide from Florida: $10 for the first shirt and $4 for each one after it, quoted at checkout. Allow 13 to 35 business days, and expect your country to want its VAT or duty before the carrier hands the parcel over. The free-shipping threshold is a North American arrangement and does not apply.',
   },
   {
     name: 'One speed',
@@ -119,19 +124,19 @@ const NOT_A_DEFECT = [
 const FAQS = [
   {
     q: 'Do you ship to somewhere nicer than the towns on the shirts?',
-    a: 'Yes. We ship to street addresses anywhere in Canada and the United States, including places with actual tourism. The shirt will not comment on your surroundings.',
+    a: 'Yes. We ship to street addresses in 235 countries, including every one with actual tourism. The shirt will not comment on your surroundings.',
   },
   {
     q: 'How much is shipping?',
-    a: 'Free on orders over $60 in Canada and the United States — which is two shirts once the multi-town discount applies. Below that, a flat $6.95, the same rate to both countries. The store prices in US dollars, so a Canadian order is charged in USD too.',
+    a: 'In Canada and the United States: free over $60 — two shirts, once the multi-town discount applies — and a flat $6.95 below that. Everywhere else: $10 for the first shirt and $4 for each one after. Every figure is US dollars, so a Canadian order is charged in USD too.',
   },
   {
     q: 'How long until it arrives?',
-    a: 'Five to ten business days to print, then three to eight in transit inside the US. Canadian orders cross the border from Florida, so allow six to twelve. Orders placed on a weekend or a statutory holiday start their clock on the next business day.',
+    a: 'Five to ten business days to print, then transit: three to eight inside the US, six to twelve into Canada, thirteen to thirty-five for everywhere else. Orders placed on a weekend or a statutory holiday start their clock on the next business day.',
   },
   {
     q: 'Where does it ship from?',
-    a: 'A print shop in Dania Beach, Florida — an unremarkable place, which we consider on brand. Everything ships from there, including the Canadian orders.',
+    a: 'A print shop in Dania Beach, Florida — an unremarkable place, which we consider on brand. Everything ships from there, including the Canadian orders and the ones crossing an ocean.',
   },
   {
     q: 'I typed my address wrong.',
@@ -151,7 +156,7 @@ const FAQS = [
   },
   {
     q: 'Will I pay duties?',
-    a: 'A US order never leaves the country, so no. A Canadian order does: it ships from Florida, and the carrier may collect GST/HST and a handling fee before it hands the parcel over. That charge is the recipient’s and we cannot waive it. We would rather say this here than let a courier say it at your door.',
+    a: 'A US order never leaves the country, so no. Everything else does — it all ships from Florida. A Canadian parcel may be charged GST/HST and a handling fee; parcels elsewhere may be charged VAT, duty, or both. Those are the recipient’s, we cannot waive them, and they are not included in what you pay us. We would rather say this here than let a courier say it at your door.',
   },
 ];
 
@@ -173,10 +178,11 @@ export default function ShippingReturns() {
               returns.
             </h1>
             <p className="ship-lede">
-              We ship everywhere we can reach by road — Canada and the United
-              States, including the places nicer than the ones on our shirts.
-              Printed after you order it, posted from somewhere unremarkable,
-              and returnable for thirty days without an interview.
+              We ship worldwide — Canada, the United States, and 233 other
+              countries, including every one nicer than the towns on our
+              shirts. Printed after you order it, posted from somewhere
+              unremarkable, and returnable for thirty days without an
+              interview.
             </p>
             <nav className="ship-jump" aria-label="On this page">
               <a href="#ship-route">The route</a>
@@ -195,7 +201,7 @@ export default function ShippingReturns() {
               </div>
               <div>
                 <dt>To</dt>
-                <dd>Your town. Yes, that one.</dd>
+                <dd>Your town, wherever it is. Yes, that one.</dd>
               </div>
               <div>
                 <dt>Contents</dt>
@@ -242,8 +248,9 @@ export default function ShippingReturns() {
         </Reveal>
         <p className="ship-note">
           Orders placed on a weekend or a statutory holiday start their clock on
-          the next business day. Cross-border parcels run six to twelve days in
-          transit, customs permitting. Genuine takes time.
+          the next business day. Parcels into Canada run six to twelve days,
+          and the rest of the world thirteen to thirty-five, customs
+          permitting. Genuine takes time.
         </p>
       </section>
 
@@ -279,7 +286,9 @@ export default function ShippingReturns() {
               <p>
                 Free shipping is two shirts. Two shirts is 15% off anyway — the
                 ladder applies automatically, mix-and-match, no code to
-                remember. Every figure on this page is US dollars.
+                remember. The threshold is North American; elsewhere shipping
+                is $10 plus $4 a shirt. Every figure on this page is US
+                dollars.
               </p>
               <Link className="msc-button msc-button--navy" to="/shop">
                 Pick a town
