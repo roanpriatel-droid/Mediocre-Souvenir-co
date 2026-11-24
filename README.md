@@ -95,8 +95,9 @@ equivalent: `/blogs/*` → `/journal`, `/pages/:handle` → the real page,
 | Price | $36 on every variant |
 | Collect ladder | Automatic: "Collect two: 15% off" (2+), "Collect three or more: 20% off" (3+); best one applies, no stacking |
 | Welcome offer | Code `POSTCARDS10`: 10%, once per customer, does not stack with the ladder |
-| Shipping, CA & US | $6.95; free at $60+ |
-| Shipping, rest of world | $10 first shirt + $4 each additional (weight brackets at 0.22 lb per shirt, up to 20) |
+| Shipping, CA & US | Market shipping option, USD: $6.95, free at $60+ |
+| Shipping, rest of world | Market shipping option, USD, value tiers that map to shirt count: $10 for one, +$4 per additional. Tiers assume every shirt is $36; revisit them if prices change. |
+| Shipping profiles | Checkout reads the markets' shipping options, not delivery profiles. Printify publishes with its shipping template off, and any Printify profile is removed so its pass-through rates never reach checkout. |
 | Markets | Canada, United States, International (235 countries) |
 
 ## Oxygen environment variables
