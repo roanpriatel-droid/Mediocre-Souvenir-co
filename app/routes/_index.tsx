@@ -13,7 +13,6 @@ import {
   OrderIncludes,
   PrintCloseUps,
   PrintStyles,
-  TownSearchBlock,
 } from '~/components/HomeSections';
 import {StickyShopBar} from '~/components/StickyShopBar';
 import {SouvenirGrid, SouvenirGridSkeleton} from '~/components/SouvenirCard';
@@ -43,6 +42,7 @@ const STYLE_SHOT_HANDLES: Record<string, string> = {
   greetings: 'gander-nl-greetings',
   'i-heart': 'butte-mt-i-heart',
   tour: 'fargo-nd-tour',
+  gift: 'trail-bc-greetings',
 };
 
 const CLOSEUP_HANDLES = [
@@ -288,11 +288,6 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Reveal>
       </section>
 
-      {/* 2 · TYPE YOUR TOWN — the highest-intent action on the store */}
-      <section className="msc-section msc-page" aria-labelledby="find-town">
-        <TownSearchBlock total={totalProducts} />
-      </section>
-
       {/* 4 · THE REGION GRID — navigation and waitlist engine in one */}
       <section className="msc-section msc-page" aria-labelledby="browse-region">
         <div className="msc-section-rule">
@@ -332,7 +327,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         aria-labelledby="gift"
       >
         <Reveal>
-          <GiftBlock />
+          <GiftBlock shot={styleShots.gift} />
         </Reveal>
       </section>
 

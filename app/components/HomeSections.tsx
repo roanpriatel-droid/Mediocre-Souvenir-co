@@ -361,9 +361,34 @@ export function PrintCloseUps({
  * 8 · The gift case
  * ------------------------------------------------------------------ */
 
-export function GiftBlock() {
+export function GiftBlock({
+  shot,
+}: {
+  shot?: {
+    url: string;
+    altText?: string | null;
+    width?: number | null;
+    height?: number | null;
+  } | null;
+}) {
   return (
-    <div className="home-gift">
+    <div className="home-gift" data-shot={shot ? '' : undefined}>
+      {shot ? (
+        <Link
+          className="home-gift-photo"
+          to="/towns/trail-bc"
+          prefetch="intent"
+        >
+          <Image
+            data={shot}
+            alt="Trail, BC souvenir t-shirt, worn"
+            aspectRatio="4/5"
+            sizes="(min-width: 1000px) 420px, 90vw"
+            loading="lazy"
+          />
+          <span>Trail, BC</span>
+        </Link>
+      ) : null}
       <div className="home-gift-copy">
         <span className="msc-kicker">For someone from there</span>
         <h2 id="gift">
@@ -383,8 +408,11 @@ export function GiftBlock() {
           <Link className="msc-button" to="/towns">
             Find their town
           </Link>
-          <Link className="msc-button msc-button--ghost" to="/certificate">
-            What&rsquo;s in the box
+          <Link
+            className="msc-button msc-button--ghost"
+            to="/postcards/gifts-for-someone-who-moved-away-from-home"
+          >
+            The gift guide
           </Link>
         </div>
       </div>

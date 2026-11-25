@@ -7770,3 +7770,150 @@ select:focus-visible,
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+/* The gift block, with a photo of the shirt it is talking about. */
+.home-gift-photo {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #ebe4d3;
+  text-decoration: none;
+}
+
+.home-gift-photo img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  object-position: 50% 25%;
+}
+
+.home-gift-photo span {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 5px 9px 4px;
+  background: var(--msc-cream);
+  color: var(--msc-navy);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+@media (min-width: 1000px) {
+  .home-gift[data-shot] {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 0.9fr);
+    gap: 40px;
+  }
+}
+
+@media (max-width: 999px) {
+  .home-gift[data-shot] {
+    grid-template-columns: 1fr;
+  }
+
+  .home-gift-photo {
+    max-width: 420px;
+  }
+}
+
+/* ==========================================================================
+   Softer information blocks. Hard offset shadows stay on buttons and stamps,
+   where they read as print; on every panel at once they made the page look
+   like a stack of boxes.
+   ========================================================================== */
+.home-step,
+.home-gift-list,
+.home-includes,
+.postcard-teaser,
+.collect-ladder {
+  box-shadow: none !important;
+  border: 1px solid rgba(28, 28, 28, 0.2) !important;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.collect-ladder-tiers,
+.collect-ladder-tier {
+  border-color: rgba(28, 28, 28, 0.2) !important;
+}
+
+.home-step-n {
+  opacity: 0.55;
+}
+
+/* ==========================================================================
+   Region browse as a directory list: name and count on a dotted leader, in
+   columns, instead of 63 boxed cards with badges.
+   ========================================================================== */
+.region-browse .region-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 28px;
+}
+
+@media (min-width: 760px) {
+  .region-browse .region-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .region-browse .region-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.region-browse .region-card {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 0;
+  padding: 11px 0;
+  border: none;
+  border-bottom: 1px dashed rgba(28, 28, 28, 0.28);
+  box-shadow: none;
+  background: transparent;
+  transform: none;
+}
+
+.region-browse .region-card:hover {
+  background: transparent;
+  transform: none;
+  box-shadow: none;
+}
+
+.region-browse .region-card-name {
+  font-size: 17px;
+  line-height: 1.2;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.region-browse .region-card:hover .region-card-name {
+  color: var(--msc-brick-ink);
+}
+
+.region-browse .region-card-count {
+  margin: 0;
+  flex: none;
+}
+
+.region-browse .region-card-badge {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: rgba(28, 28, 28, 0.6);
+  box-shadow: none;
+}
+
+.region-browse .region-card--request {
+  border-bottom-style: solid;
+  border-bottom-color: var(--msc-brick);
+}
+
+.region-browse .region-card--request .region-card-name {
+  color: var(--msc-brick-ink);
+}
