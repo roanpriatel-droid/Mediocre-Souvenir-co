@@ -5,6 +5,22 @@ import {getArticle, articleDate} from '~/lib/journal';
 import {productsByHandle} from '~/lib/shopify-search';
 import {SouvenirGrid} from '~/components/SouvenirCard';
 import {SITE_NAME} from '~/lib/seo';
+import {breadcrumbList} from '~/lib/schema';
+
+/** Paragraph text with [label](/path) turned into internal links. */
+function renderInline(text: string) {
+  const parts = text.split(/(\[[^\]]+\]\(\/[^)]*\))/g);
+  return parts.map((part, index) => {
+    const match = /^\[([^\]]+)\]\((\/[^)]*)\)$/.exec(part);
+    return match ? (
+      <Link key={index} to={match[2]}>
+        {match[1]}
+      </Link>
+    ) : (
+      part
+    );
+  });
+}
 
 export const meta: Route.MetaFunction = ({data}) => {
   if (!data?.article) return [{title: 'Not found'}];
@@ -52,9 +68,20 @@ export default function JournalArticle() {
             para.startsWith('## ') ? (
               <h2 key={i}>{para.slice(3)}</h2>
             ) : (
-              <p key={i}>{para}</p>
+              <p key={i}>{renderInline(para)}</p>
             ),
           )}
+          {article.faq?.length ? (
+            <section aria-labelledby="article-faq">
+              <h2 id="article-faq">Questions people ask</h2>
+              {article.faq.map((item) => (
+                <details key={item.q} className="msc-accordion">
+                  <summary>{item.q}</summary>
+                  <div className="msc-accordion-body">{item.a}</div>
+                </details>
+              ))}
+            </section>
+          ) : null}
           <span className="msc-marker">— the management</span>
         </div>
       </div>
@@ -80,12 +107,43 @@ export default function JournalArticle() {
             headline: article.title,
             description: article.dek,
             datePublished: article.date,
-            author: {'@type': 'Organization', name: SITE_NAME},
-            publisher: {'@type': 'Organization', name: SITE_NAME},
+            dateModified: article.date,
+            image: `${origin}/og-default.png`,
+            author: {'@id': `${origin}/#organization`},
+            publisher: {'@id': `${origin}/#organization`},
             mainEntityOfPage: `${origin}/postcards/${article.slug}`,
           }),
         }}
       />
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbList(origin, [
+              {name: 'Postcards From Nowhere', path: '/postcards'},
+              {name: article.title, path: `/postcards/${article.slug}`},
+            ]),
+          ),
+        }}
+      />
+      {article.faq?.length ? (
+        <script
+          type="application/ld+json"
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: article.faq.map((item) => ({
+                '@type': 'Question',
+                name: item.q,
+                acceptedAnswer: {'@type': 'Answer', text: item.a},
+              })),
+            }),
+          }}
+        />
+      ) : null}
     </article>
   );
 }

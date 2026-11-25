@@ -7426,3 +7426,8 @@ select:focus-visible,
     display: none;
   }
 }
+
+/* FAQ under a journal article */
+.msc-prose h2 + .msc-accordion {
+  margin-top: 14px;
+}
