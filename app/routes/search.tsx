@@ -1,4 +1,4 @@
-import {Form, Link, useLoaderData} from 'react-router';
+import {Form, Link, redirect, useLoaderData} from 'react-router';
 import type {Route} from './+types/search';
 import {SouvenirGrid} from '~/components/SouvenirCard';
 import {Reveal} from '~/components/Reveal';
@@ -8,6 +8,7 @@ import {type SouvenirCard} from '~/lib/shopify-collections';
 import {ARTICLES, type Article} from '~/lib/journal';
 import {searchSitePages, type SitePage} from '~/lib/site-pages';
 import {SITE_NAME} from '~/lib/seo';
+import {loadTowns, townPath, type Town} from '~/lib/towns';
 
 /**
  * Site search.
@@ -50,11 +51,35 @@ export async function loader({request, context}: Route.LoaderArgs) {
       regions: [] as Region[],
       articles: [] as Article[],
       pages: [] as SitePage[],
+      towns: [] as {slug: string; place: string}[],
       total: 0,
     };
   }
 
   const q = term.toLowerCase();
+
+  // Town names. Typing a town is the main thing people do here, so an exact,
+  // unambiguous match ("moose jaw", "Akron, OH", "akron oh") goes straight to
+  // that town's page; names shared by several towns are listed instead.
+  const normal = (text: string) =>
+    text.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim();
+  const wanted = normal(term);
+  const allTowns = [
+    ...(
+      await loadTowns(context.storefront).catch(() => new Map<string, Town>())
+    ).values(),
+  ];
+  const exact = allTowns.filter(
+    (town) => normal(town.name) === wanted || normal(town.place) === wanted,
+  );
+  if (exact.length === 1) throw redirect(townPath(exact[0].slug));
+  const towns = (
+    exact.length
+      ? exact
+      : allTowns.filter((town) => normal(town.place).includes(wanted))
+  )
+    .slice(0, 12)
+    .map((town) => ({slug: town.slug, place: town.place}));
 
   // Products come from the store. Regions, guides and the journal are this
   // site's own navigation and genuinely do live in the repo.
@@ -64,7 +89,8 @@ export async function loader({request, context}: Route.LoaderArgs) {
 
   const regions = REGIONS.filter(
     (region) =>
-      region.name.toLowerCase().includes(q) || region.abbrev.toLowerCase() === q,
+      region.name.toLowerCase().includes(q) ||
+      region.abbrev.toLowerCase() === q,
   ).slice(0, 6);
   const articles = ARTICLES.filter((article) =>
     `${article.title} ${article.dek} ${article.body.join(' ')}`
@@ -80,12 +106,18 @@ export async function loader({request, context}: Route.LoaderArgs) {
     regions,
     articles,
     pages,
-    total: products.length + regions.length + articles.length + pages.length,
+    towns,
+    total:
+      products.length +
+      regions.length +
+      articles.length +
+      pages.length +
+      towns.length,
   };
 }
 
 export default function SearchPage() {
-  const {term, products, totalCount, regions, articles, pages, total} =
+  const {term, products, totalCount, regions, articles, pages, towns, total} =
     useLoaderData<typeof loader>();
 
   return (
@@ -94,8 +126,8 @@ export default function SearchPage() {
         <span className="msc-kicker">The card catalog</span>
         <h1>Search</h1>
         <p className="province-copy">
-          Every souvenir in the shop, every region, and everything written
-          about them. Type a place — yours, ideally.
+          Every souvenir in the shop, every region, and everything written about
+          them. Type a place — yours, ideally.
         </p>
 
         <Form
@@ -149,6 +181,19 @@ export default function SearchPage() {
               </h2>
               <SouvenirGrid products={products} eagerCount={4} />
             </section>
+          )}
+
+          {towns.length > 0 && (
+            <ResultList title="Towns">
+              {towns.map((town) => (
+                <ResultRow
+                  key={town.slug}
+                  to={townPath(town.slug)}
+                  title={town.place}
+                  meta="Every print of this town"
+                />
+              ))}
+            </ResultList>
           )}
 
           {regions.length > 0 && (
@@ -232,8 +277,8 @@ function EmptyPrompt() {
         ))}
       </div>
       <p style={{marginTop: '18px', maxWidth: '52ch'}}>
-        Or start from the <Link to="/collections/all-souvenirs">full rack</Link>, the{' '}
-        <Link to="/collections">collections</Link>, or{' '}
+        Or start from the <Link to="/collections/all-souvenirs">full rack</Link>
+        , the <Link to="/collections">collections</Link>, or{' '}
         <Link to="/provinces">the map of where we have gotten to</Link>.
       </p>
     </div>
@@ -257,7 +302,10 @@ function NoResults({term}: {term: string}) {
         >
           Request {term}
         </Link>
-        <Link className="msc-button msc-button--ghost" to="/collections/all-souvenirs">
+        <Link
+          className="msc-button msc-button--ghost"
+          to="/collections/all-souvenirs"
+        >
           Browse all souvenirs
         </Link>
       </div>
@@ -280,7 +328,15 @@ function ResultList({
   );
 }
 
-function ResultRow({to, title, meta}: {to: string; title: string; meta: string}) {
+function ResultRow({
+  to,
+  title,
+  meta,
+}: {
+  to: string;
+  title: string;
+  meta: string;
+}) {
   return (
     <Link className="search-result-row" to={to} prefetch="intent">
       <span className="search-result-title">{title}</span>
