@@ -26,7 +26,8 @@ import {buyerCity, buyerRegion} from '~/lib/geo';
 import {ARTICLES} from '~/lib/journal';
 import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
 import {productsByHandle} from '~/lib/shopify-search';
-import {loadTowns} from '~/lib/towns';
+import {loadTowns, type Town} from '~/lib/towns';
+import {TownTicker} from '~/components/TownTicker';
 
 const HERO_HANDLES = [
   'scranton-pa-i-heart',
@@ -85,7 +86,7 @@ export async function loader({context, request}: Route.LoaderArgs) {
       productsByHandle(context.storefront, HERO_HANDLES),
       productsByHandle(context.storefront, Object.values(STYLE_SHOT_HANDLES)),
       loadDerivedCatalog(context.storefront),
-      loadTowns(context.storefront).catch(() => new Map<string, unknown>()),
+      loadTowns(context.storefront).catch(() => new Map<string, Town>()),
     ]);
 
   /*
@@ -127,6 +128,10 @@ export async function loader({context, request}: Route.LoaderArgs) {
       }),
     ),
     townCount: towns.size,
+    // Every sixteenth town, for the ticker: about forty, spread A to Z.
+    tickerTowns: [...towns.values()]
+      .filter((_, index) => index % 16 === 0)
+      .map((town) => ({slug: town.slug, place: town.place})),
     counts,
     spotlight: spotlight.products,
     spotlightTotal:
@@ -157,6 +162,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
     heroProducts,
     styleShots,
     townCount,
+    tickerTowns,
     counts,
     spotlight,
     spotlightTotal,
@@ -177,6 +183,8 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         regionName={region?.name ?? null}
         regionSlug={region?.slug ?? null}
       />
+
+      <TownTicker towns={tickerTowns} />
 
       {/* 3 · YOUR RACK — the shirts the hero just promised */}
       {spotlight.length > 0 && (

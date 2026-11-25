@@ -8073,3 +8073,92 @@ select:focus-visible,
   color: var(--msc-cream);
   border-color: var(--msc-cream);
 }
+
+/* The town ticker: big outlined names drifting under the hero. */
+.ticker {
+  overflow: hidden;
+  background: var(--msc-navy);
+  border-block: 2px solid var(--msc-asphalt);
+  padding: 16px 0;
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker 90s linear infinite;
+}
+
+.ticker:hover .ticker-track,
+.ticker:focus-within .ticker-track {
+  animation-play-state: paused;
+}
+
+.ticker-row {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ticker-row li {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.ticker-row a {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.2vw, 44px);
+  line-height: 1;
+  color: var(--msc-cream);
+  text-decoration: none;
+  padding: 0 22px;
+}
+
+.ticker-row a:hover,
+.ticker-row a:focus-visible {
+  color: var(--msc-mustard);
+}
+
+.ticker-row li:nth-child(3n + 2) a {
+  color: transparent;
+  -webkit-text-stroke: 1.4px var(--msc-cream);
+}
+
+.ticker-row li:nth-child(3n + 2) a:hover {
+  color: var(--msc-mustard);
+  -webkit-text-stroke: 0;
+}
+
+.ticker-star {
+  color: var(--msc-mustard);
+  font-size: 18px;
+}
+
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+  }
+
+  .ticker {
+    overflow-x: auto;
+  }
+}
+
+/* Full-width bands reach the screen edges. The starter template's reset gives
+   <main> a 1rem side margin, which every other page still relies on. */
+body > main .ticker,
+body > main .msc-block,
+body > main .msc-section--band {
+  margin-left: -1rem;
+  margin-right: -1rem;
+}
