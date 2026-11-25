@@ -117,6 +117,16 @@ export const PRODUCT_CARD_FRAGMENT = `#graphql
       width
       height
     }
+    # The first five photos. The fifth is the white shirt on a model, which
+    # the card shows on hover (and which alt text marks as "worn").
+    gallery: images(first: 5) {
+      nodes {
+        url
+        altText
+        width
+        height
+      }
+    }
     priceRange {
       minVariantPrice {
         ...SouvenirMoney
@@ -319,6 +329,29 @@ export interface SouvenirCard {
     minVariantPrice: {amount: string; currencyCode: string};
   };
   variants?: {nodes: {id: string; availableForSale: boolean}[]};
+  gallery?: {
+    nodes: {
+      url: string;
+      altText?: string | null;
+      width?: number | null;
+      height?: number | null;
+    }[];
+  };
+}
+
+/**
+ * The photo of the shirt being worn, if the product has one. Printify's
+ * mockups arrive in a fixed order (front, front, back, folded, worn, ...),
+ * and the alt text written onto every photo names the view, so either
+ * signal finds it.
+ */
+export function wornImage(product: Pick<SouvenirCard, 'gallery'>) {
+  const nodes = product.gallery?.nodes ?? [];
+  return (
+    nodes.find((image) => /\bworn\b/i.test(image.altText ?? '')) ??
+    nodes[4] ??
+    null
+  );
 }
 
 export interface LoadedCollection {

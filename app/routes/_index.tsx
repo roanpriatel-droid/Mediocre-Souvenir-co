@@ -1,9 +1,9 @@
 import {Suspense} from 'react';
 import {Await, Link} from 'react-router';
 import type {Route} from './+types/_index';
-import {HomeHero} from '~/components/HomeHero';
+import {HeroCollage} from '~/components/HeroCollage';
 import {Reveal} from '~/components/Reveal';
-import {MarqueeStrip, TrustBar} from '~/components/Strips';
+import {TrustBar} from '~/components/Strips';
 import {RegionBrowse} from '~/components/RegionBrowse';
 import {CollectLadder} from '~/components/CollectLadder';
 import {
@@ -20,9 +20,6 @@ import {SouvenirGrid, SouvenirGridSkeleton} from '~/components/SouvenirCard';
 import {loadRegionStatus} from '~/lib/shopify-collections';
 import {
   loadDerivedCatalog,
-  heroRotation,
-  heroSlides,
-  heroWall,
   productsInOpenRegions,
   regionSpotlight,
 } from '~/lib/shopify-catalog';
@@ -32,6 +29,20 @@ import {buyerCity, buyerRegion} from '~/lib/geo';
 import {ARTICLES} from '~/lib/journal';
 import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
 import {productsByHandle} from '~/lib/shopify-search';
+import {loadTowns} from '~/lib/towns';
+
+const HERO_HANDLES = [
+  'scranton-pa-i-heart',
+  'toledo-oh-varsity',
+  'moose-jaw-sk-greetings',
+];
+
+const CLOSEUP_HANDLES = [
+  'duluth-mn-varsity',
+  'buffalo-ny-tour',
+  'sudbury-on-i-heart',
+  'gander-nl-greetings',
+];
 
 const FEATURED_HANDLES = [
   'toledo-oh-varsity',
@@ -74,31 +85,12 @@ export async function loader({context, request}: Route.LoaderArgs) {
   // is awaited. The product rows sit below the fold and stream in.
   const regionStatus = await loadRegionStatus(context.storefront);
 
-  /*
-   * The hero's three pieces, in parallel. They all read the same memoised
-   * product index — which caches its in-flight promise, so concurrency costs
-   * one sweep, not three — and each then makes one batched card request.
-   *
-   * `heroSlides` always returns eleven — the visitor's own region takes the
-   * first turn where the edge placed them, and another region takes it where
-   * it did not. The count is fixed because the CSS that cycles them divides
-   * one loop into that many equal turns.
-   */
-  const [slides, rotation, wallProducts, {entries, byRegion}] = await Promise.all([
-    heroSlides(context.storefront, region ?? undefined, 11),
-    heroRotation(context.storefront, region ?? undefined, 15),
-    // The wall is decoration: 35 cropped, greyscaled, 34%-ink tiles. It needs
-    // an id and an image, not price ranges, variants, tags and compare-at
-    // ranges — those were ~23KB of hydration payload for pixels nobody can
-    // read.
-    heroWall(context.storefront, 35),
+  // The hero's photos, the product index (for counts) and the town list.
+  const [heroProducts, {entries, byRegion}, towns] = await Promise.all([
+    productsByHandle(context.storefront, HERO_HANDLES),
     loadDerivedCatalog(context.storefront),
+    loadTowns(context.storefront).catch(() => new Map<string, unknown>()),
   ]);
-
-  const wall = wallProducts.map((product) => ({
-    id: product.id,
-    featuredImage: product.featuredImage,
-  }));
 
   /*
    * Counts per region.
@@ -125,10 +117,8 @@ export async function loader({context, request}: Route.LoaderArgs) {
     ? await regionSpotlight(context.storefront, region, 6)
     : {products: await productsInOpenRegions(context.storefront, 6), total: 0};
 
-  // Four close-ups, drawn from the same wall products so nothing extra is
-  // fetched. Different products from the ones on the wall's first row.
-  const macro = wallProducts
-    .slice(8, 20)
+  // Four close-ups of prints people recognise.
+  const macro = (await productsByHandle(context.storefront, CLOSEUP_HANDLES))
     .filter((product) => product.featuredImage?.url)
     .slice(0, 4)
     .map((product) => ({
@@ -142,9 +132,8 @@ export async function loader({context, request}: Route.LoaderArgs) {
     origin: new URL(request.url).origin,
     city,
     region,
-    slides,
-    rotation,
-    wall,
+    heroProducts,
+    townCount: towns.size,
     counts,
     macro,
     spotlight: spotlight.products,
@@ -172,9 +161,8 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
     origin,
     city,
     region,
-    slides,
-    rotation,
-    wall,
+    heroProducts,
+    townCount,
     counts,
     macro,
     spotlight,
@@ -188,17 +176,14 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
 
   return (
     <div className="home">
-      {/* 1 · HERO — geo-personalised, rotating, product above the fold */}
-      <HomeHero
-        slides={slides}
-        city={city}
-        rotation={rotation}
-        wall={wall}
+      {/* 1 · HERO — one headline, one action, real shirts on real people */}
+      <HeroCollage
+        products={heroProducts}
         totalProducts={totalProducts}
-        openRegions={openCount}
+        townCount={townCount}
+        regionName={region?.name ?? null}
+        regionSlug={region?.slug ?? null}
       />
-
-      <MarqueeStrip />
 
       {/* 3 · YOUR RACK — the shirts the hero just promised */}
       {spotlight.length > 0 && (

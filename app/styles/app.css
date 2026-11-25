@@ -7103,3 +7103,366 @@ select:focus-visible,
 .towns-index-region a:hover {
   color: var(--msc-brick-ink);
 }
+
+/* ==========================================================================
+   Product tiles
+   The shirt does the talking: a large photo with no frame, the place set in
+   the display face, then the region, print and price. Hover or focus swaps
+   the flat shot for the photo of the shirt being worn.
+   ========================================================================== */
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 14px;
+}
+
+@media (min-width: 760px) {
+  .tile-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 40px 22px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .tile-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--msc-asphalt);
+  text-decoration: none;
+}
+
+.tile-media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #ebe4d3;
+  margin-bottom: 10px;
+}
+
+.tile-img {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  transition:
+    opacity 380ms ease,
+    transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.tile-img--worn {
+  opacity: 0;
+}
+
+.tile:hover .tile-img--worn,
+.tile:focus-visible .tile-img--worn {
+  opacity: 1;
+}
+
+.tile:hover .tile-img,
+.tile:focus-visible .tile-img {
+  transform: scale(1.03);
+}
+
+.tile:focus-visible {
+  outline: 3px solid var(--msc-brick);
+  outline-offset: 4px;
+}
+
+.tile-badge {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  padding: 5px 8px 4px;
+  background: var(--msc-cream);
+  color: var(--msc-navy);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.tile-badge--out {
+  left: auto;
+  right: 10px;
+  background: var(--msc-asphalt);
+  color: var(--msc-cream);
+}
+
+.tile-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.tile-town {
+  font-family: var(--font-display);
+  font-size: clamp(16px, 1.35vw, 19px);
+  line-height: 1.15;
+  color: var(--msc-navy);
+  letter-spacing: 0.2px;
+}
+
+.tile:hover .tile-town {
+  color: var(--msc-brick-ink);
+}
+
+.tile-price {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.tile-price[data-sale] {
+  color: var(--msc-brick-ink);
+}
+
+.tile-meta {
+  font-size: 13px;
+  letter-spacing: 0.4px;
+  color: rgba(28, 28, 28, 0.68);
+}
+
+.tile[data-soldout] .tile-img {
+  filter: grayscale(0.6);
+  opacity: 0.7;
+}
+
+.tile-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--msc-navy);
+}
+
+.tile--skeleton .tile-media {
+  margin-bottom: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-img {
+    transition: none;
+  }
+
+  .tile:hover .tile-img,
+  .tile:focus-visible .tile-img {
+    transform: none;
+  }
+}
+
+.tile,
+.tile:hover,
+.tile * {
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   Homepage hero: one headline, the town search, and a collage of the shirts
+   being worn.
+   ========================================================================== */
+.hero2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 36px;
+  padding: 36px 20px 48px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+@media (min-width: 960px) {
+  .hero2 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: 56px;
+    align-items: center;
+    padding: 64px 48px 80px;
+    min-height: min(760px, calc(100vh - var(--header-height) - 36px));
+  }
+}
+
+.hero2-kicker {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--msc-brick-ink);
+  margin-bottom: 18px;
+}
+
+.hero2-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--msc-navy);
+  font-size: clamp(42px, 6.2vw, 92px);
+  line-height: 0.95;
+  letter-spacing: -1px;
+  margin: 0 0 22px;
+}
+
+.hero2-title-accent {
+  display: block;
+  color: var(--msc-brick);
+  text-shadow: 3px 3px 0 var(--msc-mustard);
+}
+
+.hero2-lede {
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.5;
+  max-width: 34ch;
+  margin: 0 0 26px;
+}
+
+.hero2-search {
+  max-width: 520px;
+}
+
+.hero2-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  margin: 18px 0 30px;
+}
+
+.hero2-link {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+  border-bottom: 2px solid var(--msc-mustard);
+  padding-bottom: 3px;
+  text-decoration: none;
+}
+
+.hero2-link:hover {
+  color: var(--msc-brick-ink);
+  border-color: var(--msc-brick);
+}
+
+.hero2-proof {
+  list-style: none;
+  margin: 0;
+  padding: 18px 0 0;
+  border-top: 1px dashed rgba(28, 28, 28, 0.35);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  font-size: 14px;
+}
+
+.hero2-proof strong {
+  color: var(--msc-navy);
+}
+
+.hero2-collage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 14px;
+  aspect-ratio: 1.2 / 1;
+}
+
+.hero2-shot {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #ebe4d3;
+}
+
+.hero2-shot img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  /* The worn photos run neck to mid-thigh; keep the print in frame. */
+  object-position: 50% 22%;
+  transition: transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.hero2-shot:hover img {
+  transform: scale(1.04);
+}
+
+.hero2-shot--1 {
+  grid-row: 1 / span 2;
+}
+
+.hero2-tag {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 6px 10px 5px;
+  background: var(--msc-cream);
+  color: var(--msc-navy);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.hero2-stamp {
+  position: absolute;
+  right: -14px;
+  top: -18px;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  border: 3px double var(--msc-brick);
+  background: var(--msc-cream);
+  color: var(--msc-brick-ink);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  line-height: 1.25;
+  text-transform: uppercase;
+  transform: rotate(-10deg);
+  box-shadow: 0 0 0 4px var(--msc-cream);
+}
+
+@media (max-width: 959px) {
+  .hero2-stamp {
+    width: 78px;
+    height: 78px;
+    font-size: 9px;
+    right: 6px;
+    top: -12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero2-shot img {
+    transition: none;
+  }
+
+  .hero2-shot:hover img {
+    transform: none;
+  }
+}
+
+/* Banded sections: keep a side gutter on phones (a later padding shorthand
+   was zeroing it), and drop the heavy rules now that tiles carry no frames. */
+.msc-section.msc-section--band {
+  padding-left: clamp(16px, 3vw, 24px);
+  padding-right: clamp(16px, 3vw, 24px);
+  border-top: none;
+  border-bottom: none;
+}

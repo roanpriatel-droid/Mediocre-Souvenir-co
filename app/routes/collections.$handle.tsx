@@ -477,7 +477,7 @@ export default function CollectionPage() {
             <div className="collection-pagination">
               <PaginatedResourceSection
                 connection={data.connection}
-                resourcesClassName="rack-grid"
+                resourcesClassName="tile-grid"
               >
                 {({node, index}) => (
                   <SouvenirProductCard
@@ -489,7 +489,7 @@ export default function CollectionPage() {
               </PaginatedResourceSection>
             </div>
           ) : (
-            <div className="rack-grid">
+            <div className="tile-grid">
               {visible.map((product, i) => (
                 <SouvenirProductCard
                   key={product.id}
