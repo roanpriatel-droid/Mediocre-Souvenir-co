@@ -7599,3 +7599,70 @@ select:focus-visible,
     transform: none;
   }
 }
+
+/* ==========================================================================
+   Lighter chrome. The tiles and photos now carry the page, so the header and
+   search stop competing with them: a hairline under the header, and a search
+   field with a thin rule instead of a heavy box and offset shadow.
+   ========================================================================== */
+.header {
+  border-bottom: 1px solid rgba(28, 28, 28, 0.18);
+  background: rgba(241, 233, 214, 0.96);
+  backdrop-filter: saturate(1.2) blur(8px);
+}
+
+@media (min-width: 900px) and (max-width: 1399px) {
+  .header-menu-desktop {
+    border-top: 1px solid rgba(28, 28, 28, 0.12);
+    background: transparent;
+  }
+}
+
+.header-menu-desktop > * + * .header-menu-item,
+.header-menu-desktop > * + .header-menu-item {
+  box-shadow: none;
+}
+
+.header-menu-item {
+  letter-spacing: 2px;
+}
+
+.header-menu-item:hover,
+.header-menu-item:focus-visible,
+.nav-dropdown-trigger[aria-expanded='true'] {
+  background: transparent;
+  color: var(--msc-brick-ink);
+  border-bottom-color: var(--msc-brick);
+}
+
+.town-search--compact .town-search-box {
+  border: 1px solid rgba(28, 28, 28, 0.35);
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.town-search--compact .town-search-box input {
+  font-size: 15px;
+  padding: 10px 18px;
+}
+
+.town-search--compact .town-search-box button {
+  border-left: none;
+  background: transparent;
+  color: var(--msc-navy);
+  padding: 0 18px;
+  font-size: 12px;
+}
+
+.town-search--compact .town-search-box button:hover {
+  background: transparent;
+  color: var(--msc-brick-ink);
+}
+
+/* The hero search keeps the brand's hard-shadow box, slimmer. */
+.hero2-search .town-search-box {
+  border-width: 2px;
+  box-shadow: 4px 4px 0 var(--msc-navy);
+}
