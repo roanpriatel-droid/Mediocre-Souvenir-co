@@ -1594,6 +1594,30 @@ main {
   background: var(--msc-mustard);
 }
 
+/* The square quantity-button rule clipped "Remove" to 26px. */
+.cart-line-quantity .cart-line-remove {
+  width: auto;
+  height: auto;
+  border: none;
+  background: none;
+  padding: 0 0 0 6px;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--msc-brick-ink);
+}
+
+.cart-line-quantity .cart-line-remove:hover {
+  background: none;
+  color: var(--msc-asphalt);
+}
+
+/* .cart-empty sets display: flex, which beat the hidden attribute, so the
+   empty-cart message showed above a full cart. */
+.cart-empty[hidden] {
+  display: none;
+}
+
 .cart-summary-page,
 .cart-summary-aside {
   margin-top: 20px;

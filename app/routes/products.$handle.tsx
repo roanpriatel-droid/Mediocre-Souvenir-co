@@ -182,8 +182,24 @@ export default function ProductPage() {
       const value = params.get(option.name.toLowerCase());
       if (value && option.values.includes(value)) out[option.name] = value;
     }
+    // The colour defaults to the one in the first photo. Without a default,
+    // a shopper who picked a size and pressed Add to cart was told to
+    // "choose a size", because the missing choice was the colour.
+    if (colorOption && !out[colorOption]) {
+      const pictured = live.variants.find(
+        (candidate) =>
+          candidate.image?.url && candidate.image.url === live.featuredImage?.url,
+      );
+      const fromPhoto = pictured?.selectedOptions.find(
+        (option) => option.name === colorOption,
+      )?.value;
+      const fallback = live.options.find((option) => option.name === colorOption)
+        ?.values[0];
+      const value = fromPhoto ?? fallback;
+      if (value) out[colorOption] = value;
+    }
     return out;
-  }, [live.options, params]);
+  }, [live.options, live.variants, live.featuredImage, colorOption, params]);
 
   const setOption = (name: string, value: string) => {
     setSizeError(false);
