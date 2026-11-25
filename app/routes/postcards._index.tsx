@@ -115,7 +115,7 @@ export default function JournalIndex() {
           <h3>Nothing written yet.</h3>
           <p>
             The first entry is being thought about. In the meantime the{' '}
-            <Link to="/about">about page</Link> covers why any of this exists.
+            <Link to="/our-story">about page</Link> covers why any of this exists.
           </p>
         </div>
       )}

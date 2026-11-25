@@ -204,21 +204,46 @@ export function buildDescription(
 }
 
 /** Meta title — town name and region carry the search intent. */
-export function productMetaTitle(town: string, region: Region | undefined): string {
+/** The print style from a "Town, ST — Style" title, if it has one. */
+export function styleFrom(title: string): string | undefined {
+  const style = title.split(' — ')[1]?.trim();
+  return style || undefined;
+}
+
+const STYLE_PHRASE: Record<string, string> = {
+  Varsity: 'in arched varsity lettering',
+  Greetings: 'as a greetings-from postcard',
+  'I Heart': 'in the classic I Heart souvenir style',
+  Tour: 'laid out like a tour shirt',
+};
+
+/**
+ * Each town comes in up to four styles, so the style goes in the title and
+ * description. Without it, four pages per town share one title and compete
+ * with each other in search.
+ */
+export function productMetaTitle(
+  town: string,
+  region: Region | undefined,
+  style?: string,
+): string {
+  const kind = style ? `${style} T-Shirt` : 'T-Shirt';
   return region
-    ? `${town}, ${region.abbrev} T-Shirt — ${region.name} Souvenir Tee`
-    : `${town} T-Shirt — Souvenir Tee`;
+    ? `${town}, ${region.abbrev} ${kind} — ${region.name} Souvenir Tee`
+    : `${town} ${kind} — Souvenir Tee`;
 }
 
 export function productMetaDescription(
   town: string,
   copy: TownCopy,
   region: Region | undefined,
+  style?: string,
 ): string {
   const where = region ? `${region.name}` : 'somewhere';
+  const how = style && STYLE_PHRASE[style] ? ` ${STYLE_PHRASE[style]}` : '';
   return (
     `${sellLine(town, copy)} A faux-vintage ${town}, ${where} souvenir ` +
-    `t-shirt on garment-dyed heavyweight cotton. ${town} ${copy.fact}. ` +
+    `t-shirt${how}, on garment-dyed heavyweight cotton. ${town} ${copy.fact}. ` +
     `Printed to order, ships with a Certificate of Mediocre Authenticity.`
   );
 }

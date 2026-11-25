@@ -1,3 +1,5 @@
+import {breadcrumbList, returnPolicy, shippingDetails} from '~/lib/schema';
+import {regionPath} from '~/lib/catalog/regions';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Link, redirect, useLoaderData, useSearchParams} from 'react-router';
 import type {Route} from './+types/products.$handle';
@@ -31,6 +33,7 @@ import {
   foundedLabel,
   productMetaDescription,
   productMetaTitle,
+  styleFrom,
   sellLine,
   SPEC_LINES,
   townCopyFor,
@@ -62,14 +65,23 @@ import {SITE_NAME} from '~/lib/seo';
 export const meta: Route.MetaFunction = ({data}) => {
   if (!data) return [{title: 'Not found'}];
   const {town, region, copy, live, origin, handle} = data;
-  const title = `${productMetaTitle(town, region ?? undefined)} | ${SITE_NAME}`;
-  const description = productMetaDescription(town, copy, region ?? undefined);
+  const style = styleFrom(live.title);
+  const title = `${productMetaTitle(town, region ?? undefined, style)} | ${SITE_NAME}`;
+  const description = productMetaDescription(
+    town,
+    copy,
+    region ?? undefined,
+    style,
+  );
   return [
     {title},
     {name: 'description', content: description},
     {tagName: 'link', rel: 'canonical', href: `${origin}/products/${handle}`},
     {property: 'og:type', content: 'product'},
-    {property: 'og:title', content: `${town} — a souvenir nobody asked for`},
+    {
+      property: 'og:title',
+      content: `${town}${style ? ` ${style}` : ''} — a souvenir nobody asked for`,
+    },
     {property: 'og:description', content: description},
     ...(live.featuredImage
       ? [
@@ -654,6 +666,20 @@ export default function ProductPage() {
           ),
         }}
       />
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbList(origin, [
+              ...(region
+                ? [{name: region.name, path: regionPath(region)}]
+                : [{name: 'All souvenirs', path: '/collections/all-souvenirs'}]),
+              {name: live.title, path: `/products/${live.handle}`},
+            ]),
+          ),
+        }}
+      />
 
       {variant && (
         <Analytics.ProductView
@@ -713,6 +739,8 @@ function productJsonLd({
   origin: string;
 }) {
   const url = `${origin}/products/${live.handle}`;
+  const shipping = shippingDetails();
+  const returns = returnPolicy(origin);
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -744,6 +772,8 @@ function productJsonLd({
         : 'https://schema.org/OutOfStock',
       url,
       itemCondition: 'https://schema.org/NewCondition',
+      shippingDetails: shipping,
+      hasMerchantReturnPolicy: returns,
     })),
     // Present only when a reviews app has written real aggregates.
     ...(live.rating

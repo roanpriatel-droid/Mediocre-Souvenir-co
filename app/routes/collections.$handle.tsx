@@ -1,3 +1,4 @@
+import {breadcrumbList} from '~/lib/schema';
 import {useMemo} from 'react';
 import {Link, redirect, useLoaderData, useSearchParams} from 'react-router';
 import {getPaginationVariables, useNonce} from '@shopify/hydrogen';
@@ -474,6 +475,28 @@ export default function CollectionPage() {
         </Reveal>
       )}
 
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbList(data.origin, [
+              ...(data.region
+                ? [
+                    {
+                      name: data.region.country,
+                      path:
+                        data.region.country === 'Canada'
+                          ? '/collections/canada'
+                          : '/collections/united-states',
+                    },
+                  ]
+                : []),
+              {name: data.heading, path: `/collections/${data.handle}`},
+            ]),
+          ),
+        }}
+      />
       <script
         type="application/ld+json"
         nonce={nonce}
