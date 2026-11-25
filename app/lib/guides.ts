@@ -50,7 +50,7 @@ export const GUIDES: Article[] = [
       },
       {
         q: 'How long does a hometown shirt take to arrive?',
-        a: 'Each shirt is printed to order. Allow about 8 to 18 days to the US and 11 to 22 days to Canada, including printing.',
+        a: 'Each shirt is printed to order. Allow about 8 to 18 business days to the US and 11 to 22 to Canada, including printing.',
       },
       {
         q: 'Can I return it if the size is wrong?',
@@ -162,7 +162,7 @@ export const GUIDES: Article[] = [
       'The trouble with the person who has everything is that they bought it themselves. What they have not done, and could not have done, is buy a souvenir shirt from the town they grew up in, because until recently nobody made one. A [hometown gift](/postcards/gifts-for-someone-who-moved-away-from-home) works on the hard-to-shop-for because it is about them rather than about stuff.',
       'If they are from somewhere with a single claim to fame, lean into it. [Punxsutawney](/collections/pennsylvania) has a groundhog. [Fargo](/collections/north-dakota) has a film that was mostly shot elsewhere. Medicine Hat has the world’s tallest tepee. They have heard all the jokes. A shirt that treats the place with total sincerity is the one joke they have not heard.',
       '## Timing',
-      'Every shirt is printed to order, so give it time. Delivery takes about 8 to 18 days to the US and 11 to 22 days to Canada, including printing. Our honest advice is to order by the first week of December for Christmas, and earlier for Canada.',
+      'Every shirt is printed to order, so give it time. Delivery takes about 8 to 18 business days to the US and 11 to 22 to Canada, including printing, which at the slow end is close to a month. Our honest advice for anything with a date attached is to order a month ahead. If Christmas is closer than that, order anyway and wrap a printed picture of the shirt: the real one turning up in January is, for this particular brand, entirely in character.',
       '## Buying for the whole family',
       'Two shirts are 15% off and three or more are 20% off, automatically. Families who all come from the same place tend to end up in matching shirts, which is either a lovely tradition or a photograph they will be shown at future weddings. Possibly both.',
     ],
@@ -173,7 +173,7 @@ export const GUIDES: Article[] = [
       },
       {
         q: 'When should I order a souvenir shirt to arrive by Christmas?',
-        a: 'Shirts are printed to order and take about 8 to 18 days to the US and 11 to 22 days to Canada. Ordering by the first week of December is the safe choice, and earlier for Canada.',
+        a: 'Shirts are printed to order and take about 8 to 18 business days to the US and 11 to 22 to Canada. For Christmas, order about a month ahead to be safe.',
       },
     ],
   },

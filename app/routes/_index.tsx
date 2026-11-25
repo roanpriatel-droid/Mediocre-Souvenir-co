@@ -1,39 +1,28 @@
 import {Suspense} from 'react';
 import {Await, Link} from 'react-router';
 import type {Route} from './+types/_index';
-import {MSCMonogram} from '~/components/Brand';
 import {HomeHero} from '~/components/HomeHero';
 import {Reveal} from '~/components/Reveal';
 import {MarqueeStrip, TrustBar} from '~/components/Strips';
 import {RegionBrowse} from '~/components/RegionBrowse';
 import {CollectLadder} from '~/components/CollectLadder';
-import {Testimonials} from '~/components/Testimonials';
 import {
-  BiggestRacks,
-  BigNumbers,
   GiftBlock,
   HomeFaq,
   HowItWorks,
-  Manifesto,
   OrderIncludes,
   PrintCloseUps,
   PrintStyles,
-  SizeAndFit,
   TownSearchBlock,
 } from '~/components/HomeSections';
 import {StickyShopBar} from '~/components/StickyShopBar';
 import {SouvenirGrid, SouvenirGridSkeleton} from '~/components/SouvenirCard';
-import {
-  loadCollectionProducts,
-  loadRegionStatus,
-  UTILITY_COLLECTIONS,
-} from '~/lib/shopify-collections';
+import {loadRegionStatus} from '~/lib/shopify-collections';
 import {
   loadDerivedCatalog,
   heroRotation,
   heroSlides,
   heroWall,
-  loadNewestProducts,
   productsInOpenRegions,
   regionSpotlight,
 } from '~/lib/shopify-catalog';
@@ -42,6 +31,22 @@ import {townNameFrom} from '~/lib/town-copy';
 import {buyerCity, buyerRegion} from '~/lib/geo';
 import {ARTICLES} from '~/lib/journal';
 import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
+import {productsByHandle} from '~/lib/shopify-search';
+
+const FEATURED_HANDLES = [
+  'toledo-oh-varsity',
+  'moose-jaw-sk-greetings',
+  'scranton-pa-i-heart',
+  'duluth-mn-tour',
+  'medicine-hat-ab-varsity',
+  'buffalo-ny-greetings',
+  'sudbury-on-i-heart',
+  'fargo-nd-tour',
+  'akron-oh-varsity',
+  'thunder-bay-on-greetings',
+  'butte-mt-i-heart',
+  'gander-nl-greetings',
+];
 
 export const meta: Route.MetaFunction = () => [
   {title: `${SITE_NAME} — ${SITE_TAGLINE}`},
@@ -111,24 +116,14 @@ export async function loader({context, request}: Route.LoaderArgs) {
     if (n > 0) counts[region.slug] = n;
   }
 
-  // Depth as a credibility signal — the honest version of a bestseller row.
-  const biggestRacks = REGIONS.map((region) => ({
-    slug: region.slug,
-    name: region.name,
-    total: counts[region.slug] ?? 0,
-  }))
-    .filter((r) => r.total > 0)
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 12);
-
   /*
    * The visitor's own rack. The hero says "108 souvenirs for British Columbia"
    * and then showed them none of them; this is the row that follows through.
    * Falls back to the best-stocked regions when the edge cannot place anyone.
    */
   const spotlight = region
-    ? await regionSpotlight(context.storefront, region, 8)
-    : {products: await productsInOpenRegions(context.storefront, 8), total: 0};
+    ? await regionSpotlight(context.storefront, region, 6)
+    : {products: await productsInOpenRegions(context.storefront, 6), total: 0};
 
   // Four close-ups, drawn from the same wall products so nothing extra is
   // fetched. Different products from the ones on the wall's first row.
@@ -151,26 +146,15 @@ export async function loader({context, request}: Route.LoaderArgs) {
     rotation,
     wall,
     counts,
-    biggestRacks,
     macro,
     spotlight: spotlight.products,
     spotlightTotal: spotlight.total || (region ? counts[region.slug] ?? 0 : 0),
     totalProducts: entries.length,
     regionStatus,
-    nowOpen: loadCollectionProducts(
-      context.storefront,
-      UTILITY_COLLECTIONS.nowOpen,
-      12,
-    ).then((products) =>
-      products.length ? products : productsInOpenRegions(context.storefront, 12),
-    ),
-    newArrivalProducts: loadCollectionProducts(
-      context.storefront,
-      UTILITY_COLLECTIONS.newArrivals,
-      12,
-    ).then((products) =>
-      products.length ? products : loadNewestProducts(context.storefront, 12),
-    ),
+    // Hand-picked: towns a stranger has heard of, spread across all four
+    // prints and both countries. An alphabetical rack opened on six
+    // Aberdeens.
+    featured: productsByHandle(context.storefront, FEATURED_HANDLES),
     postcards: [...ARTICLES]
       .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 3)
@@ -192,14 +176,12 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
     rotation,
     wall,
     counts,
-    biggestRacks,
     macro,
     spotlight,
     spotlightTotal,
     totalProducts,
     regionStatus,
-    nowOpen,
-    newArrivalProducts,
+    featured,
     postcards,
   } = loaderData;
   const openCount = Object.values(regionStatus.open).filter(Boolean).length;
@@ -217,11 +199,6 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
       />
 
       <MarqueeStrip />
-
-      {/* 2 · TYPE YOUR TOWN — the highest-intent action on the store */}
-      <section className="msc-section msc-page" aria-labelledby="find-town">
-        <TownSearchBlock total={totalProducts} />
-      </section>
 
       {/* 3 · YOUR RACK — the shirts the hero just promised */}
       {spotlight.length > 0 && (
@@ -246,59 +223,6 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </section>
       )}
 
-      {/* 4 · THE REGION GRID — navigation and waitlist engine in one */}
-      <section className="msc-section msc-page" aria-labelledby="browse-region">
-        <div className="msc-section-rule">
-          <h2 id="browse-region">Browse by region</h2>
-          <Link className="msc-section-note" to="/towns">
-            Full directory →
-          </Link>
-        </div>
-        <RegionBrowse
-          open={regionStatus.open}
-          live={regionStatus.live}
-          counts={counts}
-        />
-      </section>
-
-      {/* 5 · THE BIGGEST RACKS — depth, honestly measured */}
-      <section className="msc-section msc-page" aria-labelledby="biggest">
-        <div className="msc-section-rule">
-          <h2 id="biggest">Where we are deepest</h2>
-          <Link className="msc-section-note" to="/towns">
-            The full directory →
-          </Link>
-        </div>
-        <p className="msc-section-lede">
-          No bestseller list, because we are not going to invent one. This is
-          simply where the most towns have been drawn so far.
-        </p>
-        <Reveal>
-          <BiggestRacks racks={biggestRacks} />
-        </Reveal>
-      </section>
-
-      {/* 6 · NOW OPEN — live products */}
-      <section className="msc-section msc-page" aria-labelledby="now-open">
-        <div className="msc-section-rule">
-          <h2 id="now-open">Now open</h2>
-          <Link className="msc-section-note" to="/collections/now-open">
-            See all →
-          </Link>
-        </div>
-        <Suspense fallback={<SouvenirGridSkeleton count={6} />}>
-          <Await resolve={nowOpen} errorElement={<RowFallback />}>
-            {(products) =>
-              products.length > 0 ? (
-                <SouvenirGrid products={products} eagerCount={4} />
-              ) : (
-                <RowFallback />
-              )
-            }
-          </Await>
-        </Suspense>
-      </section>
-
       {/* 4 · SHOP BY PRINT — the same towns, four ways to say them */}
       <section className="msc-section msc-page" aria-labelledby="by-print">
         <div className="msc-section-rule">
@@ -314,6 +238,27 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         <Reveal>
           <PrintStyles />
         </Reveal>
+      </section>
+
+      {/* FEATURED — towns people recognise, one per print style */}
+      <section className="msc-section msc-page" aria-labelledby="now-open">
+        <div className="msc-section-rule">
+          <h2 id="now-open">Worth the detour</h2>
+          <Link className="msc-section-note" to="/collections/all-souvenirs">
+            All 2,154 →
+          </Link>
+        </div>
+        <Suspense fallback={<SouvenirGridSkeleton count={6} />}>
+          <Await resolve={featured} errorElement={<RowFallback />}>
+            {(products) =>
+              products.length > 0 ? (
+                <SouvenirGrid products={products} eagerCount={4} />
+              ) : (
+                <RowFallback />
+              )
+            }
+          </Await>
+        </Suspense>
       </section>
 
       {/* 8 · THE PRINT, UP CLOSE — texture from the files we already have */}
@@ -334,52 +279,29 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Reveal>
       </section>
 
-      {/* 9 · RECENTLY INSULTED — new arrivals */}
-      <section
-        className="msc-section msc-section--band msc-page"
-        aria-labelledby="recently-insulted"
-      >
-        <div className="msc-section-rule">
-          <h2 id="recently-insulted">Recently insulted</h2>
-          <Link className="msc-section-note" to="/collections/new-arrivals">
-            All new arrivals →
-          </Link>
-        </div>
-        <p className="msc-section-lede">
-          The latest towns to be taken as seriously as they always should have
-          been.
-        </p>
-        <Suspense fallback={<SouvenirGridSkeleton count={6} />}>
-          <Await resolve={newArrivalProducts} errorElement={<RowFallback />}>
-            {(products) =>
-              products.length > 0 ? (
-                <SouvenirGrid products={products} eagerCount={0} />
-              ) : (
-                <RowFallback />
-              )
-            }
-          </Await>
-        </Suspense>
+      {/* 2 · TYPE YOUR TOWN — the highest-intent action on the store */}
+      <section className="msc-section msc-page" aria-labelledby="find-town">
+        <TownSearchBlock total={totalProducts} />
       </section>
 
-      {/* 5 · REQUEST A TOWN banner */}
-      <section className="msc-section msc-page" aria-labelledby="request-town">
-        <Reveal>
-          <div className="request-banner">
-            <div>
-              <span className="msc-kicker">The waitlist is the roadmap</span>
-              <h2 id="request-town">Nominate your mediocre hometown.</h2>
-              <p>
-                We do not choose regions by market size. We choose them by who
-                asked. Put your town on the list and it moves up every time a
-                neighbour does the same.
-              </p>
-            </div>
-            <Link className="msc-button msc-button--navy" to="/request-a-town">
-              Request a town
-            </Link>
-          </div>
-        </Reveal>
+      {/* 4 · THE REGION GRID — navigation and waitlist engine in one */}
+      <section className="msc-section msc-page" aria-labelledby="browse-region">
+        <div className="msc-section-rule">
+          <h2 id="browse-region">Browse by region</h2>
+          <Link className="msc-section-note" to="/towns">
+            Full directory →
+          </Link>
+        </div>
+        <RegionBrowse
+          open={regionStatus.open}
+          live={regionStatus.live}
+          counts={counts}
+        />
+      </section>
+
+      {/* 11 · COLLECT LADDER */}
+      <section className="msc-section msc-page">
+        <CollectLadder />
       </section>
 
       {/* 7 · HOW IT WORKS — what happens after the button */}
@@ -437,64 +359,6 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Reveal>
       </section>
 
-      {/* 13 · THE MANIFESTO — why any of this exists */}
-      <section className="msc-section msc-page" aria-label="Why we do this">
-        <Reveal>
-          <Manifesto />
-        </Reveal>
-      </section>
-
-      {/* 14 · THE CERTIFICATE */}
-      <section className="msc-section msc-page" aria-labelledby="certificate">
-        <Reveal>
-          <div className="certificate-block">
-            <div className="certificate-block-art" aria-hidden="true">
-              <MSCMonogram size={64} />
-              <span className="msc-stamp">
-                Genuine
-                <br />
-                Souvenir
-                <br />★ ★ ★
-              </span>
-            </div>
-            <div>
-              <span className="msc-kicker">Included with every order</span>
-              <h2 id="certificate">A Certificate of Mediocre Authenticity.</h2>
-              <p>
-                A formal document, printed on card stock, certifying that your
-                town is — to the best of our knowledge — a place. Distinction:
-                none on record. Signed anyway.
-              </p>
-              <Link className="msc-button msc-button--ghost" to="/certificate">
-                What it says
-              </Link>
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      {/* 10 · SIZE & FIT — the last thing between a visitor and a size button */}
-      <section
-        className="msc-section msc-section--band msc-page"
-        aria-labelledby="size-fit"
-      >
-        <Reveal>
-          <SizeAndFit />
-        </Reveal>
-      </section>
-
-      {/* 11 · COLLECT LADDER */}
-      <section className="msc-section msc-page">
-        <CollectLadder />
-      </section>
-
-      {/* 9 · MIDDLING PRAISE */}
-      <section className="msc-section msc-page">
-        <Reveal>
-          <Testimonials />
-        </Reveal>
-      </section>
-
       {/* 13 · WHAT EVERY ORDER INCLUDES — risk taken off the table */}
       <section className="msc-section msc-page" aria-labelledby="included">
         <div className="msc-section-rule">
@@ -523,15 +387,6 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
           <HomeFaq origin={origin} />
         </Reveal>
       </section>
-
-      {/* 18 · THE NUMBERS — the claim, set large */}
-      <section className="msc-section msc-page" aria-label="By the numbers">
-        <Reveal>
-          <BigNumbers total={totalProducts} regions={openCount} />
-        </Reveal>
-      </section>
-
-      <MarqueeStrip variant="mustard" />
 
       {/* 10 · TRUST */}
       <section className="msc-section" style={{paddingBottom: 0}}>

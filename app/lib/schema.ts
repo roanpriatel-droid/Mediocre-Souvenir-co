@@ -5,7 +5,8 @@
  * assistants read the same promises the checkout keeps:
  * - Canada and US: $6.95 USD standard shipping, free from $60.
  * - Everywhere else: value-based international shipping from $10.
- * - Transit times include print time (CA 11–22 days, US 8–18 days).
+ * - Printing takes 5–10 business days; transit is 3–8 to the US and 6–12
+ *   to Canada (the shipping policy in policies.ts says the same).
  * - Returns: 30 days from delivery, free of restocking fees.
  * If any of those change in Shopify, change them here too.
  */
@@ -43,8 +44,8 @@ export function shippingDetails() {
     },
   });
   return [
-    market('US', '6.95', [3, 7], [5, 11]),
-    market('CA', '6.95', [3, 7], [8, 15]),
+    market('US', '6.95', [5, 10], [3, 8]),
+    market('CA', '6.95', [5, 10], [6, 12]),
   ];
 }
 
