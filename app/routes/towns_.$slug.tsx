@@ -2,6 +2,7 @@ import {Link, useLoaderData} from 'react-router';
 import {useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/towns_.$slug';
 import {SouvenirGrid} from '~/components/SouvenirCard';
+import {PlaceBanner} from '~/components/PlaceBanner';
 import {hydrateCards} from '~/lib/shopify-catalog';
 import {loadTowns, townPath, type Town} from '~/lib/towns';
 import {townCopyFor, foundedLabel, sellLine} from '~/lib/town-copy';
@@ -30,7 +31,11 @@ export const meta: Route.MetaFunction = ({data}) => {
   return [
     {title},
     {name: 'description', content: description},
-    {tagName: 'link', rel: 'canonical', href: `${origin}${townPath(town.slug)}`},
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: `${origin}${townPath(town.slug)}`,
+    },
     {property: 'og:title', content: `${town.place}: a souvenir, finally`},
     {property: 'og:description', content: description},
     ...(data.image ? [{property: 'og:image', content: data.image}] : []),
@@ -58,11 +63,16 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     const index = sameRegion.findIndex((other) => other.slug === slug);
     for (let step = 1; nearby.length < 10 && step < sameRegion.length; step++) {
       const other = sameRegion[(index + step) % sameRegion.length];
-      if (other.slug !== slug) nearby.push({slug: other.slug, place: other.place});
+      if (other.slug !== slug)
+        nearby.push({slug: other.slug, place: other.place});
     }
   }
 
-  const copy = townCopyFor(town.products[0]?.handle ?? slug, town.name, town.region);
+  const copy = townCopyFor(
+    town.products[0]?.handle ?? slug,
+    town.name,
+    town.region,
+  );
 
   return {
     origin: new URL(request.url).origin,
@@ -86,7 +96,9 @@ export default function TownPage() {
   const nonce = useNonce();
   const region = town.region;
   const countryPath =
-    region?.country === 'Canada' ? '/collections/canada' : '/collections/united-states';
+    region?.country === 'Canada'
+      ? '/collections/canada'
+      : '/collections/united-states';
 
   const faq = [
     {
@@ -141,9 +153,12 @@ export default function TownPage() {
         <span aria-current="page">{town.name}</span>
       </nav>
 
-      <header className="province-header">
-        <span className="msc-kicker">Greetings from</span>
-        <h1>{town.place}</h1>
+      <PlaceBanner
+        kicker="Greetings from"
+        title={town.place}
+        products={products}
+        distinctTowns={false}
+      >
         <p className="province-copy region-description">
           {sellLine(town.name, copy)} {copy.tourism}
         </p>
@@ -151,13 +166,16 @@ export default function TownPage() {
           {prints.length} {prints.length === 1 ? 'print' : 'prints'} · $36 USD ·
           collect 2 and save 15% · {foundedLabel(copy)}
         </span>
-      </header>
+      </PlaceBanner>
 
       <section className="msc-section" aria-labelledby="town-prints">
         <div className="msc-section-rule">
           <h2 id="town-prints">The {town.name} rack</h2>
           {region && (
-            <Link className="msc-section-note" to={`/collections/${region.slug}`}>
+            <Link
+              className="msc-section-note"
+              to={`/collections/${region.slug}`}
+            >
               All of {region.name} →
             </Link>
           )}
@@ -220,7 +238,12 @@ export default function TownPage() {
               '@type': 'Place',
               name: town.place,
               ...(region
-                ? {containedInPlace: {'@type': 'AdministrativeArea', name: region.name}}
+                ? {
+                    containedInPlace: {
+                      '@type': 'AdministrativeArea',
+                      name: region.name,
+                    },
+                  }
                 : {}),
             },
             isPartOf: {'@id': `${origin}/#website`},
