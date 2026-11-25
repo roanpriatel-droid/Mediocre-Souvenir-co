@@ -8225,3 +8225,152 @@ body > main .msc-section--band {
 .town-set-controls .msc-button {
   flex: 1 1 220px;
 }
+
+/* ==========================================================================
+   The tile map: every state and province as a square, shaded by depth.
+   ========================================================================== */
+.tilemap {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: repeat(10, auto);
+  gap: 5px;
+  max-width: 980px;
+  margin: 8px auto 44px;
+}
+
+.tilemap-tile {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--msc-cream);
+  background: color-mix(in srgb, var(--msc-navy) calc(var(--depth) * 100%), #d9cfb6);
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.tilemap-tile[data-country='ca'] {
+  background: color-mix(in srgb, var(--msc-brick) calc(var(--depth) * 100%), #e2cdb9);
+}
+
+.tilemap-tile:hover,
+.tilemap-tile:focus-visible {
+  background: var(--msc-mustard);
+  color: var(--msc-asphalt);
+  transform: translateY(-3px);
+  z-index: 1;
+}
+
+.tilemap-abbrev {
+  font-family: var(--font-display);
+  font-size: clamp(11px, 1.6vw, 20px);
+  line-height: 1;
+}
+
+.tilemap-count {
+  font-size: clamp(8px, 0.9vw, 11px);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  opacity: 0.85;
+}
+
+.tilemap-name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.tilemap-legend {
+  position: absolute;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(28, 28, 28, 0.55);
+}
+
+.tilemap-legend--ca {
+  right: 0;
+  top: 4%;
+}
+
+.tilemap-legend--us {
+  left: 0;
+  bottom: 2%;
+}
+
+@media (max-width: 640px) {
+  .tilemap {
+    gap: 3px;
+  }
+
+  .tilemap-count {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilemap-tile {
+    transition: none;
+  }
+
+  .tilemap-tile:hover {
+    transform: none;
+  }
+}
+
+.tilemap {
+  max-width: 780px;
+}
+
+.tilemap-tile {
+  background: color-mix(in oklab, var(--msc-navy) calc(var(--depth) * 100%), #c7d1db);
+}
+
+.tilemap-tile[data-country='ca'] {
+  background: color-mix(in oklab, var(--msc-brick) calc(var(--depth) * 100%), #efd2c2);
+}
+
+.tilemap-tile,
+.tilemap-tile:hover,
+.tilemap-tile * {
+  text-decoration: none;
+}
+
+.region-list-toggle > summary {
+  cursor: pointer;
+  list-style: none;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+  padding: 12px 0;
+  border-top: 1px dashed rgba(28, 28, 28, 0.3);
+  border-bottom: 1px dashed rgba(28, 28, 28, 0.3);
+}
+
+.region-list-toggle > summary::-webkit-details-marker {
+  display: none;
+}
+
+.region-list-toggle > summary::after {
+  content: ' +';
+  color: var(--msc-brick-ink);
+}
+
+.region-list-toggle[open] > summary::after {
+  content: ' −';
+}
+
+.region-list-toggle[open] > summary {
+  margin-bottom: 24px;
+}
