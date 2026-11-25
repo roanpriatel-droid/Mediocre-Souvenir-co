@@ -4934,6 +4934,8 @@ select:focus-visible,
 }
 
 .rack-card-quickadd {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
   text-align: center;
   border: var(--border-std);
@@ -7441,4 +7443,43 @@ select:focus-visible,
 /* FAQ under a journal article */
 .msc-prose h2 + .msc-accordion {
   margin-top: 14px;
+}
+
+/* Phones: a tighter off-register shadow on the hero place name, and one
+   swipeable row of product thumbnails so the title and price are not pushed
+   below the first screen. */
+@media (max-width: 640px) {
+  .hero-place {
+    text-shadow:
+      2px 0 0 var(--msc-mustard),
+      3px 3px 0 rgba(184, 80, 58, 0.9);
+  }
+
+  /* A grid item defaults to min-width: auto, so a no-wrap row inside it
+     would widen the whole column off the screen. */
+  .pdp-main > *,
+  .pdp-gallery {
+    min-width: 0;
+  }
+
+  .pdp-thumbs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .pdp-thumbs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pdp-thumbs > li {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .pdp-thumb {
+    width: 64px;
+  }
 }
