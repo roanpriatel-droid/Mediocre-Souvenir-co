@@ -7466,3 +7466,60 @@ select:focus-visible,
   border-top: none;
   border-bottom: none;
 }
+
+/* Product photos as a two-column grid on desktop; the single swipeable stage
+   and thumbnail row stay for phones and tablets. */
+.pdp-grid {
+  display: none;
+}
+
+@media (min-width: 1000px) {
+  .pdp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .pdp-gallery:has(.pdp-grid) .pdp-stage,
+  .pdp-gallery:has(.pdp-grid) .pdp-thumbs {
+    display: none;
+  }
+
+  .pdp-grid-item {
+    all: unset;
+    display: block;
+    cursor: zoom-in;
+    background: #ebe4d3;
+    overflow: hidden;
+  }
+
+  .pdp-grid-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .pdp-grid-item:hover img {
+    transform: scale(1.03);
+  }
+
+  .pdp-grid-item:focus-visible {
+    outline: 3px solid var(--msc-brick);
+    outline-offset: 3px;
+  }
+}
+
+/* Desktop: the gallery is now taller than the buy box, so keep the buy box
+   in view while the photos scroll past. */
+@media (min-width: 1000px) {
+  .pdp-main {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 460px);
+    gap: 56px;
+  }
+
+  .pdp-buy {
+    position: sticky;
+    top: calc(var(--header-height) + 20px);
+  }
+}
