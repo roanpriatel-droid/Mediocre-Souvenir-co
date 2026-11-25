@@ -203,6 +203,9 @@ export default function ProductPage() {
 
   const sizeChosen = !sizeOption || Boolean(selected[sizeOption]);
   const price = variant?.price ?? live.priceRange.minVariantPrice;
+  const samePrice = live.variants.every(
+    (candidate) => candidate.price.amount === live.variants[0]?.price.amount,
+  );
   const compareAt = variant?.compareAtPrice;
   const onSale = compareAt && Number(compareAt.amount) > Number(price.amount);
   const soldOut = variant ? !variant.availableForSale : !live.availableForSale;
@@ -266,7 +269,22 @@ export default function ProductPage() {
           </nav>
 
           {/* 2 · Title */}
-          <h1 className="pdp-title">{live.title}</h1>
+          {(() => {
+            // "Akron, OH — Greetings" reads as one name broken by a dash.
+            // Lead with the place and set the style as its label.
+            const [place, styleName] = live.title.split(' — ');
+            return (
+              <h1 className="pdp-title">
+                {place}
+                {styleName ? (
+                  <span className="pdp-title-style">
+                    <span className="sr-only"> — </span>
+                    {styleName} tee
+                  </span>
+                ) : null}
+              </h1>
+            );
+          })()}
 
           {/* 3 · Review stars — the slot disappears when there is nothing real */}
           {live.rating && (
@@ -299,7 +317,7 @@ export default function ProductPage() {
               <span className="product-price-was">{formatMoney(compareAt)}</span>
             )}
             <span className="product-price-note">
-              {variant ? 'USD' : 'From · USD'} · Comfort Colors 1717 · collect 2
+              {variant || samePrice ? 'USD' : 'From · USD'} · Comfort Colors 1717 · collect 2
               save 15%
             </span>
           </div>
@@ -349,9 +367,10 @@ export default function ProductPage() {
                 </button>
               </div>
               <div className="product-options-grid">
-                {live.options
-                  .find((option) => option.name === sizeOption)
-                  ?.values.map((value) => {
+                {sortSizes(
+                  live.options.find((option) => option.name === sizeOption)
+                    ?.values ?? [],
+                ).map((value) => {
                     const candidate = matchVariant(
                       live.variants,
                       {...selected, [sizeOption]: value},
@@ -700,6 +719,17 @@ export default function ProductPage() {
       )}
     </div>
   );
+}
+
+const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', '2XL', 'XXL', '3XL', 'XXXL', '4XL', '5XL'];
+
+/** Printify lists sizes in the order it created them (M, L, XL, 2XL, 3XL, S). */
+function sortSizes(values: string[]): string[] {
+  const rank = (value: string) => {
+    const index = SIZE_ORDER.indexOf(value.toUpperCase());
+    return index === -1 ? SIZE_ORDER.length : index;
+  };
+  return [...values].sort((a, b) => rank(a) - rank(b));
 }
 
 /** The variant whose selectedOptions match everything currently chosen. */

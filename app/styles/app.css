@@ -5466,6 +5466,17 @@ select:focus-visible,
   line-height: 1.05;
 }
 
+.pdp-title-style {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--msc-brick-ink);
+}
+
 /* The town plaque — a small vintage parks sign, routed edge and all. */
 .town-plaque {
   border: 3px solid var(--msc-sage);

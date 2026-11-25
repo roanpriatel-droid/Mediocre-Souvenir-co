@@ -134,11 +134,11 @@ export function townCopyFor(
   const where = region ? region.name : 'the surrounding area';
 
   return {
-    fact: `is in ${where}, which is known for ${note}`,
+    fact: `is in ${where}. ${where}, in one line: ${note}`,
     tourism:
       `${town} is a real place in ${where}, and we will be honest: we have ` +
-      `not been. What we can tell you is that ${where} is known, if it is ` +
-      `known at all, for ${note} — and that ${town} has been getting on with ` +
+      `not been. What we can tell you is what ${where} would put on its own ` +
+      `postcard (${note}) and that ${town} has been getting on with ` +
       `it regardless for longer than anyone has been keeping score. If you ` +
       `are from there and we have undersold it, that is the intended effect.`,
   };
