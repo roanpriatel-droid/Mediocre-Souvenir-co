@@ -30,12 +30,20 @@ import {ARTICLES} from '~/lib/journal';
 import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
 import {productsByHandle} from '~/lib/shopify-search';
 import {loadTowns} from '~/lib/towns';
+import {wornImage} from '~/lib/shopify-collections';
 
 const HERO_HANDLES = [
   'scranton-pa-i-heart',
   'toledo-oh-varsity',
   'moose-jaw-sk-greetings',
 ];
+
+const STYLE_SHOT_HANDLES: Record<string, string> = {
+  varsity: 'duluth-mn-varsity',
+  greetings: 'gander-nl-greetings',
+  'i-heart': 'butte-mt-i-heart',
+  tour: 'fargo-nd-tour',
+};
 
 const CLOSEUP_HANDLES = [
   'duluth-mn-varsity',
@@ -86,11 +94,13 @@ export async function loader({context, request}: Route.LoaderArgs) {
   const regionStatus = await loadRegionStatus(context.storefront);
 
   // The hero's photos, the product index (for counts) and the town list.
-  const [heroProducts, {entries, byRegion}, towns] = await Promise.all([
-    productsByHandle(context.storefront, HERO_HANDLES),
-    loadDerivedCatalog(context.storefront),
-    loadTowns(context.storefront).catch(() => new Map<string, unknown>()),
-  ]);
+  const [heroProducts, styleProducts, {entries, byRegion}, towns] =
+    await Promise.all([
+      productsByHandle(context.storefront, HERO_HANDLES),
+      productsByHandle(context.storefront, Object.values(STYLE_SHOT_HANDLES)),
+      loadDerivedCatalog(context.storefront),
+      loadTowns(context.storefront).catch(() => new Map<string, unknown>()),
+    ]);
 
   /*
    * Counts per region.
@@ -104,7 +114,9 @@ export async function loader({context, request}: Route.LoaderArgs) {
   const counts: Record<string, number> = {};
   for (const region of REGIONS) {
     const n =
-      regionStatus.counts[region.slug] ?? byRegion.get(region.slug)?.length ?? 0;
+      regionStatus.counts[region.slug] ??
+      byRegion.get(region.slug)?.length ??
+      0;
     if (n > 0) counts[region.slug] = n;
   }
 
@@ -114,8 +126,8 @@ export async function loader({context, request}: Route.LoaderArgs) {
    * Falls back to the best-stocked regions when the edge cannot place anyone.
    */
   const spotlight = region
-    ? await regionSpotlight(context.storefront, region, 6)
-    : {products: await productsInOpenRegions(context.storefront, 6), total: 0};
+    ? await regionSpotlight(context.storefront, region, 8)
+    : {products: await productsInOpenRegions(context.storefront, 8), total: 0};
 
   // Four close-ups of prints people recognise.
   const macro = (await productsByHandle(context.storefront, CLOSEUP_HANDLES))
@@ -133,11 +145,18 @@ export async function loader({context, request}: Route.LoaderArgs) {
     city,
     region,
     heroProducts,
+    styleShots: Object.fromEntries(
+      Object.entries(STYLE_SHOT_HANDLES).map(([style, handle]) => {
+        const product = styleProducts.find((p) => p.handle === handle);
+        return [style, product ? wornImage(product) : null];
+      }),
+    ),
     townCount: towns.size,
     counts,
     macro,
     spotlight: spotlight.products,
-    spotlightTotal: spotlight.total || (region ? counts[region.slug] ?? 0 : 0),
+    spotlightTotal:
+      spotlight.total || (region ? (counts[region.slug] ?? 0) : 0),
     totalProducts: entries.length,
     regionStatus,
     // Hand-picked: towns a stranger has heard of, spread across all four
@@ -162,6 +181,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
     city,
     region,
     heroProducts,
+    styleShots,
     townCount,
     counts,
     macro,
@@ -197,7 +217,11 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
             </h2>
             <Link
               className="msc-section-note"
-              to={region ? `/collections/${region.slug}` : '/collections/all-souvenirs'}
+              to={
+                region
+                  ? `/collections/${region.slug}`
+                  : '/collections/all-souvenirs'
+              }
             >
               {region && spotlightTotal > 0
                 ? `All ${spotlightTotal} →`
@@ -221,7 +245,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
           would describe the place out loud.
         </p>
         <Reveal>
-          <PrintStyles />
+          <PrintStyles shots={styleShots} />
         </Reveal>
       </section>
 
@@ -290,10 +314,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
       </section>
 
       {/* 7 · HOW IT WORKS — what happens after the button */}
-      <section
-        className="msc-section msc-page"
-        aria-labelledby="how-it-works"
-      >
+      <section className="msc-section msc-page" aria-labelledby="how-it-works">
         <div className="msc-section-rule">
           <h2 id="how-it-works">What happens after you order</h2>
           <Link className="msc-section-note" to="/shipping-returns">
@@ -316,7 +337,10 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
       </section>
 
       {/* 12 · EDITORIAL TEASER — Postcards From Nowhere */}
-      <section className="msc-section msc-section--band msc-page" aria-labelledby="postcards">
+      <section
+        className="msc-section msc-section--band msc-page"
+        aria-labelledby="postcards"
+      >
         <Reveal>
           <div className="msc-section-rule">
             <h2 id="postcards">Postcards from nowhere</h2>
