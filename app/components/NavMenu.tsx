@@ -46,13 +46,19 @@ function regionLeaves(country: Region['country']): NavLeaf[] {
 export function buildNav(): NavEntry[] {
   return [
     {
+      // All Souvenirs, Now Open and New Arrivals each hold all 2,154 shirts,
+      // so listing all three offered one choice three times. The real choice
+      // after "where" is "which print".
       title: 'Shop',
       to: '/collections/all-souvenirs',
       items: [
         {title: 'All souvenirs', to: '/collections/all-souvenirs'},
-        {title: 'Now open', to: '/collections/now-open'},
-        {title: 'New arrivals', to: '/collections/new-arrivals'},
-        {title: 'All collections', to: '/collections'},
+        {title: 'Varsity', to: '/collections/varsity'},
+        {title: 'Greetings', to: '/collections/greetings'},
+        {title: 'I Heart', to: '/collections/i-heart'},
+        {title: 'Tour', to: '/collections/tour'},
+        {title: 'Every town, A to Z', to: '/towns'},
+        {title: 'Request a town', to: '/request-a-town'},
       ],
     },
     {
@@ -72,15 +78,32 @@ export function buildNav(): NavEntry[] {
         ...regionLeaves('United States'),
       ],
     },
-    {title: 'The Towns', to: '/towns'},
+    {
+      title: 'Gifts',
+      to: '/postcards/gifts-for-someone-who-moved-away-from-home',
+      items: [
+        {
+          title: 'For someone who moved away',
+          to: '/postcards/gifts-for-someone-who-moved-away-from-home',
+        },
+        {
+          title: 'For the impossible to shop for',
+          to: '/postcards/christmas-gifts-for-people-who-are-impossible-to-shop-for',
+        },
+        {
+          title: 'The Trans-Canada Highway',
+          to: '/postcards/trans-canada-highway-souvenirs',
+        },
+        {title: 'A Rust Belt gift guide', to: '/postcards/rust-belt-gift-guide'},
+        {title: 'The certificate in every box', to: '/certificate'},
+      ],
+    },
     {
       title: 'The Co.',
       to: '/our-story',
       items: [
         {title: 'Our story', to: '/our-story'},
-        {title: 'Certificate of Authenticity', to: '/certificate'},
         {title: 'Postcards From Nowhere', to: '/postcards'},
-        {title: 'Request a town', to: '/request-a-town'},
         {title: 'The lookbook', to: '/lookbook'},
         {title: 'Size & fit guide', to: '/size-guide'},
         {title: 'Shipping & returns', to: '/shipping-returns'},

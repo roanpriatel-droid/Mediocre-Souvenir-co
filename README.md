@@ -66,32 +66,58 @@ Shopify's conventional URL shapes stay routable and redirect to their local
 equivalent: `/blogs/*` → `/journal`, `/pages/:handle` → the real page,
 `/collections/all` → `/shop`.
 
-### Two things that are not what they look like
+### How the store is wired
 
-1. **Checkout uses a mock.shop stand-in.** Every town tee checks out against
-   one mock variant with the real product carried in cart line attributes
-   (Town / Size / Colorway). See *“The swap point”* in
-   `app/lib/catalog/index.ts`.
-2. **Policies are local-first.** `app/lib/policies.ts` is the source of truth
-   because mock.shop serves no policy documents. `/policies/:handle` prefers
-   the Shopify copy automatically once a real store has it filled in.
+- **Products** come from Printify (shop "Mediocre souvenir co", Comfort Colors
+  1717, printed by Dimona Tee in Dania Beach, FL) and are published into
+  Shopify by Printify. Title format `Town, ST — Style` is load-bearing: the
+  handle (`town-st-style`) and the site's region and style parsing both come
+  from it. Printify owns variants, images and cost; Shopify owns vendor, SEO,
+  alt text, customs codes and channel publishing.
+- **Tags** drive every collection: `region:<slug>`, `country:ca|us`,
+  `style:<varsity|greetings|i-heart|tour>`, plus `Souvenir Tee`.
+- **Collections**: 72 smart collections, all tag rules: one per region
+  (handle = `Region.slug`), `all-souvenirs`, `now-open`, `new-arrivals`,
+  `canada`, `united-states`, and the four print styles. Each carries a
+  `custom.product_count` metafield the region grid reads.
+- **Policies**: shipping, refund, terms and contact are pushed from
+  `app/lib/policies.ts`; `/policies/:handle` prefers the Shopify copy. The
+  privacy policy is Shopify's automatically-managed one.
+- **Submissions**: contact messages, town requests and Postcards signups are
+  written as metaobjects (`msc_contact_message`, `msc_town_request`,
+  `msc_subscriber`); signups also become email-subscribed customers, tagged
+  `postcards`, `source:*`, `region:*`. See `app/lib/submissions.ts`.
 
-## Setup for the Customer Account API (`/account`)
+## Store configuration (live)
 
-Follow steps 1 and 2 of the
-[Hydrogen customer account guide](https://shopify.dev/docs/custom-storefronts/building-with-the-customer-account-api/hydrogen#step-1-set-up-a-public-domain-for-local-development).
+| Area | Setting |
+| --- | --- |
+| Price | $36 on every variant |
+| Collect ladder | Automatic: "Collect two: 15% off" (2+), "Collect three or more: 20% off" (3+); best one applies, no stacking |
+| Welcome offer | Code `POSTCARDS10`: 10%, once per customer, does not stack with the ladder |
+| Shipping, CA & US | Market shipping option, USD: $6.95, free at $60+ |
+| Shipping, rest of world | Market shipping option, USD, value tiers that map to shirt count: $10 for one, +$4 per additional. Tiers assume every shirt is $36; revisit them if prices change. |
+| Shipping profiles | Checkout reads the markets' shipping options, not delivery profiles. Printify publishes with its shipping template off, and any Printify profile is removed so its pass-through rates never reach checkout. |
+| Markets | Canada, United States, International (235 countries) |
 
-## LAUNCH TODO (real store, before go-live)
+## Oxygen environment variables
 
-- [ ] Link the real Shopify store: `npx shopify hydrogen link` + `npx shopify hydrogen env pull`
-- [ ] Swap the purchasable stand-in: see “The swap point” in `app/lib/catalog/index.ts` — map each town to its Printify-synced product (Comfort Colors 1717, not Bella+Canvas)
-- [ ] **Have the policies reviewed by a lawyer.** `app/lib/policies.ts` is written to match how the store actually operates, but it is not legal advice. Paste the reviewed copy into Shopify admin → Settings → Policies and the routes pick it up automatically.
-- [ ] Configure the **automatic discount** in Shopify admin: 2+ items → 15%, 3+ → 20%, mix-and-match, no code. The collect-ladder UI promises this; checkout must honor it.
-- [ ] **Shopify Markets**: CAD base market + US market at currency parity ($36 CAD / $36 USD — fixed price list, not auto-conversion). JSON-LD already advertises both offers.
-- [ ] Free-shipping thresholds: $75 CAD (Canada) and $75 USD (US) — the announcement bar promises one clean "$75" in both markets
-- [ ] Printify: route US orders to US print partners so the 5–10 day delivery window holds cross-border
-- [ ] Swap `app/lib/submissions.ts` in-memory store for a durable backend (Klaviyo / Shopify customer tags / KV) — town requests, Postcards signups, and contact messages currently persist only in Oxygen logs
-- [ ] Replace placeholder logo SVGs in `app/components/Brand.tsx` with the committed brand assets
-- [ ] Verify Certificate of Souvenir facts (population, est. year, known-for) per town before printing
-- [ ] Set real Instagram handle (placeholder: @mediocresouvenirco). Contact email is
-      mediocresouvenir@stratosync.solutions — live, Microsoft 365 MX.
+Set in Shopify admin → Hydrogen → the storefront → Storefront settings →
+Environment variables:
+
+- `SHOPIFY_ADMIN_CLIENT_ID`, `SHOPIFY_ADMIN_CLIENT_SECRET`: the Dev
+  Dashboard app's credentials. Without them, form submissions are only logged.
+  The app mints and refreshes its own 24-hour Admin token.
+
+## Still needs a person
+
+- [ ] **Store currency → USD** (Settings → General → Store defaults). The store
+      was created in CAD; every price on the site says USD. Only possible
+      before the first order.
+- [ ] Payments, domain, and order-notification email copy (admin-only).
+- [ ] Shopify Email → Automations → "Welcome new subscriber": include
+      `POSTCARDS10`. The signup modal promises it arrives with the first email.
+- [ ] Have the policies reviewed by a lawyer.
+- [ ] Store contact email in Settings → General is still a personal address;
+      the site's support address is `mediocresouvenir@stratosync.solutions`.
+- [ ] Replace placeholder logo SVGs in `app/components/Brand.tsx`.

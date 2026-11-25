@@ -16,8 +16,8 @@ import {SITE_NAME} from '~/lib/seo';
 
 /** Conventional Shopify handles → the page that actually holds that content. */
 const LOCAL_EQUIVALENTS: Record<string, string> = {
-  about: '/about',
-  'about-us': '/about',
+  about: '/our-story',
+  'about-us': '/our-story',
   contact: '/contact',
   'contact-us': '/contact',
   faq: '/faq',
@@ -95,7 +95,7 @@ export default function Page() {
           <div className="policy-footer">
             <nav className="policy-nav" aria-label="Elsewhere on the site">
               <Link to="/shop">Shop</Link>
-              <Link to="/about">About</Link>
+              <Link to="/our-story">About</Link>
               <Link to="/faq">FAQ</Link>
               <Link to="/contact">Contact</Link>
             </nav>

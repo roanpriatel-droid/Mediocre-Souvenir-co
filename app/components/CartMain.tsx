@@ -96,9 +96,16 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
  * One honest upsell, drawn from the store rather than the local catalog —
  * suggesting a town we could not actually sell was the old behaviour.
  */
-function CartUpsell({cart}: {cart: OptimisticCart<CartApiQueryFragment | null>}) {
+function CartUpsell({
+  cart,
+}: {
+  cart: OptimisticCart<CartApiQueryFragment | null>;
+}) {
   const {close} = useAside();
-  const fetcher = useFetcher<{suggestion: SouvenirCardData | null}>();
+  const fetcher = useFetcher<{
+    suggestion: SouvenirCardData | null;
+    sameTown?: boolean;
+  }>();
 
   const inCart = (cart?.lines?.nodes ?? [])
     .map((line) =>
@@ -148,7 +155,11 @@ function CartUpsell({cart}: {cart: OptimisticCart<CartApiQueryFragment | null>})
         </div>
       )}
       <div className="cart-upsell-copy">
-        <span className="msc-kicker">Add another town you&rsquo;ll never visit</span>
+        <span className="msc-kicker">
+          {fetcher.data?.sameTown
+            ? 'Complete the set'
+            : 'Add another town you\u2019ll never visit'}
+        </span>
         <strong>{suggestion.title}</strong>
         <span className="cart-upsell-price">
           {cardPriceLabel(suggestion)} · {line}

@@ -200,7 +200,6 @@ export function HomeHero({
       <div className="hero-back">
         <span>{totalProducts.toLocaleString('en-CA')} souvenirs</span>
         <span>{openRegions} regions</span>
-        <span>0 famous ones</span>
         <span>Free shipping over $60</span>
       </div>
     </section>

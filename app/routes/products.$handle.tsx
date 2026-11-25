@@ -1,3 +1,6 @@
+import {townPath, townSlugOf} from '~/lib/towns';
+import {breadcrumbList, returnPolicy, shippingDetails} from '~/lib/schema';
+import {regionPath} from '~/lib/catalog/regions';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Link, redirect, useLoaderData, useSearchParams} from 'react-router';
 import type {Route} from './+types/products.$handle';
@@ -31,6 +34,7 @@ import {
   foundedLabel,
   productMetaDescription,
   productMetaTitle,
+  styleFrom,
   sellLine,
   SPEC_LINES,
   townCopyFor,
@@ -62,14 +66,23 @@ import {SITE_NAME} from '~/lib/seo';
 export const meta: Route.MetaFunction = ({data}) => {
   if (!data) return [{title: 'Not found'}];
   const {town, region, copy, live, origin, handle} = data;
-  const title = `${productMetaTitle(town, region ?? undefined)} | ${SITE_NAME}`;
-  const description = productMetaDescription(town, copy, region ?? undefined);
+  const style = styleFrom(live.title);
+  const title = `${productMetaTitle(town, region ?? undefined, style)} | ${SITE_NAME}`;
+  const description = productMetaDescription(
+    town,
+    copy,
+    region ?? undefined,
+    style,
+  );
   return [
     {title},
     {name: 'description', content: description},
     {tagName: 'link', rel: 'canonical', href: `${origin}/products/${handle}`},
     {property: 'og:type', content: 'product'},
-    {property: 'og:title', content: `${town} — a souvenir nobody asked for`},
+    {
+      property: 'og:title',
+      content: `${town}${style ? ` ${style}` : ''} — a souvenir nobody asked for`,
+    },
     {property: 'og:description', content: description},
     ...(live.featuredImage
       ? [
@@ -170,8 +183,24 @@ export default function ProductPage() {
       const value = params.get(option.name.toLowerCase());
       if (value && option.values.includes(value)) out[option.name] = value;
     }
+    // The colour defaults to the one in the first photo. Without a default,
+    // a shopper who picked a size and pressed Add to cart was told to
+    // "choose a size", because the missing choice was the colour.
+    if (colorOption && !out[colorOption]) {
+      const pictured = live.variants.find(
+        (candidate) =>
+          candidate.image?.url && candidate.image.url === live.featuredImage?.url,
+      );
+      const fromPhoto = pictured?.selectedOptions.find(
+        (option) => option.name === colorOption,
+      )?.value;
+      const fallback = live.options.find((option) => option.name === colorOption)
+        ?.values[0];
+      const value = fromPhoto ?? fallback;
+      if (value) out[colorOption] = value;
+    }
     return out;
-  }, [live.options, params]);
+  }, [live.options, live.variants, live.featuredImage, colorOption, params]);
 
   const setOption = (name: string, value: string) => {
     setSizeError(false);
@@ -191,6 +220,10 @@ export default function ProductPage() {
 
   const sizeChosen = !sizeOption || Boolean(selected[sizeOption]);
   const price = variant?.price ?? live.priceRange.minVariantPrice;
+  const townSlug = townSlugOf(live.handle);
+  const samePrice = live.variants.every(
+    (candidate) => candidate.price.amount === live.variants[0]?.price.amount,
+  );
   const compareAt = variant?.compareAtPrice;
   const onSale = compareAt && Number(compareAt.amount) > Number(price.amount);
   const soldOut = variant ? !variant.availableForSale : !live.availableForSale;
@@ -250,11 +283,30 @@ export default function ProductPage() {
               <Link to="/collections/all-souvenirs">Shop</Link>
             )}
             <span aria-hidden="true">·</span>
-            <span aria-current="page">{town}</span>
+            {townSlug ? (
+              <Link to={townPath(townSlug)}>{town}</Link>
+            ) : (
+              <span aria-current="page">{town}</span>
+            )}
           </nav>
 
           {/* 2 · Title */}
-          <h1 className="pdp-title">{live.title}</h1>
+          {(() => {
+            // "Akron, OH — Greetings" reads as one name broken by a dash.
+            // Lead with the place and set the style as its label.
+            const [place, styleName] = live.title.split(' — ');
+            return (
+              <h1 className="pdp-title">
+                {place}
+                {styleName ? (
+                  <span className="pdp-title-style">
+                    <span className="sr-only"> — </span>
+                    {styleName} tee
+                  </span>
+                ) : null}
+              </h1>
+            );
+          })()}
 
           {/* 3 · Review stars — the slot disappears when there is nothing real */}
           {live.rating && (
@@ -287,7 +339,7 @@ export default function ProductPage() {
               <span className="product-price-was">{formatMoney(compareAt)}</span>
             )}
             <span className="product-price-note">
-              {variant ? 'USD' : 'From · USD'} · Comfort Colors 1717 · collect 2
+              {variant || samePrice ? 'USD' : 'From · USD'} · Comfort Colors 1717 · collect 2
               save 15%
             </span>
           </div>
@@ -337,9 +389,10 @@ export default function ProductPage() {
                 </button>
               </div>
               <div className="product-options-grid">
-                {live.options
-                  .find((option) => option.name === sizeOption)
-                  ?.values.map((value) => {
+                {sortSizes(
+                  live.options.find((option) => option.name === sizeOption)
+                    ?.values ?? [],
+                ).map((value) => {
                     const candidate = matchVariant(
                       live.variants,
                       {...selected, [sizeOption]: value},
@@ -654,6 +707,23 @@ export default function ProductPage() {
           ),
         }}
       />
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbList(origin, [
+              ...(region
+                ? [{name: region.name, path: regionPath(region)}]
+                : [{name: 'All souvenirs', path: '/collections/all-souvenirs'}]),
+              ...(townSlug
+                ? [{name: town, path: townPath(townSlug)}]
+                : []),
+              {name: live.title, path: `/products/${live.handle}`},
+            ]),
+          ),
+        }}
+      />
 
       {variant && (
         <Analytics.ProductView
@@ -674,6 +744,17 @@ export default function ProductPage() {
       )}
     </div>
   );
+}
+
+const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', '2XL', 'XXL', '3XL', 'XXXL', '4XL', '5XL'];
+
+/** Printify lists sizes in the order it created them (M, L, XL, 2XL, 3XL, S). */
+function sortSizes(values: string[]): string[] {
+  const rank = (value: string) => {
+    const index = SIZE_ORDER.indexOf(value.toUpperCase());
+    return index === -1 ? SIZE_ORDER.length : index;
+  };
+  return [...values].sort((a, b) => rank(a) - rank(b));
 }
 
 /** The variant whose selectedOptions match everything currently chosen. */
@@ -713,6 +794,8 @@ function productJsonLd({
   origin: string;
 }) {
   const url = `${origin}/products/${live.handle}`;
+  const shipping = shippingDetails();
+  const returns = returnPolicy(origin);
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -744,6 +827,8 @@ function productJsonLd({
         : 'https://schema.org/OutOfStock',
       url,
       itemCondition: 'https://schema.org/NewCondition',
+      shippingDetails: shipping,
+      hasMerchantReturnPolicy: returns,
     })),
     // Present only when a reviews app has written real aggregates.
     ...(live.rating

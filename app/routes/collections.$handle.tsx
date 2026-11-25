@@ -1,3 +1,4 @@
+import {breadcrumbList} from '~/lib/schema';
 import {useMemo} from 'react';
 import {Link, redirect, useLoaderData, useSearchParams} from 'react-router';
 import {getPaginationVariables, useNonce} from '@shopify/hydrogen';
@@ -57,10 +58,7 @@ const SORTS = {
 type SortKey = keyof typeof SORTS;
 
 /** Our sort labels mapped onto ProductCollectionSortKeys. */
-const SORT_VARIABLES: Record<
-  SortKey,
-  {sortKey: string; reverse: boolean}
-> = {
+const SORT_VARIABLES: Record<SortKey, {sortKey: string; reverse: boolean}> = {
   featured: {sortKey: 'COLLECTION_DEFAULT', reverse: false},
   'a-z': {sortKey: 'TITLE', reverse: false},
   'z-a': {sortKey: 'TITLE', reverse: true},
@@ -98,11 +96,15 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   const page = Math.max(1, Number(url.searchParams.get('page') ?? 1) || 1);
   const paginationVariables = getPaginationVariables(request, {pageBy: 24});
 
-  const shopifyCollection = await loadCollectionPage(context.storefront, handle, {
-    ...paginationVariables,
-    ...SORT_VARIABLES[sort],
-    filters: availability === 'in-stock' ? [{available: true}] : undefined,
-  });
+  const shopifyCollection = await loadCollectionPage(
+    context.storefront,
+    handle,
+    {
+      ...paginationVariables,
+      ...SORT_VARIABLES[sort],
+      filters: availability === 'in-stock' ? [{available: true}] : undefined,
+    },
+  );
   const products: SouvenirCard[] = shopifyCollection?.products.nodes ?? [];
   const connection = shopifyCollection?.products ?? null;
 
@@ -111,12 +113,20 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     // The region's smart collection is the fast path. When it is not published
     // to the headless channel we derive the rack from the products themselves
     // rather than telling a stocked region it does not exist.
-    let regionProducts = products;
-    let derived: Awaited<ReturnType<typeof derivedRack>> | null = null;
-    if (!regionProducts.length) {
-      derived = await derivedRack(context.storefront, {region, style, page});
-      regionProducts = derived.products;
-    }
+    // Region racks come from the product index rather than the collection
+    // connection. Every product costs the same and is always printable, so
+    // sort and availability do nothing useful here, while the index gives
+    // what does matter: the true total (the connection only knows the page),
+    // print-style filtering (the Storefront API ignores tag filters without
+    // the Search & Discovery app) and numbered pages.
+    const derived = await derivedRack(context.storefront, {
+      region,
+      style,
+      page,
+    });
+    const regionProducts = derived.products.length
+      ? derived.products
+      : products;
 
     const open =
       regionProducts.length > 0
@@ -128,8 +138,8 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
 
     return {
       kind: 'region' as const,
-      connection: products.length ? connection : null,
-      derived,
+      connection: derived.products.length ? null : connection,
+      derived: derived.products.length ? derived : null,
       handle,
       country: null,
       countryOpen: {} as Record<string, boolean>,
@@ -204,7 +214,12 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   // the whole shop down, which is exactly what removing the catalog fallback
   // did. Render the rack empty and say so instead.
   if (KNOWN_HANDLES.has(handle)) {
-    const rack = await deriveUtilityRack(context.storefront, handle, style, page);
+    const rack = await deriveUtilityRack(
+      context.storefront,
+      handle,
+      style,
+      page,
+    );
     return {
       kind: 'shopify' as const,
       connection: null,
@@ -311,11 +326,19 @@ export default function CollectionPage() {
 
   return (
     <div className="msc-page" style={{paddingBottom: '88px'}}>
-      <Breadcrumbs region={data.region} heading={data.heading} kind={data.kind} />
+      <Breadcrumbs
+        region={data.region}
+        heading={data.heading}
+        kind={data.kind}
+      />
 
       <div className="province-header">
         <span className="msc-kicker">
-          {isRegion ? (data.open ? 'Now open' : 'Coming in due time') : 'The rack'}
+          {isRegion
+            ? data.open
+              ? 'Now open'
+              : 'Coming in due time'
+            : 'The rack'}
         </span>
         <h1>{data.heading}</h1>
         {data.description && (
@@ -323,7 +346,10 @@ export default function CollectionPage() {
         )}
         {visible.length > 0 && (
           <span className="msc-kicker msc-kicker--navy">
-            {visible.length} {visible.length === 1 ? 'souvenir' : 'souvenirs'} ·{' '}
+            {(() => {
+              const total = data.derived?.total ?? visible.length;
+              return `${total} ${total === 1 ? 'souvenir' : 'souvenirs'} · `;
+            })()}
             collect 2 and save 15%
           </span>
         )}
@@ -333,37 +359,49 @@ export default function CollectionPage() {
         <RegionWaitlist region={data.region as Region} />
       ) : visible.length > 0 ? (
         <>
-          <div className="shop-toolbar" role="group" aria-label="Filter and sort">
-            <label>
-              <span className="msc-label">Availability</span>
-              <select
-                className="msc-input"
-                value={availability}
-                onChange={(e) => setParam('availability', e.target.value)}
-              >
-                <option value="">Everything</option>
-                <option value="in-stock">On the rack</option>
-                <option value="sold-out">Off the rack</option>
-              </select>
-            </label>
-            <label>
-              <span className="msc-label">Sort</span>
-              <select
-                className="msc-input"
-                value={sort}
-                onChange={(e) => setParam('sort', e.target.value)}
-              >
-                {Object.entries(SORTS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+          {/* Sort and availability apply to the collection connection only;
+              index-built racks are ordered by town and always in stock. */}
+          {!data.derived && (
+            <div
+              className="shop-toolbar"
+              role="group"
+              aria-label="Filter and sort"
+            >
+              <label>
+                <span className="msc-label">Availability</span>
+                <select
+                  className="msc-input"
+                  value={availability}
+                  onChange={(e) => setParam('availability', e.target.value)}
+                >
+                  <option value="">Everything</option>
+                  <option value="in-stock">On the rack</option>
+                  <option value="sold-out">Off the rack</option>
+                </select>
+              </label>
+              <label>
+                <span className="msc-label">Sort</span>
+                <select
+                  className="msc-input"
+                  value={sort}
+                  onChange={(e) => setParam('sort', e.target.value)}
+                >
+                  {Object.entries(SORTS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
 
           {data.derived && Object.keys(data.derived.styleCounts).length > 1 && (
-            <div className="style-filter" role="group" aria-label="Filter by print">
+            <div
+              className="style-filter"
+              role="group"
+              aria-label="Filter by print"
+            >
               <button
                 type="button"
                 className="collection-chip"
@@ -380,7 +418,9 @@ export default function CollectionPage() {
                   type="button"
                   className="collection-chip"
                   data-selected={style === s.value}
-                  onClick={() => setParam('style', style === s.value ? '' : s.value)}
+                  onClick={() =>
+                    setParam('style', style === s.value ? '' : s.value)
+                  }
                 >
                   {s.label}
                   <em>{data.derived!.styleCounts[s.value]}</em>
@@ -478,6 +518,28 @@ export default function CollectionPage() {
         type="application/ld+json"
         nonce={nonce}
         dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            breadcrumbList(data.origin, [
+              ...(data.region
+                ? [
+                    {
+                      name: data.region.country,
+                      path:
+                        data.region.country === 'Canada'
+                          ? '/collections/canada'
+                          : '/collections/united-states',
+                    },
+                  ]
+                : []),
+              {name: data.heading, path: `/collections/${data.handle}`},
+            ]),
+          ),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'CollectionPage',
@@ -555,7 +617,10 @@ function EmptyRack({handle, filtered}: {handle: string; filtered: boolean}) {
         <Link className="msc-button" to="/collections/all-souvenirs">
           Every souvenir
         </Link>
-        <Link className="msc-button msc-button--ghost" to={`/collections/${handle}`}>
+        <Link
+          className="msc-button msc-button--ghost"
+          to={`/collections/${handle}`}
+        >
           Reload the rack
         </Link>
       </div>

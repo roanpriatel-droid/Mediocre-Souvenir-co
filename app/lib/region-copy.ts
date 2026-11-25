@@ -128,9 +128,9 @@ export function regionDescription(region: Region, isOpen: boolean): string {
 
   if (isOpen) {
     return (
-      `${region.name} is open. It is known, if it is known at all, for ` +
-      `${copy.note} — which is exactly the sort of thing a souvenir should ` +
-      `commemorate and never does. Every shirt here is a real town where ` +
+      `${region.name}, in one line: ${copy.note}. That is exactly the sort ` +
+      `of thing a souvenir should commemorate and never does. Every shirt ` +
+      `here is a real town where ` +
       `people live full lives, mostly without incident.`
     );
   }
@@ -178,7 +178,7 @@ export function regionMetaDescription(
   const note = regionNote(region);
   return open
     ? `Bland, proud, and available in cotton: ${region.name}. ` +
-        `${count} faux-vintage souvenir tees for towns known, if at all, for ` +
+        `${count} faux-vintage souvenir tees. ${region.name}, in one line: ` +
         `${note}. Garment-dyed heavyweight, printed to order.`
     : `${region.name} has ${note} and not one souvenir to show for it. ` +
         `Join the waitlist and we will write the day it opens.`;

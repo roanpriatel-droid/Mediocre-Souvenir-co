@@ -1,6 +1,6 @@
 import {useEffect, useId, useRef, useState} from 'react';
 import {Link, useFetcher, useNavigate} from 'react-router';
-import type {Suggestion} from '~/lib/shopify-search';
+import type {SearchSuggestion} from '~/routes/api.suggest';
 
 /**
  * "Find your town" — the single most important element on the page.
@@ -24,7 +24,7 @@ export function TownSearch({
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const rootRef = useRef<HTMLDivElement>(null);
-  const fetcher = useFetcher<{suggestions: Suggestion[]}>();
+  const fetcher = useFetcher<{suggestions: SearchSuggestion[]}>();
   const listId = useId();
 
   const results = fetcher.data?.suggestions ?? [];
@@ -64,9 +64,7 @@ export function TownSearch({
     const chosen = highlighted >= 0 ? results[highlighted] : undefined;
     setOpen(false);
     void navigate(
-      chosen
-        ? `/products/${chosen.handle}`
-        : `/search?q=${encodeURIComponent(query.trim())}`,
+      chosen ? chosen.to : `/search?q=${encodeURIComponent(query.trim())}`,
     );
   };
 
@@ -119,18 +117,18 @@ export function TownSearch({
         <div className="town-search-results" id={listId} role="listbox">
           {results.map((result, i) => (
             <Link
-              key={result.handle}
+              key={result.key}
               className="town-search-result"
               data-highlighted={i === highlighted}
-              to={`/products/${result.handle}`}
+              to={result.to}
               onClick={() => setOpen(false)}
               onMouseEnter={() => setHighlighted(i)}
               role="option"
               aria-selected={i === highlighted}
             >
               <span className="town-search-result-name">{result.title}</span>
-              {result.price && (
-                <span className="town-search-result-meta">${result.price}</span>
+              {result.meta && (
+                <span className="town-search-result-meta">{result.meta}</span>
               )}
             </Link>
           ))}

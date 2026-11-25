@@ -878,48 +878,33 @@ export type SouvenirSearchNeutralQuery = {
   };
 };
 
-export type SouvenirProductsByHandleQueryVariables = StorefrontAPI.Exact<{
-  query: StorefrontAPI.Scalars['String']['input'];
-  first: StorefrontAPI.Scalars['Int']['input'];
+export type SouvenirProductByHandleQueryVariables = StorefrontAPI.Exact<{
+  handle: StorefrontAPI.Scalars['String']['input'];
 }>;
 
-export type SouvenirProductsByHandleQuery = {
-  products: {
-    nodes: Array<
-      Pick<
-        StorefrontAPI.Product,
-        'id' | 'handle' | 'title' | 'availableForSale' | 'tags'
-      > & {
-        featuredImage?: StorefrontAPI.Maybe<
-          Pick<
-            StorefrontAPI.Image,
-            'id' | 'url' | 'altText' | 'width' | 'height'
-          >
+export type SouvenirProductByHandleQuery = {
+  product?: StorefrontAPI.Maybe<
+    Pick<
+      StorefrontAPI.Product,
+      'id' | 'handle' | 'title' | 'availableForSale' | 'tags'
+    > & {
+      featuredImage?: StorefrontAPI.Maybe<
+        Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
+      >;
+      priceRange: {
+        minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+        maxVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+      };
+      compareAtPriceRange: {
+        minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+      };
+      variants: {
+        nodes: Array<
+          Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>
         >;
-        priceRange: {
-          minVariantPrice: Pick<
-            StorefrontAPI.MoneyV2,
-            'amount' | 'currencyCode'
-          >;
-          maxVariantPrice: Pick<
-            StorefrontAPI.MoneyV2,
-            'amount' | 'currencyCode'
-          >;
-        };
-        compareAtPriceRange: {
-          minVariantPrice: Pick<
-            StorefrontAPI.MoneyV2,
-            'amount' | 'currencyCode'
-          >;
-        };
-        variants: {
-          nodes: Array<
-            Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>
-          >;
-        };
-      }
-    >;
-  };
+      };
+    }
+  >;
 };
 
 export type SouvenirPredictiveQueryVariables = StorefrontAPI.Exact<{
@@ -1102,9 +1087,9 @@ interface GeneratedQueryTypes {
     return: SouvenirSearchNeutralQuery;
     variables: SouvenirSearchNeutralQueryVariables;
   };
-  '#graphql\n  query SouvenirProductsByHandle($query: String!, $first: Int!) {\n    products(first: $first, query: $query) {\n      nodes {\n        ...SearchCard\n      }\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n\n': {
-    return: SouvenirProductsByHandleQuery;
-    variables: SouvenirProductsByHandleQueryVariables;
+  '#graphql\n  query SouvenirProductByHandle($handle: String!) {\n    product(handle: $handle) {\n      ...SearchCard\n    }\n  }\n  #graphql\n  fragment SearchMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment SearchCard on Product {\n    id\n    handle\n    title\n    availableForSale\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n      maxVariantPrice {\n        ...SearchMoney\n      }\n    }\n    compareAtPriceRange {\n      minVariantPrice {\n        ...SearchMoney\n      }\n    }\n    variants(first: 2) {\n      nodes {\n        id\n        availableForSale\n      }\n    }\n  }\n\n': {
+    return: SouvenirProductByHandleQuery;
+    variables: SouvenirProductByHandleQueryVariables;
   };
   '#graphql\n  query SouvenirPredictive($query: String!, $limit: Int!) {\n    predictiveSearch(query: $query, limit: $limit, types: [PRODUCT]) {\n      products {\n        id\n        handle\n        title\n        featuredImage {\n          url\n          altText\n        }\n        priceRange {\n          minVariantPrice {\n            amount\n            currencyCode\n          }\n        }\n      }\n    }\n  }\n': {
     return: SouvenirPredictiveQuery;

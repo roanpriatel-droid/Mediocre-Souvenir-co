@@ -4,6 +4,8 @@
  * into the catalog.
  */
 
+import {GUIDES} from './guides';
+
 export interface Article {
   slug: string;
   title: string;
@@ -12,9 +14,12 @@ export interface Article {
   readingMinutes: number;
   relatedHandles: string[];
   body: string[]; // paragraphs; lines starting with "## " render as h2
+  /** Optional questions and answers, rendered as a section and FAQPage data. */
+  faq?: {q: string; a: string}[];
 }
 
 export const ARTICLES: Article[] = [
+  ...GUIDES,
   {
     slug: 'a-postcard-from-toledo',
     title: 'A postcard from Toledo',

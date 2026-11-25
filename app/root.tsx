@@ -1,3 +1,4 @@
+import {siteGraph} from '~/lib/schema';
 import {Analytics, getShopAnalytics, useNonce} from '@shopify/hydrogen';
 import {
   Outlet,
@@ -91,6 +92,7 @@ export async function loader(args: Route.LoaderArgs) {
     ...deferredData,
     ...criticalData,
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
+    origin: new URL(args.request.url).origin,
     // Edge geo, for the header's shipping chip. Best-effort; absent is fine.
     buyerRegion: buyerRegion(args.request) ?? null,
     shop: getShopAnalytics({
@@ -160,6 +162,7 @@ function loadDeferredData({context}: Route.LoaderArgs) {
 
 export function Layout({children}: {children?: React.ReactNode}) {
   const nonce = useNonce();
+  const origin = useRouteLoaderData<RootLoader>('root')?.origin ?? '';
 
   return (
     <html lang="en">
@@ -170,11 +173,11 @@ export function Layout({children}: {children?: React.ReactNode}) {
         {/* Sensible social defaults; per-route meta overrides title/description/canonical. */}
         <meta property="og:site_name" content="Mediocre Souvenir Co." />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="/og-default.png" />
+        <meta property="og:image" content={`${origin}/og-default.png`} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="/og-default.png" />
+        <meta name="twitter:image" content={`${origin}/og-default.png`} />
         <meta name="twitter:site" content="@mediocresouvenirco" />
         <link rel="stylesheet" href={resetStyles}></link>
         <link rel="stylesheet" href={appStyles}></link>
@@ -184,20 +187,7 @@ export function Layout({children}: {children?: React.ReactNode}) {
           type="application/ld+json"
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'Organization',
-              name: 'Mediocre Souvenir Co.',
-              alternateName: 'MSC',
-              slogan: 'Genuine Merch for Overlooked Places',
-              foundingDate: '2026',
-              description:
-                'Faux-vintage souvenir t-shirts for overlooked towns across ' +
-                'Canada and the US, made with the reverence a Hawaii gift ' +
-                'shop would use. Shipped worldwide.',
-              areaServed: 'Worldwide',
-              sameAs: ['https://instagram.com/mediocresouvenirco'],
-            }),
+            __html: JSON.stringify(siteGraph(origin)),
           }}
         />
       </head>

@@ -81,12 +81,10 @@ export const PRODUCT_SEARCH_QUERY_NEUTRAL = `#graphql
 ` as const;
 
 /** Look products up by handle — used by editorial that references specific towns. */
-export const PRODUCTS_BY_HANDLE_QUERY = `#graphql
-  query SouvenirProductsByHandle($query: String!, $first: Int!) {
-    products(first: $first, query: $query) {
-      nodes {
-        ...SearchCard
-      }
+export const PRODUCT_BY_HANDLE_QUERY = `#graphql
+  query SouvenirProductByHandle($handle: String!) {
+    product(handle: $handle) {
+      ...SearchCard
     }
   }
   ${SEARCH_CARD_FRAGMENT}
@@ -171,24 +169,25 @@ export async function productsByHandle(
   const wanted = handles.filter(Boolean);
   if (!wanted.length) return [];
 
-  try {
-    const data = await storefront.query(PRODUCTS_BY_HANDLE_QUERY, {
-      variables: {
-        query: wanted.map((handle) => `handle:${handle}`).join(' OR '),
-        first: Math.min(wanted.length * 2, 50),
-      },
-      cache: storefront.CacheShort(),
-    });
-    const nodes = (data?.products?.nodes ?? []) as SouvenirCard[];
-    // Preserve the order the caller asked for.
-    const byHandle = new Map(nodes.map((node) => [node.handle, node]));
-    return wanted
-      .map((handle) => byHandle.get(handle))
-      .filter((node): node is SouvenirCard => Boolean(node));
-  } catch (error) {
-    console.error('[msc:search] handle lookup failed', error);
-    return [];
-  }
+  // One exact lookup per handle. The Storefront API's product search does
+  // not support a handle: filter; it quietly ignores it and returns the
+  // first products in the catalogue, which this function then discarded,
+  // so every caller got nothing back.
+  const results = await Promise.all(
+    wanted.map((handle) =>
+      storefront
+        .query(PRODUCT_BY_HANDLE_QUERY, {
+          variables: {handle},
+          cache: storefront.CacheLong(),
+        })
+        .then((data) => (data?.product ?? null) as SouvenirCard | null)
+        .catch((error: unknown) => {
+          console.error(`[msc:search] handle lookup failed: ${handle}`, error);
+          return null;
+        }),
+    ),
+  );
+  return results.filter((node): node is SouvenirCard => Boolean(node));
 }
 
 export interface Suggestion {

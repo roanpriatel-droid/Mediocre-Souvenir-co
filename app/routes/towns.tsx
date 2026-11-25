@@ -6,6 +6,7 @@ import {Reveal} from '~/components/Reveal';
 import {getRegionsByCountry, REGIONS, type Region} from '~/lib/catalog';
 import {loadRegionStatus} from '~/lib/shopify-collections';
 import {regionNote} from '~/lib/region-copy';
+import {loadTowns, townPath, type Town} from '~/lib/towns';
 import {SITE_NAME} from '~/lib/seo';
 
 /**
@@ -42,16 +43,31 @@ export const meta: Route.MetaFunction = ({data}) => [
 ];
 
 export async function loader({context, request}: Route.LoaderArgs) {
-  const status = await loadRegionStatus(context.storefront);
+  const [status, towns] = await Promise.all([
+    loadRegionStatus(context.storefront),
+    loadTowns(context.storefront).catch(() => new Map<string, Town>()),
+  ]);
+  // Every town, grouped by region, for the full A-to-Z index below the board.
+  const byRegion: Record<string, {slug: string; name: string}[]> = {};
+  for (const town of towns.values()) {
+    if (!town.region) continue;
+    (byRegion[town.region.slug] ??= []).push({slug: town.slug, name: town.name});
+  }
+  for (const list of Object.values(byRegion)) {
+    list.sort((a, b) => a.name.localeCompare(b.name));
+  }
   return {
     open: status.open,
     live: status.live,
     origin: new URL(request.url).origin,
+    byRegion,
+    townCount: towns.size,
   };
 }
 
 export default function TownsIndex() {
-  const {open, live, origin} = useLoaderData<typeof loader>();
+  const {open, live, origin, byRegion, townCount} =
+    useLoaderData<typeof loader>();
   const nonce = useNonce();
 
   const isOpen = (region: Region) => live && Boolean(open[region.slug]);
@@ -159,6 +175,33 @@ export default function TownsIndex() {
           <span>The list is the roadmap. It is the only roadmap.</span>
         </Link>
       </section>
+
+      {townCount > 0 && (
+        <section className="msc-section" aria-labelledby="every-town">
+          <div className="msc-section-rule">
+            <h2 id="every-town">Every town, A to Z</h2>
+            <span className="msc-section-note">{townCount} towns</span>
+          </div>
+          <div className="towns-index">
+            {alphabetical
+              .filter((region) => byRegion[region.slug]?.length)
+              .map((region) => (
+                <div key={region.slug} className="towns-index-region">
+                  <h3>
+                    <Link to={`/collections/${region.slug}`}>{region.name}</Link>
+                  </h3>
+                  <ul>
+                    {byRegion[region.slug].map((town) => (
+                      <li key={town.slug}>
+                        <Link to={townPath(town.slug)}>{town.name}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+          </div>
+        </section>
+      )}
 
       <script
         type="application/ld+json"

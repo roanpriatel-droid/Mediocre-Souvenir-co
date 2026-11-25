@@ -417,7 +417,7 @@ export function Manifesto() {
       </blockquote>
       <div className="home-manifesto-sig">
         <span>Mediocre Souvenir Co.</span>
-        <Link to="/about">Why we do this →</Link>
+        <Link to="/our-story">Why we do this →</Link>
       </div>
     </div>
   );
