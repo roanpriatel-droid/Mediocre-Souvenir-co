@@ -8374,3 +8374,9 @@ body > main .msc-section--band {
 .region-list-toggle[open] > summary {
   margin-bottom: 24px;
 }
+
+@media (max-width: 640px) {
+  .tilemap-legend {
+    display: none;
+  }
+}
