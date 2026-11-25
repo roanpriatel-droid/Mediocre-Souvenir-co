@@ -1,3 +1,4 @@
+import {townPath, townSlugOf} from '~/lib/towns';
 import {breadcrumbList, returnPolicy, shippingDetails} from '~/lib/schema';
 import {regionPath} from '~/lib/catalog/regions';
 import {useEffect, useMemo, useRef, useState} from 'react';
@@ -219,6 +220,7 @@ export default function ProductPage() {
 
   const sizeChosen = !sizeOption || Boolean(selected[sizeOption]);
   const price = variant?.price ?? live.priceRange.minVariantPrice;
+  const townSlug = townSlugOf(live.handle);
   const samePrice = live.variants.every(
     (candidate) => candidate.price.amount === live.variants[0]?.price.amount,
   );
@@ -281,7 +283,11 @@ export default function ProductPage() {
               <Link to="/collections/all-souvenirs">Shop</Link>
             )}
             <span aria-hidden="true">·</span>
-            <span aria-current="page">{town}</span>
+            {townSlug ? (
+              <Link to={townPath(townSlug)}>{town}</Link>
+            ) : (
+              <span aria-current="page">{town}</span>
+            )}
           </nav>
 
           {/* 2 · Title */}
@@ -710,6 +716,9 @@ export default function ProductPage() {
               ...(region
                 ? [{name: region.name, path: regionPath(region)}]
                 : [{name: 'All souvenirs', path: '/collections/all-souvenirs'}]),
+              ...(townSlug
+                ? [{name: town, path: townPath(townSlug)}]
+                : []),
               {name: live.title, path: `/products/${live.handle}`},
             ]),
           ),

@@ -3,6 +3,7 @@ import {getOpenRegions, REGIONS} from '~/lib/catalog';
 import {UTILITY_COLLECTIONS} from '~/lib/shopify-collections';
 import {ARTICLES} from '~/lib/journal';
 import {sitemapPagePaths} from '~/lib/site-pages';
+import {loadTowns, townPath} from '~/lib/towns';
 
 /**
  * Pages, collections and journal articles — everything this repo knows about.
@@ -11,8 +12,13 @@ import {sitemapPagePaths} from '~/lib/site-pages';
  * they get their own generated sitemap at /sitemap/products/1.xml (see
  * sitemap.$type.$page[.xml].tsx). robots.txt points crawlers at both.
  */
-export async function loader({request}: Route.LoaderArgs) {
+export async function loader({request, context}: Route.LoaderArgs) {
   const origin = new URL(request.url).origin;
+  // One page per town, built from the product index. A failure here should
+  // not take the rest of the sitemap down with it.
+  const towns = await loadTowns(context.storefront).catch(
+    () => new Map<string, unknown>(),
+  );
 
   /** Rough priority signal: products and regions earn crawl budget first. */
   const entries: {path: string; changefreq: string; priority: string}[] = [
@@ -36,6 +42,11 @@ export async function loader({request}: Route.LoaderArgs) {
         ? 'weekly'
         : 'monthly',
       priority: region.status === 'open' ? '0.9' : '0.6',
+    })),
+    ...[...towns.keys()].map((slug) => ({
+      path: townPath(slug),
+      changefreq: 'weekly',
+      priority: '0.8',
     })),
     ...ARTICLES.map((article) => ({
       path: `/postcards/${article.slug}`,

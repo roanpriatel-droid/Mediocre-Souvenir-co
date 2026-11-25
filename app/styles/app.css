@@ -7546,3 +7546,60 @@ select:focus-visible,
     transform: translateX(-50%);
   }
 }
+
+/* Town page: the nearby towns, as a plain list of links. */
+.town-nearby {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px 24px;
+}
+
+.town-nearby a {
+  display: block;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(28, 28, 28, 0.35);
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--msc-navy);
+}
+
+.town-nearby a:hover {
+  color: var(--msc-brick-ink);
+}
+
+/* The directory's full town index: one block per region, in columns. */
+.towns-index {
+  columns: 4 240px;
+  column-gap: 32px;
+}
+
+.towns-index-region {
+  break-inside: avoid;
+  margin-bottom: 26px;
+}
+
+.towns-index-region h3 {
+  font-size: 18px;
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--msc-asphalt);
+}
+
+.towns-index-region ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.towns-index-region a {
+  color: var(--msc-asphalt);
+}
+
+.towns-index-region a:hover {
+  color: var(--msc-brick-ink);
+}
