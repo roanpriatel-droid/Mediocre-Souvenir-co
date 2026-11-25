@@ -16,7 +16,7 @@ import {
 } from '~/components/HomeSections';
 import {StickyShopBar} from '~/components/StickyShopBar';
 import {SouvenirGrid, SouvenirGridSkeleton} from '~/components/SouvenirCard';
-import {loadRegionStatus} from '~/lib/shopify-collections';
+import {loadRegionStatus, wornImage} from '~/lib/shopify-collections';
 import {
   loadDerivedCatalog,
   productsInOpenRegions,
@@ -29,7 +29,6 @@ import {ARTICLES} from '~/lib/journal';
 import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
 import {productsByHandle} from '~/lib/shopify-search';
 import {loadTowns} from '~/lib/towns';
-import {wornImage} from '~/lib/shopify-collections';
 
 const HERO_HANDLES = [
   'scranton-pa-i-heart',
