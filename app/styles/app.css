@@ -7917,3 +7917,159 @@ select:focus-visible,
 .region-browse .region-card--request .region-card-name {
   color: var(--msc-brick-ink);
 }
+
+/* Colour chips carry a swatch of the garment-dyed colour. */
+.pdp-chip--swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdp-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(28, 28, 28, 0.35);
+  flex: none;
+}
+
+/* ==========================================================================
+   Colour blocks: full-width sections in navy, brick and mustard break the
+   page into chapters instead of one long run of cream. Content stays on the
+   page grid; only the colour runs edge to edge.
+   ========================================================================== */
+.msc-section.msc-block {
+  max-width: none;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: clamp(56px, 7vw, 104px) clamp(16px, 3vw, 24px);
+  border: none;
+}
+
+.msc-block > * {
+  max-width: var(--page-max);
+  margin-inline: auto;
+}
+
+.msc-block--navy {
+  background: var(--msc-navy);
+  color: var(--msc-cream);
+}
+
+.msc-block--brick {
+  background: var(--msc-brick);
+  color: var(--msc-cream);
+}
+
+.msc-block--mustard {
+  background: var(--msc-mustard);
+  color: var(--msc-asphalt);
+}
+
+.msc-block--navy h2,
+.msc-block--navy h3,
+.msc-block--navy strong,
+.msc-block--brick h2,
+.msc-block--brick h3,
+.msc-block--brick strong {
+  color: var(--msc-cream);
+}
+
+.msc-block--navy .msc-section-rule,
+.msc-block--brick .msc-section-rule {
+  border-top-color: rgba(241, 233, 214, 0.45);
+}
+
+.msc-block--navy .msc-section-note,
+.msc-block--navy .msc-section-lede,
+.msc-block--brick .msc-section-note,
+.msc-block--brick p {
+  color: rgba(241, 233, 214, 0.86);
+}
+
+.msc-block--navy .msc-kicker,
+.msc-block--brick .msc-kicker {
+  color: var(--msc-mustard);
+}
+
+.msc-block h2 {
+  font-size: clamp(34px, 4.6vw, 64px);
+  line-height: 1;
+}
+
+/* The four prints, on navy. */
+.msc-block--navy .home-style2 {
+  color: var(--msc-cream);
+}
+
+.msc-block--navy .home-style2 strong {
+  color: var(--msc-cream);
+}
+
+.msc-block--navy .home-style2:hover strong {
+  color: var(--msc-mustard);
+}
+
+.msc-block--navy .home-style-note {
+  color: rgba(241, 233, 214, 0.75);
+}
+
+/* The ladder, on mustard: no box, bigger. */
+.msc-block--mustard .collect-ladder {
+  background: transparent !important;
+  border: none !important;
+  max-width: 980px;
+  margin-inline: auto;
+}
+
+.msc-block--mustard .collect-ladder h2,
+.msc-block--mustard .collect-ladder-qty {
+  color: var(--msc-navy);
+}
+
+.msc-block--mustard .collect-ladder .msc-kicker {
+  color: var(--msc-brick-ink);
+}
+
+.msc-block--mustard .collect-ladder-tier {
+  background: var(--msc-cream);
+}
+
+.msc-block--mustard .collect-ladder-tier--highlight {
+  background: var(--msc-navy);
+}
+
+.msc-block--mustard .collect-ladder-tier--highlight .collect-ladder-qty,
+.msc-block--mustard .collect-ladder-tier--highlight .collect-ladder-each {
+  color: var(--msc-cream);
+}
+
+.msc-block--mustard .collect-ladder-tier--highlight .collect-ladder-deal {
+  color: var(--msc-mustard);
+}
+
+/* The gift block, on brick. */
+.msc-block--brick .home-gift-list {
+  background: rgba(28, 28, 28, 0.14) !important;
+  border-color: rgba(241, 233, 214, 0.35) !important;
+}
+
+.msc-block--brick .home-gift-list li {
+  border-color: rgba(241, 233, 214, 0.3);
+}
+
+.msc-block--brick .home-gift-note {
+  border-left-color: var(--msc-mustard);
+}
+
+.msc-block--brick .msc-button {
+  background: var(--msc-cream);
+  color: var(--msc-brick-ink);
+  box-shadow: 4px 4px 0 var(--msc-asphalt);
+}
+
+.msc-block--brick .msc-button--ghost {
+  background: transparent;
+  color: var(--msc-cream);
+  border-color: var(--msc-cream);
+}

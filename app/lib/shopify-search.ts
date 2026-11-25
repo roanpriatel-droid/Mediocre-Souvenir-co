@@ -29,9 +29,9 @@ const SEARCH_CARD_FRAGMENT = `#graphql
       width
       height
     }
-    # The first five photos. The fifth is the white shirt on a model, which
-    # the card shows on hover (and which alt text marks as "worn").
-    gallery: images(first: 5) {
+    # Enough photos to find the one of the shirt being worn, which the card
+    # shows on hover. Alt text names each photo's colour and view.
+    gallery: images(first: 12) {
       nodes {
         url
         altText

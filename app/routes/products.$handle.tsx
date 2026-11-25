@@ -317,6 +317,7 @@ export default function ProductPage() {
           images={live.images}
           title={live.title}
           activeImageId={activeImageId}
+          colour={colorOption ? selected[colorOption] : null}
         />
 
         <div className="pdp-buy">
@@ -412,20 +413,28 @@ export default function ProductPage() {
                 {selected[colorOption] ? `: ${selected[colorOption]}` : ''}
               </span>
               <div className="pdp-chips">
-                {live.options
-                  .find((option) => option.name === colorOption)
-                  ?.values.map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      className="pdp-chip"
-                      data-selected={selected[colorOption] === value}
-                      aria-pressed={selected[colorOption] === value}
-                      onClick={() => setOption(colorOption, value)}
-                    >
-                      {value}
-                    </button>
-                  ))}
+                {sortColours(
+                  live.options.find((option) => option.name === colorOption)
+                    ?.values ?? [],
+                ).map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className="pdp-chip pdp-chip--swatch"
+                    data-selected={selected[colorOption] === value}
+                    aria-pressed={selected[colorOption] === value}
+                    onClick={() => setOption(colorOption, value)}
+                  >
+                    <span
+                      className="pdp-swatch"
+                      aria-hidden="true"
+                      style={{
+                        background: SWATCHES[value.toLowerCase()] ?? '#ccc',
+                      }}
+                    />
+                    {value}
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -830,6 +839,27 @@ export default function ProductPage() {
       )}
     </div>
   );
+}
+
+/** Garment-dyed Comfort Colors shades, approximately, for the swatch dots. */
+const SWATCHES: Record<string, string> = {
+  ivory: '#eee3c8',
+  bay: '#b3bfa3',
+  'blue jean': '#6b8198',
+  brick: '#9a4b3d',
+  white: '#f8f6f0',
+  black: '#262626',
+};
+
+/** The vintage colours first; white and black last. */
+const COLOUR_ORDER = ['ivory', 'bay', 'blue jean', 'brick', 'white', 'black'];
+
+function sortColours(values: string[]): string[] {
+  const rank = (value: string) => {
+    const index = COLOUR_ORDER.indexOf(value.toLowerCase());
+    return index === -1 ? COLOUR_ORDER.length : index;
+  };
+  return [...values].sort((a, b) => rank(a) - rank(b));
 }
 
 const SIZE_ORDER = [
