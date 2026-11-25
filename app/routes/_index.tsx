@@ -1,9 +1,9 @@
 import {Suspense} from 'react';
 import {Await, Link} from 'react-router';
 import type {Route} from './+types/_index';
-import {HomeHero} from '~/components/HomeHero';
+import {HeroCollage} from '~/components/HeroCollage';
 import {Reveal} from '~/components/Reveal';
-import {MarqueeStrip, TrustBar} from '~/components/Strips';
+import {TrustBar} from '~/components/Strips';
 import {RegionBrowse} from '~/components/RegionBrowse';
 import {CollectLadder} from '~/components/CollectLadder';
 import {
@@ -13,16 +13,12 @@ import {
   OrderIncludes,
   PrintCloseUps,
   PrintStyles,
-  TownSearchBlock,
 } from '~/components/HomeSections';
 import {StickyShopBar} from '~/components/StickyShopBar';
 import {SouvenirGrid, SouvenirGridSkeleton} from '~/components/SouvenirCard';
-import {loadRegionStatus} from '~/lib/shopify-collections';
+import {loadRegionStatus, wornImage} from '~/lib/shopify-collections';
 import {
   loadDerivedCatalog,
-  heroRotation,
-  heroSlides,
-  heroWall,
   productsInOpenRegions,
   regionSpotlight,
 } from '~/lib/shopify-catalog';
@@ -32,6 +28,28 @@ import {buyerCity, buyerRegion} from '~/lib/geo';
 import {ARTICLES} from '~/lib/journal';
 import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
 import {productsByHandle} from '~/lib/shopify-search';
+import {loadTowns} from '~/lib/towns';
+
+const HERO_HANDLES = [
+  'scranton-pa-i-heart',
+  'toledo-oh-varsity',
+  'moose-jaw-sk-greetings',
+];
+
+const STYLE_SHOT_HANDLES: Record<string, string> = {
+  varsity: 'duluth-mn-varsity',
+  greetings: 'gander-nl-greetings',
+  'i-heart': 'butte-mt-i-heart',
+  tour: 'fargo-nd-tour',
+  gift: 'trail-bc-greetings',
+};
+
+const CLOSEUP_HANDLES = [
+  'duluth-mn-varsity',
+  'buffalo-ny-tour',
+  'sudbury-on-i-heart',
+  'gander-nl-greetings',
+];
 
 const FEATURED_HANDLES = [
   'toledo-oh-varsity',
@@ -74,31 +92,14 @@ export async function loader({context, request}: Route.LoaderArgs) {
   // is awaited. The product rows sit below the fold and stream in.
   const regionStatus = await loadRegionStatus(context.storefront);
 
-  /*
-   * The hero's three pieces, in parallel. They all read the same memoised
-   * product index — which caches its in-flight promise, so concurrency costs
-   * one sweep, not three — and each then makes one batched card request.
-   *
-   * `heroSlides` always returns eleven — the visitor's own region takes the
-   * first turn where the edge placed them, and another region takes it where
-   * it did not. The count is fixed because the CSS that cycles them divides
-   * one loop into that many equal turns.
-   */
-  const [slides, rotation, wallProducts, {entries, byRegion}] = await Promise.all([
-    heroSlides(context.storefront, region ?? undefined, 11),
-    heroRotation(context.storefront, region ?? undefined, 15),
-    // The wall is decoration: 35 cropped, greyscaled, 34%-ink tiles. It needs
-    // an id and an image, not price ranges, variants, tags and compare-at
-    // ranges — those were ~23KB of hydration payload for pixels nobody can
-    // read.
-    heroWall(context.storefront, 35),
-    loadDerivedCatalog(context.storefront),
-  ]);
-
-  const wall = wallProducts.map((product) => ({
-    id: product.id,
-    featuredImage: product.featuredImage,
-  }));
+  // The hero's photos, the product index (for counts) and the town list.
+  const [heroProducts, styleProducts, {entries, byRegion}, towns] =
+    await Promise.all([
+      productsByHandle(context.storefront, HERO_HANDLES),
+      productsByHandle(context.storefront, Object.values(STYLE_SHOT_HANDLES)),
+      loadDerivedCatalog(context.storefront),
+      loadTowns(context.storefront).catch(() => new Map<string, unknown>()),
+    ]);
 
   /*
    * Counts per region.
@@ -112,7 +113,9 @@ export async function loader({context, request}: Route.LoaderArgs) {
   const counts: Record<string, number> = {};
   for (const region of REGIONS) {
     const n =
-      regionStatus.counts[region.slug] ?? byRegion.get(region.slug)?.length ?? 0;
+      regionStatus.counts[region.slug] ??
+      byRegion.get(region.slug)?.length ??
+      0;
     if (n > 0) counts[region.slug] = n;
   }
 
@@ -122,13 +125,11 @@ export async function loader({context, request}: Route.LoaderArgs) {
    * Falls back to the best-stocked regions when the edge cannot place anyone.
    */
   const spotlight = region
-    ? await regionSpotlight(context.storefront, region, 6)
-    : {products: await productsInOpenRegions(context.storefront, 6), total: 0};
+    ? await regionSpotlight(context.storefront, region, 8)
+    : {products: await productsInOpenRegions(context.storefront, 8), total: 0};
 
-  // Four close-ups, drawn from the same wall products so nothing extra is
-  // fetched. Different products from the ones on the wall's first row.
-  const macro = wallProducts
-    .slice(8, 20)
+  // Four close-ups of prints people recognise.
+  const macro = (await productsByHandle(context.storefront, CLOSEUP_HANDLES))
     .filter((product) => product.featuredImage?.url)
     .slice(0, 4)
     .map((product) => ({
@@ -142,13 +143,19 @@ export async function loader({context, request}: Route.LoaderArgs) {
     origin: new URL(request.url).origin,
     city,
     region,
-    slides,
-    rotation,
-    wall,
+    heroProducts,
+    styleShots: Object.fromEntries(
+      Object.entries(STYLE_SHOT_HANDLES).map(([style, handle]) => {
+        const product = styleProducts.find((p) => p.handle === handle);
+        return [style, product ? wornImage(product) : null];
+      }),
+    ),
+    townCount: towns.size,
     counts,
     macro,
     spotlight: spotlight.products,
-    spotlightTotal: spotlight.total || (region ? counts[region.slug] ?? 0 : 0),
+    spotlightTotal:
+      spotlight.total || (region ? (counts[region.slug] ?? 0) : 0),
     totalProducts: entries.length,
     regionStatus,
     // Hand-picked: towns a stranger has heard of, spread across all four
@@ -172,9 +179,9 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
     origin,
     city,
     region,
-    slides,
-    rotation,
-    wall,
+    heroProducts,
+    styleShots,
+    townCount,
     counts,
     macro,
     spotlight,
@@ -188,17 +195,14 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
 
   return (
     <div className="home">
-      {/* 1 · HERO — geo-personalised, rotating, product above the fold */}
-      <HomeHero
-        slides={slides}
-        city={city}
-        rotation={rotation}
-        wall={wall}
+      {/* 1 · HERO — one headline, one action, real shirts on real people */}
+      <HeroCollage
+        products={heroProducts}
         totalProducts={totalProducts}
-        openRegions={openCount}
+        townCount={townCount}
+        regionName={region?.name ?? null}
+        regionSlug={region?.slug ?? null}
       />
-
-      <MarqueeStrip />
 
       {/* 3 · YOUR RACK — the shirts the hero just promised */}
       {spotlight.length > 0 && (
@@ -212,7 +216,11 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
             </h2>
             <Link
               className="msc-section-note"
-              to={region ? `/collections/${region.slug}` : '/collections/all-souvenirs'}
+              to={
+                region
+                  ? `/collections/${region.slug}`
+                  : '/collections/all-souvenirs'
+              }
             >
               {region && spotlightTotal > 0
                 ? `All ${spotlightTotal} →`
@@ -236,7 +244,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
           would describe the place out loud.
         </p>
         <Reveal>
-          <PrintStyles />
+          <PrintStyles shots={styleShots} />
         </Reveal>
       </section>
 
@@ -279,11 +287,6 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Reveal>
       </section>
 
-      {/* 2 · TYPE YOUR TOWN — the highest-intent action on the store */}
-      <section className="msc-section msc-page" aria-labelledby="find-town">
-        <TownSearchBlock total={totalProducts} />
-      </section>
-
       {/* 4 · THE REGION GRID — navigation and waitlist engine in one */}
       <section className="msc-section msc-page" aria-labelledby="browse-region">
         <div className="msc-section-rule">
@@ -305,10 +308,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
       </section>
 
       {/* 7 · HOW IT WORKS — what happens after the button */}
-      <section
-        className="msc-section msc-page"
-        aria-labelledby="how-it-works"
-      >
+      <section className="msc-section msc-page" aria-labelledby="how-it-works">
         <div className="msc-section-rule">
           <h2 id="how-it-works">What happens after you order</h2>
           <Link className="msc-section-note" to="/shipping-returns">
@@ -326,12 +326,15 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         aria-labelledby="gift"
       >
         <Reveal>
-          <GiftBlock />
+          <GiftBlock shot={styleShots.gift} />
         </Reveal>
       </section>
 
       {/* 12 · EDITORIAL TEASER — Postcards From Nowhere */}
-      <section className="msc-section msc-section--band msc-page" aria-labelledby="postcards">
+      <section
+        className="msc-section msc-section--band msc-page"
+        aria-labelledby="postcards"
+      >
         <Reveal>
           <div className="msc-section-rule">
             <h2 id="postcards">Postcards from nowhere</h2>

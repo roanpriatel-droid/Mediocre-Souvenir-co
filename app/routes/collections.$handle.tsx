@@ -4,6 +4,7 @@ import {Link, redirect, useLoaderData, useSearchParams} from 'react-router';
 import {getPaginationVariables, useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/collections.$handle';
 import {SouvenirProductCard} from '~/components/SouvenirCard';
+import {PlaceBanner} from '~/components/PlaceBanner';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {RegionWaitlist} from '~/components/RegionWaitlist';
 import {CountryTownFinder} from '~/components/CountryTownFinder';
@@ -332,15 +333,17 @@ export default function CollectionPage() {
         kind={data.kind}
       />
 
-      <div className="province-header">
-        <span className="msc-kicker">
-          {isRegion
+      <PlaceBanner
+        kicker={
+          isRegion
             ? data.open
               ? 'Now open'
               : 'Coming in due time'
-            : 'The rack'}
-        </span>
-        <h1>{data.heading}</h1>
+            : 'The rack'
+        }
+        title={data.heading}
+        products={visible}
+      >
         {data.description && (
           <p className="province-copy region-description">{data.description}</p>
         )}
@@ -353,7 +356,7 @@ export default function CollectionPage() {
             collect 2 and save 15%
           </span>
         )}
-      </div>
+      </PlaceBanner>
 
       {showWaitlist ? (
         <RegionWaitlist region={data.region as Region} />
@@ -477,7 +480,7 @@ export default function CollectionPage() {
             <div className="collection-pagination">
               <PaginatedResourceSection
                 connection={data.connection}
-                resourcesClassName="rack-grid"
+                resourcesClassName="tile-grid"
               >
                 {({node, index}) => (
                   <SouvenirProductCard
@@ -489,7 +492,7 @@ export default function CollectionPage() {
               </PaginatedResourceSection>
             </div>
           ) : (
-            <div className="rack-grid">
+            <div className="tile-grid">
               {visible.map((product, i) => (
                 <SouvenirProductCard
                   key={product.id}

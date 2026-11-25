@@ -1,5 +1,5 @@
 import {Link} from 'react-router';
-import {useNonce} from '@shopify/hydrogen';
+import {Image, useNonce} from '@shopify/hydrogen';
 import {PRINT_STYLES} from '~/lib/shopify-catalog';
 import {SIZE_TABLE} from '~/components/SizeGuide';
 import {SIZES} from '~/lib/catalog';
@@ -39,22 +39,46 @@ const STYLE_NOTES: Record<string, {line: string; note: string}> = {
   },
 };
 
-export function PrintStyles() {
+export function PrintStyles({
+  shots = {},
+}: {
+  /** A worn photo per print, keyed by style value. */
+  shots?: Record<
+    string,
+    {
+      url: string;
+      altText?: string | null;
+      width?: number | null;
+      height?: number | null;
+    } | null
+  >;
+}) {
   return (
-    <div className="home-styles">
+    <div className="home-styles2">
       {PRINT_STYLES.map((style) => {
         const copy = STYLE_NOTES[style.value];
+        const shot = shots[style.value];
         return (
           <Link
-            className="home-style"
+            className="home-style2"
             key={style.value}
-            to={`/collections/all-souvenirs?style=${style.value}`}
+            to={`/collections/${style.value}`}
             prefetch="intent"
           >
-            <span className="msc-kicker msc-kicker--navy">{style.label}</span>
+            <div className="home-style2-media">
+              {shot ? (
+                <Image
+                  data={shot}
+                  alt={`${style.label} print t-shirt, worn`}
+                  aspectRatio="4/5"
+                  sizes="(min-width: 1100px) 320px, (min-width: 700px) 45vw, 90vw"
+                  loading="lazy"
+                />
+              ) : null}
+              <span className="home-style2-label">{style.label}</span>
+            </div>
             <strong>{copy.line}</strong>
             <span className="home-style-note">{copy.note}</span>
-            <span className="collection-card-more">See the rack →</span>
           </Link>
         );
       })}
@@ -337,9 +361,34 @@ export function PrintCloseUps({
  * 8 · The gift case
  * ------------------------------------------------------------------ */
 
-export function GiftBlock() {
+export function GiftBlock({
+  shot,
+}: {
+  shot?: {
+    url: string;
+    altText?: string | null;
+    width?: number | null;
+    height?: number | null;
+  } | null;
+}) {
   return (
-    <div className="home-gift">
+    <div className="home-gift" data-shot={shot ? '' : undefined}>
+      {shot ? (
+        <Link
+          className="home-gift-photo"
+          to="/towns/trail-bc"
+          prefetch="intent"
+        >
+          <Image
+            data={shot}
+            alt="Trail, BC souvenir t-shirt, worn"
+            aspectRatio="4/5"
+            sizes="(min-width: 1000px) 420px, 90vw"
+            loading="lazy"
+          />
+          <span>Trail, BC</span>
+        </Link>
+      ) : null}
       <div className="home-gift-copy">
         <span className="msc-kicker">For someone from there</span>
         <h2 id="gift">
@@ -359,8 +408,11 @@ export function GiftBlock() {
           <Link className="msc-button" to="/towns">
             Find their town
           </Link>
-          <Link className="msc-button msc-button--ghost" to="/certificate">
-            What&rsquo;s in the box
+          <Link
+            className="msc-button msc-button--ghost"
+            to="/postcards/gifts-for-someone-who-moved-away-from-home"
+          >
+            The gift guide
           </Link>
         </div>
       </div>
@@ -382,8 +434,8 @@ export function GiftBlock() {
         <li>
           <strong>Two shirts save 15%</strong>
           <span>
-            Which is convenient, because you are going to want the one from
-            your own town too.
+            Which is convenient, because you are going to want the one from your
+            own town too.
           </span>
         </li>
       </ul>
@@ -405,8 +457,9 @@ export function Manifesto() {
         <p>
           Hawaii gets the full treatment. Sunset script, a state flower, four
           fonts and a hibiscus. Meanwhile a town of nine thousand people with a
-          working mill, one good diner and a hockey rink named after somebody&rsquo;s
-          father gets nothing — not a magnet, not a spoon, not a shirt.
+          working mill, one good diner and a hockey rink named after
+          somebody&rsquo;s father gets nothing — not a magnet, not a spoon, not
+          a shirt.
         </p>
         <p>
           We could not find a reason for that. So we print the overlooked places
@@ -427,13 +480,7 @@ export function Manifesto() {
  * 10 · The numbers
  * ------------------------------------------------------------------ */
 
-export function BigNumbers({
-  total,
-  regions,
-}: {
-  total: number;
-  regions: number;
-}) {
+export function BigNumbers({total, regions}: {total: number; regions: number}) {
   const stats = [
     {n: total.toLocaleString('en-CA'), l: 'Souvenirs in print'},
     {n: String(regions), l: 'Regions, all open'},
@@ -484,7 +531,11 @@ export function BiggestRacks({
             <span
               className="home-rack-bar"
               aria-hidden="true"
-              style={{'--fill': `${Math.round((rack.total / most) * 100)}%`} as React.CSSProperties}
+              style={
+                {
+                  '--fill': `${Math.round((rack.total / most) * 100)}%`,
+                } as React.CSSProperties
+              }
             />
             <span className="home-rack-total">{rack.total}</span>
           </Link>

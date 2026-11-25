@@ -1,3 +1,4 @@
+import {productsByHandle} from '~/lib/shopify-search';
 import {townPath, townSlugOf} from '~/lib/towns';
 import {breadcrumbList, returnPolicy, shippingDetails} from '~/lib/schema';
 import {regionPath} from '~/lib/catalog/regions';
@@ -25,6 +26,7 @@ import {
 } from '~/lib/shopify-collections';
 import {
   loadNewestProducts,
+  PRINT_STYLES,
   productsForRegion,
   regionForProduct,
 } from '~/lib/shopify-catalog';
@@ -106,7 +108,9 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
   const live = await loadProduct(context.storefront, handle);
   if (!live) {
     // Never a dead end — send the reader to the nearest real rack.
-    console.warn(`[msc:product] "${handle}" not returned by the Storefront API`);
+    console.warn(
+      `[msc:product] "${handle}" not returned by the Storefront API`,
+    );
     throw redirect('/collections/all-souvenirs', 302);
   }
 
@@ -127,14 +131,46 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
 
   // Siblings: the region collection when published, the derived catalogue
   // when it is not.
+  // The same town's other prints: the natural second shirt, and the one
+  // that unlocks 15% off.
+  const ownTown = townSlugOf(handle);
+  const setPromise = ownTown
+    ? productsByHandle(
+        context.storefront,
+        PRINT_STYLES.map((style) => `${ownTown}-${style.value}`).filter(
+          (candidate) => candidate !== handle,
+        ),
+      )
+    : Promise.resolve([] as SouvenirCard[]);
+
+  // Other towns in the region, one print each, spread through the rack
+  // rather than always the first four alphabetically.
   let siblings: SouvenirCard[] = [];
   if (region) {
-    siblings = await loadCollectionProducts(context.storefront, region.slug, 5);
-    if (!siblings.length) {
-      siblings = await productsForRegion(context.storefront, region);
-    }
-    siblings = siblings.filter((p) => p.handle !== handle).slice(0, 4);
+    let pool = await loadCollectionProducts(
+      context.storefront,
+      region.slug,
+      48,
+    );
+    if (!pool.length)
+      pool = await productsForRegion(context.storefront, region);
+    const seenTowns = new Set<string>(ownTown ? [ownTown] : []);
+    const distinct = pool.filter((product) => {
+      const slug = townSlugOf(product.handle) ?? product.handle;
+      if (seenTowns.has(slug)) return false;
+      seenTowns.add(slug);
+      return true;
+    });
+    const offset = distinct.length
+      ? [...handle].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) %
+        distinct.length
+      : 0;
+    siblings = [...distinct.slice(offset), ...distinct.slice(0, offset)].slice(
+      0,
+      4,
+    );
   }
+  const completeSet = await setPromise;
 
   // Cross-region row — deliberately somewhere else.
   const elsewhere = (await loadNewestProducts(context.storefront, 12))
@@ -152,14 +188,24 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
     region: region ?? null,
     copy,
     siblings,
+    completeSet,
     elsewhere,
     origin: new URL(request.url).origin,
   };
 }
 
 export default function ProductPage() {
-  const {handle, live, town, region, copy, siblings, elsewhere, origin} =
-    useLoaderData<typeof loader>();
+  const {
+    handle,
+    live,
+    town,
+    region,
+    copy,
+    siblings,
+    completeSet,
+    elsewhere,
+    origin,
+  } = useLoaderData<typeof loader>();
   const nonce = useNonce();
   const {open} = useAside();
   const [params, setParams] = useSearchParams();
@@ -189,13 +235,15 @@ export default function ProductPage() {
     if (colorOption && !out[colorOption]) {
       const pictured = live.variants.find(
         (candidate) =>
-          candidate.image?.url && candidate.image.url === live.featuredImage?.url,
+          candidate.image?.url &&
+          candidate.image.url === live.featuredImage?.url,
       );
       const fromPhoto = pictured?.selectedOptions.find(
         (option) => option.name === colorOption,
       )?.value;
-      const fallback = live.options.find((option) => option.name === colorOption)
-        ?.values[0];
+      const fallback = live.options.find(
+        (option) => option.name === colorOption,
+      )?.values[0];
       const value = fromPhoto ?? fallback;
       if (value) out[colorOption] = value;
     }
@@ -258,7 +306,8 @@ export default function ProductPage() {
     optionsRef.current?.scrollIntoView({behavior: 'smooth', block: 'center'});
   };
 
-  const countryHandle = region?.country === 'Canada' ? 'canada' : 'united-states';
+  const countryHandle =
+    region?.country === 'Canada' ? 'canada' : 'united-states';
   const activeImageId = variant ? findImageId(live, variant) : null;
 
   return (
@@ -275,7 +324,9 @@ export default function ProductPage() {
           <nav className="msc-breadcrumb" aria-label="Breadcrumb">
             {region ? (
               <>
-                <Link to={`/collections/${countryHandle}`}>{region.country}</Link>
+                <Link to={`/collections/${countryHandle}`}>
+                  {region.country}
+                </Link>
                 <span aria-hidden="true">·</span>
                 <Link to={`/collections/${region.slug}`}>{region.name}</Link>
               </>
@@ -310,7 +361,10 @@ export default function ProductPage() {
 
           {/* 3 · Review stars — the slot disappears when there is nothing real */}
           {live.rating && (
-            <p className="product-rating" aria-label={`Rated ${live.rating.value} of 5`}>
+            <p
+              className="product-rating"
+              aria-label={`Rated ${live.rating.value} of 5`}
+            >
               <span className="product-rating-stars" aria-hidden="true">
                 {'★'.repeat(Math.round(live.rating.value))}
                 {'☆'.repeat(Math.max(0, 5 - Math.round(live.rating.value)))}
@@ -323,7 +377,9 @@ export default function ProductPage() {
           {/* 4 · The town plaque */}
           <aside className="town-plaque" aria-label={`About ${town}`}>
             <div className="town-plaque-head">
-              <span>{region ? region.name.toUpperCase() : 'NORTH AMERICA'}</span>
+              <span>
+                {region ? region.name.toUpperCase() : 'NORTH AMERICA'}
+              </span>
               <span>{foundedLabel(copy)}</span>
             </div>
             <p className="town-plaque-town">{town}</p>
@@ -336,11 +392,13 @@ export default function ProductPage() {
           <div className="pdp-price-row">
             <span className="product-price">{formatMoney(price)}</span>
             {onSale && compareAt && (
-              <span className="product-price-was">{formatMoney(compareAt)}</span>
+              <span className="product-price-was">
+                {formatMoney(compareAt)}
+              </span>
             )}
             <span className="product-price-note">
-              {variant || samePrice ? 'USD' : 'From · USD'} · Comfort Colors 1717 · collect 2
-              save 15%
+              {variant || samePrice ? 'USD' : 'From · USD'} · Comfort Colors
+              1717 · collect 2 save 15%
             </span>
           </div>
 
@@ -393,26 +451,26 @@ export default function ProductPage() {
                   live.options.find((option) => option.name === sizeOption)
                     ?.values ?? [],
                 ).map((value) => {
-                    const candidate = matchVariant(
-                      live.variants,
-                      {...selected, [sizeOption]: value},
-                      live.options,
-                    );
-                    const out = candidate ? !candidate.availableForSale : false;
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        className="product-options-item"
-                        data-selected={selected[sizeOption] === value}
-                        data-soldout={out || undefined}
-                        aria-pressed={selected[sizeOption] === value}
-                        onClick={() => setOption(sizeOption, value)}
-                      >
-                        {value}
-                      </button>
-                    );
-                  })}
+                  const candidate = matchVariant(
+                    live.variants,
+                    {...selected, [sizeOption]: value},
+                    live.options,
+                  );
+                  const out = candidate ? !candidate.availableForSale : false;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      className="product-options-item"
+                      data-selected={selected[sizeOption] === value}
+                      data-soldout={out || undefined}
+                      aria-pressed={selected[sizeOption] === value}
+                      onClick={() => setOption(sizeOption, value)}
+                    >
+                      {value}
+                    </button>
+                  );
+                })}
               </div>
               {sizeError && (
                 <p className="pdp-size-error" role="alert">
@@ -426,7 +484,9 @@ export default function ProductPage() {
           <div ref={atcRef} className="pdp-atc">
             {soldOut ? (
               <>
-                <p className="pdp-soldout">Sold out. The town finally has demand.</p>
+                <p className="pdp-soldout">
+                  Sold out. The town finally has demand.
+                </p>
                 <NotifyMe
                   handle={handle}
                   town={town}
@@ -552,11 +612,35 @@ export default function ProductPage() {
 
       {/* ── Below the fold ────────────────────────────────────────────── */}
 
+      {completeSet.length > 0 && (
+        <section
+          className="msc-section msc-page"
+          aria-labelledby="complete-set"
+        >
+          <div className="msc-section-rule">
+            <h2 id="complete-set">Complete the {town} set</h2>
+            {townSlug && (
+              <Link className="msc-section-note" to={townPath(townSlug)}>
+                Every {town} print →
+              </Link>
+            )}
+          </div>
+          <p className="msc-section-lede">
+            Two shirts are 15% off and three or more are 20% off, applied at
+            checkout. Mix any prints and towns.
+          </p>
+          <SouvenirGrid products={completeSet} eagerCount={0} />
+        </section>
+      )}
+
       <section className="msc-section msc-page" aria-labelledby="more-region">
         <div className="msc-section-rule">
           <h2 id="more-region">More from {region?.name ?? 'the rack'}</h2>
           {region && (
-            <Link className="msc-section-note" to={`/collections/${region.slug}`}>
+            <Link
+              className="msc-section-note"
+              to={`/collections/${region.slug}`}
+            >
               All of {region.name} →
             </Link>
           )}
@@ -631,7 +715,9 @@ export default function ProductPage() {
           <div className="pdp-postcard-left">
             <span className="msc-kicker">Greetings from</span>
             <p className="pdp-postcard-town">{town}</p>
-            <span className="msc-marker">wish you were here, more or less.</span>
+            <span className="msc-marker">
+              wish you were here, more or less.
+            </span>
           </div>
           <div className="pdp-postcard-right">
             <div className="msc-stamp">
@@ -715,10 +801,10 @@ export default function ProductPage() {
             breadcrumbList(origin, [
               ...(region
                 ? [{name: region.name, path: regionPath(region)}]
-                : [{name: 'All souvenirs', path: '/collections/all-souvenirs'}]),
-              ...(townSlug
-                ? [{name: town, path: townPath(townSlug)}]
-                : []),
+                : [
+                    {name: 'All souvenirs', path: '/collections/all-souvenirs'},
+                  ]),
+              ...(townSlug ? [{name: town, path: townPath(townSlug)}] : []),
               {name: live.title, path: `/products/${live.handle}`},
             ]),
           ),
@@ -746,7 +832,19 @@ export default function ProductPage() {
   );
 }
 
-const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', '2XL', 'XXL', '3XL', 'XXXL', '4XL', '5XL'];
+const SIZE_ORDER = [
+  'XS',
+  'S',
+  'M',
+  'L',
+  'XL',
+  '2XL',
+  'XXL',
+  '3XL',
+  'XXXL',
+  '4XL',
+  '5XL',
+];
 
 /** Printify lists sizes in the order it created them (M, L, XL, 2XL, 3XL, S). */
 function sortSizes(values: string[]): string[] {
@@ -805,7 +903,9 @@ function productJsonLd({
     url,
     brand: {'@type': 'Brand', name: SITE_NAME},
     material: '100% ring-spun cotton, garment-dyed',
-    ...(live.images.length ? {image: live.images.map((image) => image.url)} : {}),
+    ...(live.images.length
+      ? {image: live.images.map((image) => image.url)}
+      : {}),
     ...(region
       ? {
           additionalProperty: [

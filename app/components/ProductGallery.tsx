@@ -95,8 +95,54 @@ export function ProductGallery({
 
   const current = images[Math.min(index, images.length - 1)];
 
+  // Desktop shows one colour's photos as a grid. Printify's eight mockups
+  // arrive as white front, black front, white back, white folded, white
+  // worn, black back, black folded, black worn; the selected colour picks
+  // its four, worn second so the shirt on a person sits beside the flat.
+  const groups =
+    images.length === 8
+      ? {white: [0, 4, 2, 3], black: [1, 7, 5, 6]}
+      : null;
+  const activeIndex = activeImageId
+    ? images.findIndex((image) => image.id === activeImageId)
+    : -1;
+  const gridIndexes = groups
+    ? groups.black.includes(activeIndex)
+      ? groups.black
+      : groups.white
+    : images.map((_, i) => i).slice(0, 6);
+
   return (
     <div className="pdp-gallery">
+      {images.length > 1 && (
+        <div className="pdp-grid" aria-label="Product photos">
+          {gridIndexes.map((imageIndex, position) => {
+            const image = images[imageIndex];
+            if (!image) return null;
+            return (
+              <button
+                key={image.id ?? image.url}
+                type="button"
+                className="pdp-grid-item"
+                onClick={() => {
+                  setIndex(imageIndex);
+                  open();
+                }}
+                aria-label={`Enlarge photo ${position + 1}`}
+              >
+                <Image
+                  data={image}
+                  alt={image.altText || title}
+                  aspectRatio="4/5"
+                  crop="center"
+                  sizes="(min-width: 1200px) 360px, 30vw"
+                  loading={position < 2 ? 'eager' : 'lazy'}
+                />
+              </button>
+            );
+          })}
+        </div>
+      )}
       <div className="pdp-stage" ref={stageRef}>
         <button
           type="button"

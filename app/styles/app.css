@@ -7103,3 +7103,817 @@ select:focus-visible,
 .towns-index-region a:hover {
   color: var(--msc-brick-ink);
 }
+
+/* ==========================================================================
+   Product tiles
+   The shirt does the talking: a large photo with no frame, the place set in
+   the display face, then the region, print and price. Hover or focus swaps
+   the flat shot for the photo of the shirt being worn.
+   ========================================================================== */
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 14px;
+}
+
+@media (min-width: 760px) {
+  .tile-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 40px 22px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .tile-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--msc-asphalt);
+  text-decoration: none;
+}
+
+.tile-media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #ebe4d3;
+  margin-bottom: 10px;
+}
+
+.tile-img {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  transition:
+    opacity 380ms ease,
+    transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.tile-img--worn {
+  opacity: 0;
+}
+
+.tile:hover .tile-img--worn,
+.tile:focus-visible .tile-img--worn {
+  opacity: 1;
+}
+
+.tile:hover .tile-img,
+.tile:focus-visible .tile-img {
+  transform: scale(1.03);
+}
+
+.tile:focus-visible {
+  outline: 3px solid var(--msc-brick);
+  outline-offset: 4px;
+}
+
+.tile-badge {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  padding: 5px 8px 4px;
+  background: var(--msc-cream);
+  color: var(--msc-navy);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.tile-badge--out {
+  left: auto;
+  right: 10px;
+  background: var(--msc-asphalt);
+  color: var(--msc-cream);
+}
+
+.tile-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.tile-town {
+  font-family: var(--font-display);
+  font-size: clamp(16px, 1.35vw, 19px);
+  line-height: 1.15;
+  color: var(--msc-navy);
+  letter-spacing: 0.2px;
+}
+
+.tile:hover .tile-town {
+  color: var(--msc-brick-ink);
+}
+
+.tile-price {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.tile-price[data-sale] {
+  color: var(--msc-brick-ink);
+}
+
+.tile-meta {
+  font-size: 13px;
+  letter-spacing: 0.4px;
+  color: rgba(28, 28, 28, 0.68);
+}
+
+.tile[data-soldout] .tile-img {
+  filter: grayscale(0.6);
+  opacity: 0.7;
+}
+
+.tile-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--msc-navy);
+}
+
+.tile--skeleton .tile-media {
+  margin-bottom: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-img {
+    transition: none;
+  }
+
+  .tile:hover .tile-img,
+  .tile:focus-visible .tile-img {
+    transform: none;
+  }
+}
+
+.tile,
+.tile:hover,
+.tile * {
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   Homepage hero: one headline, the town search, and a collage of the shirts
+   being worn.
+   ========================================================================== */
+.hero2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 36px;
+  padding: 36px 20px 48px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+@media (min-width: 960px) {
+  .hero2 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: 56px;
+    align-items: center;
+    padding: 64px 48px 80px;
+    min-height: min(760px, calc(100vh - var(--header-height) - 36px));
+  }
+}
+
+.hero2-kicker {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--msc-brick-ink);
+  margin-bottom: 18px;
+}
+
+.hero2-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--msc-navy);
+  font-size: clamp(42px, 6.2vw, 92px);
+  line-height: 0.95;
+  letter-spacing: -1px;
+  margin: 0 0 22px;
+}
+
+.hero2-title-accent {
+  display: block;
+  color: var(--msc-brick);
+  text-shadow: 3px 3px 0 var(--msc-mustard);
+}
+
+.hero2-lede {
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.5;
+  max-width: 34ch;
+  margin: 0 0 26px;
+}
+
+.hero2-search {
+  max-width: 520px;
+}
+
+.hero2-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  margin: 18px 0 30px;
+}
+
+.hero2-link {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+  border-bottom: 2px solid var(--msc-mustard);
+  padding-bottom: 3px;
+  text-decoration: none;
+}
+
+.hero2-link:hover {
+  color: var(--msc-brick-ink);
+  border-color: var(--msc-brick);
+}
+
+.hero2-proof {
+  list-style: none;
+  margin: 0;
+  padding: 18px 0 0;
+  border-top: 1px dashed rgba(28, 28, 28, 0.35);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  font-size: 14px;
+}
+
+.hero2-proof strong {
+  color: var(--msc-navy);
+}
+
+.hero2-collage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 14px;
+  aspect-ratio: 1.2 / 1;
+}
+
+.hero2-shot {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #ebe4d3;
+}
+
+.hero2-shot img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  /* The worn photos run neck to mid-thigh; keep the print in frame. */
+  object-position: 50% 22%;
+  transition: transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.hero2-shot:hover img {
+  transform: scale(1.04);
+}
+
+.hero2-shot--1 {
+  grid-row: 1 / span 2;
+}
+
+.hero2-tag {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 6px 10px 5px;
+  background: var(--msc-cream);
+  color: var(--msc-navy);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.hero2-stamp {
+  position: absolute;
+  right: -14px;
+  top: -18px;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  border: 3px double var(--msc-brick);
+  background: var(--msc-cream);
+  color: var(--msc-brick-ink);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  line-height: 1.25;
+  text-transform: uppercase;
+  transform: rotate(-10deg);
+  box-shadow: 0 0 0 4px var(--msc-cream);
+}
+
+@media (max-width: 959px) {
+  .hero2-stamp {
+    width: 78px;
+    height: 78px;
+    font-size: 9px;
+    right: 6px;
+    top: -12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero2-shot img {
+    transition: none;
+  }
+
+  .hero2-shot:hover img {
+    transform: none;
+  }
+}
+
+/* Banded sections: keep a side gutter on phones (a later padding shorthand
+   was zeroing it), and drop the heavy rules now that tiles carry no frames. */
+.msc-section.msc-section--band {
+  padding-left: clamp(16px, 3vw, 24px);
+  padding-right: clamp(16px, 3vw, 24px);
+  border-top: none;
+  border-bottom: none;
+}
+
+/* Product photos as a two-column grid on desktop; the single swipeable stage
+   and thumbnail row stay for phones and tablets. */
+.pdp-grid {
+  display: none;
+}
+
+@media (min-width: 1000px) {
+  .pdp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .pdp-gallery:has(.pdp-grid) .pdp-stage,
+  .pdp-gallery:has(.pdp-grid) .pdp-thumbs {
+    display: none;
+  }
+
+  .pdp-grid-item {
+    all: unset;
+    display: block;
+    cursor: zoom-in;
+    background: #ebe4d3;
+    overflow: hidden;
+  }
+
+  .pdp-grid-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .pdp-grid-item:hover img {
+    transform: scale(1.03);
+  }
+
+  .pdp-grid-item:focus-visible {
+    outline: 3px solid var(--msc-brick);
+    outline-offset: 3px;
+  }
+}
+
+/* Desktop: the gallery is now taller than the buy box, so keep the buy box
+   in view while the photos scroll past. */
+@media (min-width: 1000px) {
+  .pdp-main {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 460px);
+    gap: 56px;
+  }
+
+  .pdp-buy {
+    position: sticky;
+    top: calc(var(--header-height) + 20px);
+  }
+}
+
+/* Homepage: the four prints as photo tiles. */
+.home-styles2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 14px;
+}
+
+@media (min-width: 1000px) {
+  .home-styles2 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px;
+  }
+}
+
+.home-style2 {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--msc-asphalt);
+  text-decoration: none;
+}
+
+.home-style2-media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #ebe4d3;
+  margin-bottom: 8px;
+}
+
+.home-style2-media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  object-position: 50% 25%;
+  transition: transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.home-style2:hover .home-style2-media img {
+  transform: scale(1.04);
+}
+
+.home-style2-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 40px 16px 14px;
+  background: linear-gradient(to top, rgba(28, 28, 28, 0.55), transparent);
+  color: var(--msc-cream);
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1;
+}
+
+.home-style2 strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 18px;
+  color: var(--msc-navy);
+}
+
+.home-style2:hover strong {
+  color: var(--msc-brick-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-style2-media img {
+    transition: none;
+  }
+
+  .home-style2:hover .home-style2-media img {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Lighter chrome. The tiles and photos now carry the page, so the header and
+   search stop competing with them: a hairline under the header, and a search
+   field with a thin rule instead of a heavy box and offset shadow.
+   ========================================================================== */
+.header {
+  border-bottom: 1px solid rgba(28, 28, 28, 0.18);
+  background: rgba(241, 233, 214, 0.96);
+  backdrop-filter: saturate(1.2) blur(8px);
+}
+
+@media (min-width: 900px) and (max-width: 1399px) {
+  .header-menu-desktop {
+    border-top: 1px solid rgba(28, 28, 28, 0.12);
+    background: transparent;
+  }
+}
+
+.header-menu-desktop > * + * .header-menu-item,
+.header-menu-desktop > * + .header-menu-item {
+  box-shadow: none;
+}
+
+.header-menu-item {
+  letter-spacing: 2px;
+}
+
+.header-menu-item:hover,
+.header-menu-item:focus-visible,
+.nav-dropdown-trigger[aria-expanded='true'] {
+  background: transparent;
+  color: var(--msc-brick-ink);
+  border-bottom-color: var(--msc-brick);
+}
+
+.town-search--compact .town-search-box {
+  border: 1px solid rgba(28, 28, 28, 0.35);
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.town-search--compact .town-search-box input {
+  font-size: 15px;
+  padding: 10px 18px;
+}
+
+.town-search--compact .town-search-box button {
+  border-left: none;
+  background: transparent;
+  color: var(--msc-navy);
+  padding: 0 18px;
+  font-size: 12px;
+}
+
+.town-search--compact .town-search-box button:hover {
+  background: transparent;
+  color: var(--msc-brick-ink);
+}
+
+/* The hero search keeps the brand's hard-shadow box, slimmer. */
+.hero2-search .town-search-box {
+  border-width: 2px;
+  box-shadow: 4px 4px 0 var(--msc-navy);
+}
+
+/* Region, collection and town headers: words left, the page's shirts right. */
+.place-banner {
+  display: grid;
+  gap: 28px;
+  padding: 28px 0 36px;
+  border-bottom: 1px solid rgba(28, 28, 28, 0.14);
+  margin-bottom: 32px;
+}
+
+@media (min-width: 1000px) {
+  .place-banner:not([data-shots='0']) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: 56px;
+    padding: 40px 0 48px;
+  }
+}
+
+.place-banner-copy h1 {
+  font-size: clamp(40px, 5.4vw, 76px);
+  line-height: 0.98;
+  margin: 10px 0 18px;
+  color: var(--msc-navy);
+}
+
+.place-banner-copy .province-copy {
+  text-align: left;
+  margin: 0 0 18px;
+  max-width: 52ch;
+}
+
+.place-banner-shots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.place-banner[data-shots='1'] .place-banner-shots {
+  grid-template-columns: minmax(0, 0.6fr);
+  justify-content: end;
+}
+
+.place-banner[data-shots='2'] .place-banner-shots {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.place-banner-shot {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #ebe4d3;
+  text-decoration: none;
+}
+
+.place-banner-shot:nth-child(2) {
+  transform: translateY(18px);
+}
+
+.place-banner-shot img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  object-position: 50% 25%;
+  transition: transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.place-banner-shot:hover img {
+  transform: scale(1.04);
+}
+
+.place-banner-shot span {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 5px 8px 4px;
+  background: var(--msc-cream);
+  color: var(--msc-navy);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .place-banner-shot img {
+    transition: none;
+  }
+
+  .place-banner-shot:hover img {
+    transform: none;
+  }
+}
+
+/* Long town names wrap instead of pushing the price off the tile. */
+.tile-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.tile-town {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The gift block, with a photo of the shirt it is talking about. */
+.home-gift-photo {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #ebe4d3;
+  text-decoration: none;
+}
+
+.home-gift-photo img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  object-position: 50% 25%;
+}
+
+.home-gift-photo span {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 5px 9px 4px;
+  background: var(--msc-cream);
+  color: var(--msc-navy);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+@media (min-width: 1000px) {
+  .home-gift[data-shot] {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 0.9fr);
+    gap: 40px;
+  }
+}
+
+@media (max-width: 999px) {
+  .home-gift[data-shot] {
+    grid-template-columns: 1fr;
+  }
+
+  .home-gift-photo {
+    max-width: 420px;
+  }
+}
+
+/* ==========================================================================
+   Softer information blocks. Hard offset shadows stay on buttons and stamps,
+   where they read as print; on every panel at once they made the page look
+   like a stack of boxes.
+   ========================================================================== */
+.home-step,
+.home-gift-list,
+.home-includes,
+.postcard-teaser,
+.collect-ladder {
+  box-shadow: none !important;
+  border: 1px solid rgba(28, 28, 28, 0.2) !important;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.collect-ladder-tiers,
+.collect-ladder-tier {
+  border-color: rgba(28, 28, 28, 0.2) !important;
+}
+
+.home-step-n {
+  opacity: 0.55;
+}
+
+/* ==========================================================================
+   Region browse as a directory list: name and count on a dotted leader, in
+   columns, instead of 63 boxed cards with badges.
+   ========================================================================== */
+.region-browse .region-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 28px;
+}
+
+@media (min-width: 760px) {
+  .region-browse .region-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .region-browse .region-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.region-browse .region-card {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 0;
+  padding: 11px 0;
+  border: none;
+  border-bottom: 1px dashed rgba(28, 28, 28, 0.28);
+  box-shadow: none;
+  background: transparent;
+  transform: none;
+}
+
+.region-browse .region-card:hover {
+  background: transparent;
+  transform: none;
+  box-shadow: none;
+}
+
+.region-browse .region-card-name {
+  font-size: 17px;
+  line-height: 1.2;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.region-browse .region-card:hover .region-card-name {
+  color: var(--msc-brick-ink);
+}
+
+.region-browse .region-card-count {
+  margin: 0;
+  flex: none;
+}
+
+.region-browse .region-card-badge {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: rgba(28, 28, 28, 0.6);
+  box-shadow: none;
+}
+
+.region-browse .region-card--request {
+  border-bottom-style: solid;
+  border-bottom-color: var(--msc-brick);
+}
+
+.region-browse .region-card--request .region-card-name {
+  color: var(--msc-brick-ink);
+}
