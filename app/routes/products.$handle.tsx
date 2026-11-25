@@ -172,6 +172,14 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
   }
   const completeSet = await setPromise;
 
+  // Delivery window from today, in business days, per the shipping policy:
+  // printed in 5–10, then 3–8 in transit to the US and 6–12 to Canada.
+  // Worked out on the server so the server and browser render the same text.
+  const delivery = {
+    us: [addBusinessDays(new Date(), 8), addBusinessDays(new Date(), 18)],
+    ca: [addBusinessDays(new Date(), 11), addBusinessDays(new Date(), 22)],
+  };
+
   // Cross-region row — deliberately somewhere else.
   const elsewhere = (await loadNewestProducts(context.storefront, 12))
     .filter((product) => {
@@ -189,6 +197,7 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
     copy,
     siblings,
     completeSet,
+    delivery,
     elsewhere,
     origin: new URL(request.url).origin,
   };
@@ -203,6 +212,7 @@ export default function ProductPage() {
     copy,
     siblings,
     completeSet,
+    delivery,
     elsewhere,
     origin,
   } = useLoaderData<typeof loader>();
@@ -535,6 +545,13 @@ export default function ProductPage() {
               </button>
             )}
           </div>
+
+          {/* 8b · When it arrives */}
+          <p className="pdp-delivery">
+            <strong>Order today, arrives</strong> {delivery.us[0]}–
+            {delivery.us[1]} in the US · {delivery.ca[0]}–{delivery.ca[1]} in
+            Canada
+          </p>
 
           {/* 9 · Trust row */}
           <ul className="product-trust-row">
@@ -875,6 +892,24 @@ const SIZE_ORDER = [
   '4XL',
   '5XL',
 ];
+
+/** "Dec 9": a date a number of business days from `from`, in UTC. */
+function addBusinessDays(from: Date, days: number): string {
+  const date = new Date(
+    Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()),
+  );
+  let added = 0;
+  while (added < days) {
+    date.setUTCDate(date.getUTCDate() + 1);
+    const day = date.getUTCDay();
+    if (day !== 0 && day !== 6) added++;
+  }
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+}
 
 /** Printify lists sizes in the order it created them (M, L, XL, 2XL, 3XL, S). */
 function sortSizes(values: string[]): string[] {

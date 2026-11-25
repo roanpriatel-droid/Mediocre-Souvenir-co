@@ -8162,3 +8162,66 @@ body > main .msc-section--band {
   margin-left: -1rem;
   margin-right: -1rem;
 }
+
+.pdp-delivery {
+  margin: 2px 0 0;
+  padding: 10px 14px;
+  background: rgba(139, 155, 122, 0.18);
+  border-left: 3px solid var(--msc-sage);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Town page: buy every print at once. */
+.town-set {
+  margin-top: 36px;
+  padding: clamp(22px, 3vw, 34px);
+  background: var(--msc-navy);
+  color: var(--msc-cream);
+  display: grid;
+  gap: 20px;
+  align-items: end;
+}
+
+@media (min-width: 900px) {
+  .town-set {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+}
+
+.town-set h2 {
+  color: var(--msc-cream);
+  margin: 6px 0 8px;
+  font-size: clamp(26px, 3vw, 38px);
+}
+
+.town-set .msc-kicker {
+  color: var(--msc-mustard);
+}
+
+.town-set p {
+  margin: 0;
+  color: rgba(241, 233, 214, 0.85);
+}
+
+.town-set-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+}
+
+.town-set-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 130px;
+}
+
+.town-set-controls .msc-label {
+  color: var(--msc-cream);
+}
+
+.town-set-controls .msc-button {
+  flex: 1 1 220px;
+}
