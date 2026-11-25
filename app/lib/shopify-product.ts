@@ -37,7 +37,7 @@ export const PRODUCT_QUERY = `#graphql
       featuredImage {
         ...SouvenirProductImage
       }
-      images(first: 8) {
+      images(first: 30) {
         nodes {
           ...SouvenirProductImage
         }

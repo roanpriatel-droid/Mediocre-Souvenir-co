@@ -29,15 +29,28 @@ export function ProductGallery({
   images,
   title,
   activeImageId,
+  colour,
 }: {
   images: GalleryImage[];
   title: string;
   activeImageId?: string | null;
+  /** The chosen colour option, which decides which photos the grid shows. */
+  colour?: string | null;
 }) {
   const [index, setIndex] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+
+  // When the colour changes, show that colour's front photo first.
+  useEffect(() => {
+    if (!colour) return;
+    const wanted = `in ${colour.toLowerCase()}, front`;
+    const found = images.findIndex((image) =>
+      (image.altText ?? '').toLowerCase().endsWith(wanted),
+    );
+    if (found >= 0) setIndex(found);
+  }, [colour, images]);
 
   // Follow the variant's image when a colorway changes.
   useEffect(() => {
@@ -75,9 +88,12 @@ export function ProductGallery({
     return () => dialog.removeEventListener('click', onBackdropClick);
   }, []);
 
+  // Arrows, thumbnails and the lightbox move through the selected colour's
+  // photos only (see `pool` below), not all six colours at once.
   const step = (delta: number) => {
-    if (!images.length) return;
-    setIndex((current) => (current + delta + images.length) % images.length);
+    if (!pool.length) return;
+    const position = Math.max(pool.indexOf(index), 0);
+    setIndex(pool[(position + delta + pool.length) % pool.length]);
   };
 
   if (!images.length) {
@@ -86,7 +102,9 @@ export function ProductGallery({
         <div className="pdp-stage">
           <div className="product-photo-pending">
             <span>Photograph coming</span>
-            <small>The shirt exists. The photograph of it is running late.</small>
+            <small>
+              The shirt exists. The photograph of it is running late.
+            </small>
           </div>
         </div>
       </div>
@@ -95,22 +113,33 @@ export function ProductGallery({
 
   const current = images[Math.min(index, images.length - 1)];
 
-  // Desktop shows one colour's photos as a grid. Printify's eight mockups
-  // arrive as white front, black front, white back, white folded, white
-  // worn, black back, black folded, black worn; the selected colour picks
-  // its four, worn second so the shirt on a person sits beside the flat.
-  const groups =
-    images.length === 8
-      ? {white: [0, 4, 2, 3], black: [1, 7, 5, 6]}
-      : null;
+  // Desktop shows the selected colour's photos as a grid. Every photo's alt
+  // text ends "in <colour>, <view>", so the grid takes the active variant's
+  // colour and lays its views out front, worn, back, folded.
+  const describe = (image: GalleryImage) =>
+    /in ([a-z ]+), ([a-z ,]+)$/i.exec(image.altText ?? '');
   const activeIndex = activeImageId
     ? images.findIndex((image) => image.id === activeImageId)
     : -1;
-  const gridIndexes = groups
-    ? groups.black.includes(activeIndex)
-      ? groups.black
-      : groups.white
-    : images.map((_, i) => i).slice(0, 6);
+  const activeColour =
+    colour?.toLowerCase() ??
+    describe(images[activeIndex] ?? images[0])?.[1]?.toLowerCase() ??
+    null;
+  const VIEW_ORDER = ['front', 'worn', 'back', 'folded', 'folded, flat lay'];
+  const ofColour = activeColour
+    ? images
+        .map((image, i) => ({i, match: describe(image)}))
+        .filter(({match}) => match?.[1]?.toLowerCase() === activeColour)
+        .sort(
+          (a, b) =>
+            VIEW_ORDER.indexOf(a.match?.[2]?.toLowerCase() ?? '') -
+            VIEW_ORDER.indexOf(b.match?.[2]?.toLowerCase() ?? ''),
+        )
+        .map(({i}) => i)
+    : [];
+  const pool = ofColour.length >= 2 ? ofColour : images.map((_, i) => i);
+  const gridIndexes = pool.slice(0, 4);
+  const poolPosition = Math.max(pool.indexOf(index), 0) + 1;
 
   return (
     <div className="pdp-gallery">
@@ -152,7 +181,7 @@ export function ProductGallery({
             if (event.key === 'ArrowRight') step(1);
             if (event.key === 'ArrowLeft') step(-1);
           }}
-          aria-label={`Enlarge image ${index + 1} of ${images.length}`}
+          aria-label={`Enlarge image ${poolPosition} of ${pool.length}`}
         >
           <Image
             data={current}
@@ -191,26 +220,28 @@ export function ProductGallery({
 
       {images.length > 1 && (
         <ul className="pdp-thumbs" aria-label="Product images">
-          {images.map((image, i) => (
-            <li key={image.id ?? image.url}>
-              <button
-                type="button"
-                className="pdp-thumb"
-                data-active={i === index || undefined}
-                aria-label={`Show image ${i + 1}`}
-                aria-current={i === index}
-                onClick={() => setIndex(i)}
-              >
-                <Image
-                  data={image}
-                  alt=""
-                  aspectRatio="1/1"
-                  sizes="90px"
-                  loading="lazy"
-                />
-              </button>
-            </li>
-          ))}
+          {pool
+            .map((i) => images[i])
+            .map((image, n) => (
+              <li key={image.id ?? image.url}>
+                <button
+                  type="button"
+                  className="pdp-thumb"
+                  data-active={pool[n] === index || undefined}
+                  aria-label={`Show image ${n + 1}`}
+                  aria-current={pool[n] === index}
+                  onClick={() => setIndex(pool[n])}
+                >
+                  <Image
+                    data={image}
+                    alt=""
+                    aspectRatio="1/1"
+                    sizes="90px"
+                    loading="lazy"
+                  />
+                </button>
+              </li>
+            ))}
         </ul>
       )}
 
@@ -240,13 +271,21 @@ export function ProductGallery({
             />
             {images.length > 1 && (
               <div className="pdp-lightbox-nav">
-                <button type="button" onClick={() => step(-1)} aria-label="Previous image">
+                <button
+                  type="button"
+                  onClick={() => step(-1)}
+                  aria-label="Previous image"
+                >
                   ‹ Previous
                 </button>
                 <span>
-                  {index + 1} / {images.length}
+                  {poolPosition} / {pool.length}
                 </span>
-                <button type="button" onClick={() => step(1)} aria-label="Next image">
+                <button
+                  type="button"
+                  onClick={() => step(1)}
+                  aria-label="Next image"
+                >
                   Next ›
                 </button>
               </div>

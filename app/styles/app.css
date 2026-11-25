@@ -7917,3 +7917,466 @@ select:focus-visible,
 .region-browse .region-card--request .region-card-name {
   color: var(--msc-brick-ink);
 }
+
+/* Colour chips carry a swatch of the garment-dyed colour. */
+.pdp-chip--swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdp-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(28, 28, 28, 0.35);
+  flex: none;
+}
+
+/* ==========================================================================
+   Colour blocks: full-width sections in navy, brick and mustard break the
+   page into chapters instead of one long run of cream. Content stays on the
+   page grid; only the colour runs edge to edge.
+   ========================================================================== */
+.msc-section.msc-block {
+  max-width: none;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: clamp(56px, 7vw, 104px) clamp(16px, 3vw, 24px);
+  border: none;
+}
+
+.msc-block > * {
+  max-width: var(--page-max);
+  margin-inline: auto;
+}
+
+.msc-block--navy {
+  background: var(--msc-navy);
+  color: var(--msc-cream);
+}
+
+.msc-block--brick {
+  background: var(--msc-brick);
+  color: var(--msc-cream);
+}
+
+.msc-block--mustard {
+  background: var(--msc-mustard);
+  color: var(--msc-asphalt);
+}
+
+.msc-block--navy h2,
+.msc-block--navy h3,
+.msc-block--navy strong,
+.msc-block--brick h2,
+.msc-block--brick h3,
+.msc-block--brick strong {
+  color: var(--msc-cream);
+}
+
+.msc-block--navy .msc-section-rule,
+.msc-block--brick .msc-section-rule {
+  border-top-color: rgba(241, 233, 214, 0.45);
+}
+
+.msc-block--navy .msc-section-note,
+.msc-block--navy .msc-section-lede,
+.msc-block--brick .msc-section-note,
+.msc-block--brick p {
+  color: rgba(241, 233, 214, 0.86);
+}
+
+.msc-block--navy .msc-kicker,
+.msc-block--brick .msc-kicker {
+  color: var(--msc-mustard);
+}
+
+.msc-block h2 {
+  font-size: clamp(34px, 4.6vw, 64px);
+  line-height: 1;
+}
+
+/* The four prints, on navy. */
+.msc-block--navy .home-style2 {
+  color: var(--msc-cream);
+}
+
+.msc-block--navy .home-style2 strong {
+  color: var(--msc-cream);
+}
+
+.msc-block--navy .home-style2:hover strong {
+  color: var(--msc-mustard);
+}
+
+.msc-block--navy .home-style-note {
+  color: rgba(241, 233, 214, 0.75);
+}
+
+/* The ladder, on mustard: no box, bigger. */
+.msc-block--mustard .collect-ladder {
+  background: transparent !important;
+  border: none !important;
+  max-width: 980px;
+  margin-inline: auto;
+}
+
+.msc-block--mustard .collect-ladder h2,
+.msc-block--mustard .collect-ladder-qty {
+  color: var(--msc-navy);
+}
+
+.msc-block--mustard .collect-ladder .msc-kicker {
+  color: var(--msc-brick-ink);
+}
+
+.msc-block--mustard .collect-ladder-tier {
+  background: var(--msc-cream);
+}
+
+.msc-block--mustard .collect-ladder-tier--highlight {
+  background: var(--msc-navy);
+}
+
+.msc-block--mustard .collect-ladder-tier--highlight .collect-ladder-qty,
+.msc-block--mustard .collect-ladder-tier--highlight .collect-ladder-each {
+  color: var(--msc-cream);
+}
+
+.msc-block--mustard .collect-ladder-tier--highlight .collect-ladder-deal {
+  color: var(--msc-mustard);
+}
+
+/* The gift block, on brick. */
+.msc-block--brick .home-gift-list {
+  background: rgba(28, 28, 28, 0.14) !important;
+  border-color: rgba(241, 233, 214, 0.35) !important;
+}
+
+.msc-block--brick .home-gift-list li {
+  border-color: rgba(241, 233, 214, 0.3);
+}
+
+.msc-block--brick .home-gift-note {
+  border-left-color: var(--msc-mustard);
+}
+
+.msc-block--brick .msc-button {
+  background: var(--msc-cream);
+  color: var(--msc-brick-ink);
+  box-shadow: 4px 4px 0 var(--msc-asphalt);
+}
+
+.msc-block--brick .msc-button--ghost {
+  background: transparent;
+  color: var(--msc-cream);
+  border-color: var(--msc-cream);
+}
+
+/* The town ticker: big outlined names drifting under the hero. */
+.ticker {
+  overflow: hidden;
+  background: var(--msc-navy);
+  border-block: 2px solid var(--msc-asphalt);
+  padding: 16px 0;
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker 90s linear infinite;
+}
+
+.ticker:hover .ticker-track,
+.ticker:focus-within .ticker-track {
+  animation-play-state: paused;
+}
+
+.ticker-row {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ticker-row li {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.ticker-row a {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.2vw, 44px);
+  line-height: 1;
+  color: var(--msc-cream);
+  text-decoration: none;
+  padding: 0 22px;
+}
+
+.ticker-row a:hover,
+.ticker-row a:focus-visible {
+  color: var(--msc-mustard);
+}
+
+.ticker-row li:nth-child(3n + 2) a {
+  color: transparent;
+  -webkit-text-stroke: 1.4px var(--msc-cream);
+}
+
+.ticker-row li:nth-child(3n + 2) a:hover {
+  color: var(--msc-mustard);
+  -webkit-text-stroke: 0;
+}
+
+.ticker-star {
+  color: var(--msc-mustard);
+  font-size: 18px;
+}
+
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+  }
+
+  .ticker {
+    overflow-x: auto;
+  }
+}
+
+/* Full-width bands reach the screen edges. The starter template's reset gives
+   <main> a 1rem side margin, which every other page still relies on. */
+body > main .ticker,
+body > main .msc-block,
+body > main .msc-section--band {
+  margin-left: -1rem;
+  margin-right: -1rem;
+}
+
+.pdp-delivery {
+  margin: 2px 0 0;
+  padding: 10px 14px;
+  background: rgba(139, 155, 122, 0.18);
+  border-left: 3px solid var(--msc-sage);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Town page: buy every print at once. */
+.town-set {
+  margin-top: 36px;
+  padding: clamp(22px, 3vw, 34px);
+  background: var(--msc-navy);
+  color: var(--msc-cream);
+  display: grid;
+  gap: 20px;
+  align-items: end;
+}
+
+@media (min-width: 900px) {
+  .town-set {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+}
+
+.town-set h2 {
+  color: var(--msc-cream);
+  margin: 6px 0 8px;
+  font-size: clamp(26px, 3vw, 38px);
+}
+
+.town-set .msc-kicker {
+  color: var(--msc-mustard);
+}
+
+.town-set p {
+  margin: 0;
+  color: rgba(241, 233, 214, 0.85);
+}
+
+.town-set-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+}
+
+.town-set-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 130px;
+}
+
+.town-set-controls .msc-label {
+  color: var(--msc-cream);
+}
+
+.town-set-controls .msc-button {
+  flex: 1 1 220px;
+}
+
+/* ==========================================================================
+   The tile map: every state and province as a square, shaded by depth.
+   ========================================================================== */
+.tilemap {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: repeat(10, auto);
+  gap: 5px;
+  max-width: 980px;
+  margin: 8px auto 44px;
+}
+
+.tilemap-tile {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--msc-cream);
+  background: color-mix(in srgb, var(--msc-navy) calc(var(--depth) * 100%), #d9cfb6);
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.tilemap-tile[data-country='ca'] {
+  background: color-mix(in srgb, var(--msc-brick) calc(var(--depth) * 100%), #e2cdb9);
+}
+
+.tilemap-tile:hover,
+.tilemap-tile:focus-visible {
+  background: var(--msc-mustard);
+  color: var(--msc-asphalt);
+  transform: translateY(-3px);
+  z-index: 1;
+}
+
+.tilemap-abbrev {
+  font-family: var(--font-display);
+  font-size: clamp(11px, 1.6vw, 20px);
+  line-height: 1;
+}
+
+.tilemap-count {
+  font-size: clamp(8px, 0.9vw, 11px);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  opacity: 0.85;
+}
+
+.tilemap-name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.tilemap-legend {
+  position: absolute;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(28, 28, 28, 0.55);
+}
+
+.tilemap-legend--ca {
+  right: 0;
+  top: 4%;
+}
+
+.tilemap-legend--us {
+  left: 0;
+  bottom: 2%;
+}
+
+@media (max-width: 640px) {
+  .tilemap {
+    gap: 3px;
+  }
+
+  .tilemap-count {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilemap-tile {
+    transition: none;
+  }
+
+  .tilemap-tile:hover {
+    transform: none;
+  }
+}
+
+.tilemap {
+  max-width: 780px;
+}
+
+.tilemap-tile {
+  background: color-mix(in oklab, var(--msc-navy) calc(var(--depth) * 100%), #c7d1db);
+}
+
+.tilemap-tile[data-country='ca'] {
+  background: color-mix(in oklab, var(--msc-brick) calc(var(--depth) * 100%), #efd2c2);
+}
+
+.tilemap-tile,
+.tilemap-tile:hover,
+.tilemap-tile * {
+  text-decoration: none;
+}
+
+.region-list-toggle > summary {
+  cursor: pointer;
+  list-style: none;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+  padding: 12px 0;
+  border-top: 1px dashed rgba(28, 28, 28, 0.3);
+  border-bottom: 1px dashed rgba(28, 28, 28, 0.3);
+}
+
+.region-list-toggle > summary::-webkit-details-marker {
+  display: none;
+}
+
+.region-list-toggle > summary::after {
+  content: ' +';
+  color: var(--msc-brick-ink);
+}
+
+.region-list-toggle[open] > summary::after {
+  content: ' −';
+}
+
+.region-list-toggle[open] > summary {
+  margin-bottom: 24px;
+}
+
+@media (max-width: 640px) {
+  .tilemap-legend {
+    display: none;
+  }
+}

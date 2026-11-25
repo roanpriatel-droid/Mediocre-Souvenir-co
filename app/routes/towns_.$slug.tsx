@@ -3,6 +3,7 @@ import {useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/towns_.$slug';
 import {SouvenirGrid} from '~/components/SouvenirCard';
 import {PlaceBanner} from '~/components/PlaceBanner';
+import {TownSet, type SetProduct} from '~/components/TownSet';
 import {hydrateCards} from '~/lib/shopify-catalog';
 import {loadTowns, townPath, type Town} from '~/lib/towns';
 import {townCopyFor, foundedLabel, sellLine} from '~/lib/town-copy';
@@ -48,7 +49,28 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   const town = towns.get(slug);
   if (!town) throw new Response('Town not found', {status: 404});
 
-  const products = await hydrateCards(context.storefront, town.products);
+  const [products, setProducts] = await Promise.all([
+    hydrateCards(context.storefront, town.products),
+    Promise.all(
+      town.products.map((entry) =>
+        context.storefront
+          .query(TOWN_SET_QUERY, {
+            variables: {handle: entry.handle},
+            cache: context.storefront.CacheShort(),
+          })
+          .then((data) =>
+            data?.product
+              ? {
+                  handle: data.product.handle,
+                  title: data.product.title,
+                  variants: data.product.variants.nodes,
+                }
+              : null,
+          )
+          .catch(() => null),
+      ),
+    ).then((list) => list.filter((item): item is SetProduct => Boolean(item))),
+  ]);
   const prints = town.products.map(
     (entry) => entry.title.split(' — ')[1]?.trim() ?? entry.title,
   );
@@ -84,6 +106,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     },
     prints,
     products,
+    setProducts,
     nearby,
     copy,
     image: products[0]?.featuredImage?.url ?? null,
@@ -91,7 +114,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
 }
 
 export default function TownPage() {
-  const {origin, town, prints, products, nearby, copy} =
+  const {origin, town, prints, products, setProducts, nearby, copy} =
     useLoaderData<typeof loader>();
   const nonce = useNonce();
   const region = town.region;
@@ -181,6 +204,7 @@ export default function TownPage() {
           )}
         </div>
         <SouvenirGrid products={products} eagerCount={4} />
+        <TownSet town={town.name} products={setProducts} />
       </section>
 
       {nearby.length > 0 && region && (
@@ -278,3 +302,22 @@ export default function TownPage() {
     </div>
   );
 }
+
+const TOWN_SET_QUERY = `#graphql
+  query TownSetProduct($handle: String!) {
+    product(handle: $handle) {
+      handle
+      title
+      variants(first: 60) {
+        nodes {
+          id
+          availableForSale
+          selectedOptions {
+            name
+            value
+          }
+        }
+      }
+    }
+  }
+` as const;

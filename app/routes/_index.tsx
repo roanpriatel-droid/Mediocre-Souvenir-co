@@ -5,13 +5,13 @@ import {HeroCollage} from '~/components/HeroCollage';
 import {Reveal} from '~/components/Reveal';
 import {TrustBar} from '~/components/Strips';
 import {RegionBrowse} from '~/components/RegionBrowse';
+import {TileMap} from '~/components/TileMap';
 import {CollectLadder} from '~/components/CollectLadder';
 import {
   GiftBlock,
   HomeFaq,
   HowItWorks,
   OrderIncludes,
-  PrintCloseUps,
   PrintStyles,
 } from '~/components/HomeSections';
 import {StickyShopBar} from '~/components/StickyShopBar';
@@ -23,12 +23,12 @@ import {
   regionSpotlight,
 } from '~/lib/shopify-catalog';
 import {REGIONS} from '~/lib/catalog';
-import {townNameFrom} from '~/lib/town-copy';
 import {buyerCity, buyerRegion} from '~/lib/geo';
 import {ARTICLES} from '~/lib/journal';
 import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
 import {productsByHandle} from '~/lib/shopify-search';
-import {loadTowns} from '~/lib/towns';
+import {loadTowns, type Town} from '~/lib/towns';
+import {TownTicker} from '~/components/TownTicker';
 
 const HERO_HANDLES = [
   'scranton-pa-i-heart',
@@ -44,13 +44,6 @@ const STYLE_SHOT_HANDLES: Record<string, string> = {
   gift: 'trail-bc-greetings',
 };
 
-const CLOSEUP_HANDLES = [
-  'duluth-mn-varsity',
-  'buffalo-ny-tour',
-  'sudbury-on-i-heart',
-  'gander-nl-greetings',
-];
-
 const FEATURED_HANDLES = [
   'toledo-oh-varsity',
   'moose-jaw-sk-greetings',
@@ -60,10 +53,6 @@ const FEATURED_HANDLES = [
   'buffalo-ny-greetings',
   'sudbury-on-i-heart',
   'fargo-nd-tour',
-  'akron-oh-varsity',
-  'thunder-bay-on-greetings',
-  'butte-mt-i-heart',
-  'gander-nl-greetings',
 ];
 
 export const meta: Route.MetaFunction = () => [
@@ -98,7 +87,7 @@ export async function loader({context, request}: Route.LoaderArgs) {
       productsByHandle(context.storefront, HERO_HANDLES),
       productsByHandle(context.storefront, Object.values(STYLE_SHOT_HANDLES)),
       loadDerivedCatalog(context.storefront),
-      loadTowns(context.storefront).catch(() => new Map<string, unknown>()),
+      loadTowns(context.storefront).catch(() => new Map<string, Town>()),
     ]);
 
   /*
@@ -128,17 +117,6 @@ export async function loader({context, request}: Route.LoaderArgs) {
     ? await regionSpotlight(context.storefront, region, 8)
     : {products: await productsInOpenRegions(context.storefront, 8), total: 0};
 
-  // Four close-ups of prints people recognise.
-  const macro = (await productsByHandle(context.storefront, CLOSEUP_HANDLES))
-    .filter((product) => product.featuredImage?.url)
-    .slice(0, 4)
-    .map((product) => ({
-      id: product.id,
-      url: product.featuredImage!.url,
-      handle: product.handle,
-      town: townNameFrom(product.title, product.handle),
-    }));
-
   return {
     origin: new URL(request.url).origin,
     city,
@@ -151,8 +129,11 @@ export async function loader({context, request}: Route.LoaderArgs) {
       }),
     ),
     townCount: towns.size,
+    // Every sixteenth town, for the ticker: about forty, spread A to Z.
+    tickerTowns: [...towns.values()]
+      .filter((_, index) => index % 16 === 0)
+      .map((town) => ({slug: town.slug, place: town.place})),
     counts,
-    macro,
     spotlight: spotlight.products,
     spotlightTotal:
       spotlight.total || (region ? (counts[region.slug] ?? 0) : 0),
@@ -182,8 +163,8 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
     heroProducts,
     styleShots,
     townCount,
+    tickerTowns,
     counts,
-    macro,
     spotlight,
     spotlightTotal,
     totalProducts,
@@ -203,6 +184,8 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         regionName={region?.name ?? null}
         regionSlug={region?.slug ?? null}
       />
+
+      <TownTicker towns={tickerTowns} />
 
       {/* 3 · YOUR RACK — the shirts the hero just promised */}
       {spotlight.length > 0 && (
@@ -232,7 +215,10 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
       )}
 
       {/* 4 · SHOP BY PRINT — the same towns, four ways to say them */}
-      <section className="msc-section msc-page" aria-labelledby="by-print">
+      <section
+        className="msc-section msc-page msc-block msc-block--navy"
+        aria-labelledby="by-print"
+      >
         <div className="msc-section-rule">
           <h2 id="by-print">Four prints, one rack each</h2>
           <Link className="msc-section-note" to="/collections/all-souvenirs">
@@ -256,7 +242,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
             All 2,154 →
           </Link>
         </div>
-        <Suspense fallback={<SouvenirGridSkeleton count={6} />}>
+        <Suspense fallback={<SouvenirGridSkeleton count={8} />}>
           <Await resolve={featured} errorElement={<RowFallback />}>
             {(products) =>
               products.length > 0 ? (
@@ -269,24 +255,6 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
         </Suspense>
       </section>
 
-      {/* 8 · THE PRINT, UP CLOSE — texture from the files we already have */}
-      <section className="msc-section msc-page" aria-labelledby="up-close">
-        <div className="msc-section-rule">
-          <h2 id="up-close">The ink, up close</h2>
-          <Link className="msc-section-note" to="/materials">
-            What it is printed on →
-          </Link>
-        </div>
-        <p className="msc-section-lede">
-          Heavyweight 6.1 oz cotton, garment-dyed, so the fade is in the fabric
-          rather than printed on top of it. This is what that looks like from
-          six inches away.
-        </p>
-        <Reveal>
-          <PrintCloseUps tiles={macro} />
-        </Reveal>
-      </section>
-
       {/* 4 · THE REGION GRID — navigation and waitlist engine in one */}
       <section className="msc-section msc-page" aria-labelledby="browse-region">
         <div className="msc-section-rule">
@@ -295,15 +263,19 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
             Full directory →
           </Link>
         </div>
-        <RegionBrowse
-          open={regionStatus.open}
-          live={regionStatus.live}
-          counts={counts}
-        />
+        <TileMap counts={counts} />
+        <details className="region-list-toggle">
+          <summary>List every state and province</summary>
+          <RegionBrowse
+            open={regionStatus.open}
+            live={regionStatus.live}
+            counts={counts}
+          />
+        </details>
       </section>
 
       {/* 11 · COLLECT LADDER */}
-      <section className="msc-section msc-page">
+      <section className="msc-section msc-page msc-block msc-block--mustard">
         <CollectLadder />
       </section>
 
@@ -322,7 +294,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
 
       {/* 11 · THE GIFT CASE — the market this page never addressed */}
       <section
-        className="msc-section msc-section--band msc-page"
+        className="msc-section msc-page msc-block msc-block--brick"
         aria-labelledby="gift"
       >
         <Reveal>

@@ -117,9 +117,9 @@ export const PRODUCT_CARD_FRAGMENT = `#graphql
       width
       height
     }
-    # The first five photos. The fifth is the white shirt on a model, which
-    # the card shows on hover (and which alt text marks as "worn").
-    gallery: images(first: 5) {
+    # Enough photos to find the one of the shirt being worn, which the card
+    # shows on hover. Alt text names each photo's colour and view.
+    gallery: images(first: 12) {
       nodes {
         url
         altText
@@ -347,9 +347,12 @@ export interface SouvenirCard {
  */
 export function wornImage(product: Pick<SouvenirCard, 'gallery'>) {
   const nodes = product.gallery?.nodes ?? [];
+  const described = nodes.some((image) =>
+    / in [a-z ]+, /i.test(image.altText ?? ''),
+  );
   return (
-    nodes.find((image) => /\bworn\b/i.test(image.altText ?? '')) ??
-    nodes[4] ??
+    nodes.find((image) => /, worn$/i.test(image.altText ?? '')) ??
+    (described ? null : nodes[4]) ??
     null
   );
 }
@@ -417,7 +420,10 @@ export async function loadCollection(
           products = neutralProducts;
         }
       } catch (error) {
-        console.error(`[msc:collection] "${handle}" neutral retry failed`, error);
+        console.error(
+          `[msc:collection] "${handle}" neutral retry failed`,
+          error,
+        );
       }
     }
 
@@ -507,7 +513,10 @@ export async function loadCollectionPage(
           products = {nodes: neutralNodes, pageInfo: EMPTY_PAGE_INFO};
         }
       } catch (error) {
-        console.error(`[msc:collection] "${handle}" neutral retry failed`, error);
+        console.error(
+          `[msc:collection] "${handle}" neutral retry failed`,
+          error,
+        );
       }
     }
 
@@ -577,7 +586,9 @@ export async function loadRegionStatus(
       }
       if (!regionByHandle.has(node.handle)) continue;
       open[node.handle] =
-        (Number.isFinite(metaCount) ? metaCount : node.products?.nodes?.length ?? 0) > 0;
+        (Number.isFinite(metaCount)
+          ? metaCount
+          : (node.products?.nodes?.length ?? 0)) > 0;
     }
 
     // Not one region collection is reachable — they are not published to this
@@ -589,7 +600,11 @@ export async function loadRegionStatus(
           'API; deriving region status from products',
       );
       const {regionStatusFromProducts} = await import('./shopify-catalog');
-      return {open: await regionStatusFromProducts(storefront), counts: {}, live: true};
+      return {
+        open: await regionStatusFromProducts(storefront),
+        counts: {},
+        live: true,
+      };
     }
 
     return {open, counts, live: true};
