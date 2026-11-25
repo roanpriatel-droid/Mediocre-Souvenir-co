@@ -7507,3 +7507,42 @@ select:focus-visible,
     width: 64px;
   }
 }
+
+/*
+ * Wide screens: one row. Logo, menu, search, cart. Three stacked bars
+ * (announcement, logo and search, menu) spent about 150px of every screen on
+ * chrome; on a laptop there is room for all of it on one line.
+ */
+@media (min-width: 1400px) {
+  :root {
+    --header-height: 76px;
+  }
+
+  .header {
+    grid-template-columns: auto minmax(0, 1fr) minmax(240px, 320px) auto;
+    grid-template-areas: 'logo nav search ctas';
+  }
+
+  .header-menu-desktop {
+    height: 100%;
+    border-top: none;
+    background: transparent;
+    justify-content: center;
+  }
+
+  .header-search {
+    padding: 0 20px 0 0;
+    max-width: none;
+  }
+
+  .header-menu-item {
+    padding: 0 clamp(12px, 1.1vw, 20px);
+  }
+
+  /* The fifty-state panel opens from the middle of the bar now, so centre
+     it under its trigger rather than hanging it off the left edge. */
+  .nav-dropdown-panel[data-wide] {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
