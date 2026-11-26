@@ -3,6 +3,8 @@ import {useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/towns_.$slug';
 import {SouvenirGrid} from '~/components/SouvenirCard';
 import {PlaceBanner} from '~/components/PlaceBanner';
+import {RegionLocator} from '~/components/RegionLocator';
+import {buildRegionMap, type RegionMapData} from '~/lib/region-map.server';
 import {TownSet, type SetProduct} from '~/components/TownSet';
 import {hydrateCards} from '~/lib/shopify-catalog';
 import {loadTowns, townPath, type Town} from '~/lib/towns';
@@ -90,6 +92,23 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     }
   }
 
+  // The town's state or province, with this town marked and its neighbours
+  // pinned. A failure only costs the picture.
+  let map: RegionMapData | null = null;
+  if (town.region) {
+    try {
+      map = buildRegionMap(
+        town.region,
+        [...towns.values()].filter(
+          (other) => other.region?.slug === town.region?.slug,
+        ),
+        town.slug,
+      );
+    } catch (error) {
+      console.error('Town map failed', error);
+    }
+  }
+
   const copy = townCopyFor(
     town.products[0]?.handle ?? slug,
     town.name,
@@ -108,13 +127,14 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     products,
     setProducts,
     nearby,
+    map,
     copy,
     image: products[0]?.featuredImage?.url ?? null,
   };
 }
 
 export default function TownPage() {
-  const {origin, town, prints, products, setProducts, nearby, copy} =
+  const {origin, town, prints, products, setProducts, nearby, map, copy} =
     useLoaderData<typeof loader>();
   const nonce = useNonce();
   const region = town.region;
@@ -181,6 +201,16 @@ export default function TownPage() {
         title={town.place}
         products={products}
         distinctTowns={false}
+        aside={
+          map?.focus && region ? (
+            <RegionLocator
+              map={map}
+              regionName={region.name}
+              country={region.country}
+              products={products}
+            />
+          ) : undefined
+        }
       >
         <p className="province-copy region-description">
           {sellLine(town.name, copy)} {copy.tourism}
