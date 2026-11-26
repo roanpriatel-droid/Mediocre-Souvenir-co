@@ -8226,123 +8226,6 @@ body > main .msc-section--band {
   flex: 1 1 220px;
 }
 
-/* ==========================================================================
-   The tile map: every state and province as a square, shaded by depth.
-   ========================================================================== */
-.tilemap {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-template-rows: repeat(10, auto);
-  gap: 5px;
-  max-width: 980px;
-  margin: 8px auto 44px;
-}
-
-.tilemap-tile {
-  aspect-ratio: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  text-decoration: none;
-  color: var(--msc-cream);
-  background: color-mix(in srgb, var(--msc-navy) calc(var(--depth) * 100%), #d9cfb6);
-  transition:
-    transform 160ms ease,
-    background 160ms ease;
-}
-
-.tilemap-tile[data-country='ca'] {
-  background: color-mix(in srgb, var(--msc-brick) calc(var(--depth) * 100%), #e2cdb9);
-}
-
-.tilemap-tile:hover,
-.tilemap-tile:focus-visible {
-  background: var(--msc-mustard);
-  color: var(--msc-asphalt);
-  transform: translateY(-3px);
-  z-index: 1;
-}
-
-.tilemap-abbrev {
-  font-family: var(--font-display);
-  font-size: clamp(11px, 1.6vw, 20px);
-  line-height: 1;
-}
-
-.tilemap-count {
-  font-size: clamp(8px, 0.9vw, 11px);
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  opacity: 0.85;
-}
-
-.tilemap-name {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-}
-
-.tilemap-legend {
-  position: absolute;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  color: rgba(28, 28, 28, 0.55);
-}
-
-.tilemap-legend--ca {
-  right: 0;
-  top: 4%;
-}
-
-.tilemap-legend--us {
-  left: 0;
-  bottom: 2%;
-}
-
-@media (max-width: 640px) {
-  .tilemap {
-    gap: 3px;
-  }
-
-  .tilemap-count {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tilemap-tile {
-    transition: none;
-  }
-
-  .tilemap-tile:hover {
-    transform: none;
-  }
-}
-
-.tilemap {
-  max-width: 780px;
-}
-
-.tilemap-tile {
-  background: color-mix(in oklab, var(--msc-navy) calc(var(--depth) * 100%), #c7d1db);
-}
-
-.tilemap-tile[data-country='ca'] {
-  background: color-mix(in oklab, var(--msc-brick) calc(var(--depth) * 100%), #efd2c2);
-}
-
-.tilemap-tile,
-.tilemap-tile:hover,
-.tilemap-tile * {
-  text-decoration: none;
-}
 
 .region-list-toggle > summary {
   cursor: pointer;
@@ -8375,8 +8258,340 @@ body > main .msc-section--band {
   margin-bottom: 24px;
 }
 
-@media (max-width: 640px) {
-  .tilemap-legend {
+/* ==========================================================================
+   The region map: North America in true shapes, shaded by depth of rack.
+   ========================================================================== */
+.nmap {
+  position: relative;
+  max-width: 1040px;
+  margin: 8px auto 36px;
+}
+
+.nmap-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1.5px solid var(--msc-navy);
+  outline: 1px solid var(--msc-navy);
+  outline-offset: 5px;
+  background: #e8dfc9;
+}
+
+.nmap-ocean {
+  fill: #e3d9c1;
+}
+
+.nmap-hatch {
+  stroke: rgba(42, 61, 82, 0.07);
+  stroke-width: 1.4;
+}
+
+.nmap-graticule {
+  fill: none;
+  stroke: rgba(42, 61, 82, 0.22);
+  stroke-width: 0.8;
+  stroke-dasharray: 2 4;
+}
+
+.nmap-shadow {
+  fill: rgba(42, 61, 82, 0.16);
+}
+
+.nmap-place {
+  cursor: pointer;
+  outline: none;
+}
+
+.nmap-place path {
+  fill: color-mix(in oklab, var(--msc-navy) calc(var(--depth) * 100%), #c9d1d6);
+  stroke: var(--msc-cream);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  transition: fill 160ms ease;
+}
+
+.nmap-place[data-country='ca'] path {
+  fill: color-mix(in oklab, var(--msc-brick) calc(var(--depth) * 100%), #ecd3c3);
+}
+
+.nmap-place[data-active] path,
+.nmap-place:focus-visible path {
+  fill: rgba(28, 28, 28, 0.25);
+}
+
+.nmap-lift {
+  fill: var(--msc-mustard);
+  stroke: var(--msc-asphalt);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  pointer-events: none;
+  transform: translate(-3px, -4px);
+  filter: drop-shadow(3px 4px 0 rgba(28, 28, 28, 0.4));
+  animation: nmap-lift 180ms ease-out;
+}
+
+@keyframes nmap-lift {
+  from {
+    transform: translate(0, 0);
+    filter: none;
+  }
+}
+
+.nmap-lakes {
+  fill: #e3d9c1;
+  stroke: rgba(42, 61, 82, 0.35);
+  stroke-width: 0.6;
+  pointer-events: none;
+}
+
+.nmap-labels {
+  pointer-events: none;
+}
+
+.nmap-label text {
+  font-family: var(--font-display);
+  font-size: 15px;
+  fill: var(--msc-cream);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  letter-spacing: 0.5px;
+}
+
+.nmap-label[data-size='md'] text {
+  font-size: 12px;
+}
+
+.nmap-label[data-size='sm'] text {
+  font-size: 9px;
+}
+
+.nmap-label .nmap-label-count {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.nmap-label[data-active] text {
+  fill: var(--msc-asphalt);
+}
+
+.nmap-callout line {
+  stroke: rgba(28, 28, 28, 0.5);
+  stroke-width: 0.8;
+}
+
+.nmap-callout circle {
+  fill: var(--msc-asphalt);
+}
+
+.nmap-callout text {
+  font-family: var(--font-display);
+  font-size: 12px;
+  fill: var(--msc-navy);
+  dominant-baseline: middle;
+}
+
+.nmap-callout-count {
+  font-family: system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  fill: rgba(28, 28, 28, 0.55);
+}
+
+.nmap-callout[data-active] text {
+  fill: var(--msc-brick);
+}
+
+.nmap-callout[data-active] line {
+  stroke: var(--msc-brick);
+  stroke-width: 1.4;
+}
+
+.nmap-inset rect {
+  fill: none;
+  stroke: rgba(42, 61, 82, 0.55);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.nmap-inset text,
+.nmap-imprint {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  fill: rgba(42, 61, 82, 0.7);
+}
+
+.nmap-imprint {
+  text-anchor: end;
+  letter-spacing: 2px;
+  fill: rgba(42, 61, 82, 0.5);
+}
+
+.nmap-compass-ring {
+  fill: none;
+  stroke: rgba(42, 61, 82, 0.55);
+  stroke-width: 1.2;
+}
+
+.nmap-compass-ring--thin {
+  stroke-width: 0.6;
+  stroke-dasharray: 1.5 2.5;
+}
+
+.nmap-compass-dark {
+  fill: var(--msc-navy);
+}
+
+.nmap-compass-light {
+  fill: var(--msc-cream);
+  stroke: var(--msc-navy);
+  stroke-width: 0.8;
+}
+
+.nmap-compass text {
+  font-family: var(--font-display);
+  font-size: 13px;
+  fill: var(--msc-brick);
+  text-anchor: middle;
+}
+
+/* The info card sits in the empty water east of Baffin Island. */
+.nmap-card {
+  position: absolute;
+  top: 4.5%;
+  right: 2.5%;
+  width: min(250px, 25%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px 14px;
+  background: var(--msc-cream);
+  border: 1.5px solid var(--msc-navy);
+  box-shadow: 5px 6px 0 rgba(42, 61, 82, 0.9);
+  pointer-events: none;
+}
+
+.nmap-card-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--msc-brick-ink, var(--msc-brick));
+}
+
+.nmap-card-name {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(18px, 2.3vw, 28px);
+  line-height: 1.05;
+  color: var(--msc-navy);
+}
+
+.nmap-card-count {
+  font-size: 13px;
+  color: rgba(28, 28, 28, 0.75);
+}
+
+.nmap-card-cta {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(28, 28, 28, 0.3);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--msc-navy);
+}
+
+.nmap-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+  margin-top: 18px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(28, 28, 28, 0.6);
+}
+
+.nmap-legend-bar {
+  width: 90px;
+  height: 10px;
+  border: 1px solid rgba(28, 28, 28, 0.25);
+}
+
+.nmap-legend-bar--ca {
+  background: linear-gradient(90deg, #e2bba8, var(--msc-brick));
+}
+
+.nmap-legend-bar--us {
+  background: linear-gradient(90deg, #a5b2bd, var(--msc-navy));
+}
+
+.nmap-legend-name {
+  margin-right: 10px;
+  color: var(--msc-navy);
+}
+
+@media (max-width: 760px) {
+  .nmap-svg {
+    outline-offset: 3px;
+  }
+
+  /* No hover on a phone: the card becomes a caption under the map. */
+  .nmap-card {
+    position: static;
+    width: auto;
+    margin-top: 14px;
+    box-shadow: 3px 4px 0 rgba(42, 61, 82, 0.9);
+  }
+
+  .nmap-label[data-size='sm'],
+  .nmap-label .nmap-label-count,
+  .nmap-callout-count,
+  .nmap-imprint {
     display: none;
+  }
+
+  .nmap-label text {
+    font-size: 19px;
+  }
+
+  .nmap-label[data-size='md'] text {
+    font-size: 15px;
+  }
+
+  .nmap-callout text {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nmap-place path {
+    transition: none;
+  }
+
+  .nmap-lift {
+    animation: none;
+  }
+}
+
+.nmap-touch-only {
+  display: none;
+}
+
+@media (hover: none) {
+  .nmap-hover-only {
+    display: none;
+  }
+
+  .nmap-touch-only {
+    display: inline;
   }
 }
