@@ -5,7 +5,7 @@ import {HeroCollage} from '~/components/HeroCollage';
 import {Reveal} from '~/components/Reveal';
 import {TrustBar} from '~/components/Strips';
 import {RegionBrowse} from '~/components/RegionBrowse';
-import {TileMap} from '~/components/TileMap';
+import {RegionMap} from '~/components/RegionMap';
 import {CollectLadder} from '~/components/CollectLadder';
 import {
   GiftBlock,
@@ -263,7 +263,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
             Full directory →
           </Link>
         </div>
-        <TileMap counts={counts} />
+        <RegionMap counts={counts} />
         <details className="region-list-toggle">
           <summary>List every state and province</summary>
           <RegionBrowse
