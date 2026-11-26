@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {Link, useLoaderData} from 'react-router';
 import {useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/towns_.$slug';
@@ -117,7 +118,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   );
 
   return {
-    origin: new URL(request.url).origin,
+    origin: siteOrigin(request),
     town: {
       slug: town.slug,
       place: town.place,

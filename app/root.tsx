@@ -1,3 +1,5 @@
+import {siteOrigin} from '~/lib/site-origin';
+import {MarketingPixels} from '~/components/MarketingPixels';
 import {siteGraph} from '~/lib/schema';
 import {Analytics, getShopAnalytics, useNonce} from '@shopify/hydrogen';
 import {
@@ -92,19 +94,24 @@ export async function loader(args: Route.LoaderArgs) {
     ...deferredData,
     ...criticalData,
     publicStoreDomain: env.PUBLIC_STORE_DOMAIN,
-    origin: new URL(args.request.url).origin,
+    origin: siteOrigin(args.request),
     // Edge geo, for the header's shipping chip. Best-effort; absent is fine.
     buyerRegion: buyerRegion(args.request) ?? null,
     shop: getShopAnalytics({
       storefront,
       publicStorefrontId: env.PUBLIC_STOREFRONT_ID,
     }),
+    // Marketing pixels stay off until these IDs are set in Oxygen.
+    ga4Id: env.PUBLIC_GA4_ID ?? null,
+    metaPixelId: env.PUBLIC_META_PIXEL_ID ?? null,
     consent: {
       // Same fallback as the CSP: unset in Oxygen today, and its absence
       // throws in Analytics.Provider on every route.
       checkoutDomain: env.PUBLIC_CHECKOUT_DOMAIN ?? env.PUBLIC_STORE_DOMAIN,
       storefrontAccessToken: env.PUBLIC_STOREFRONT_API_TOKEN,
-      withPrivacyBanner: false,
+      // Shopify's cookie banner, shown only where the law calls for one
+      // (set up under Settings > Customer privacy).
+      withPrivacyBanner: true,
       // localize the privacy banner
       country: args.context.storefront.i18n.country,
       language: args.context.storefront.i18n.language,
@@ -216,6 +223,7 @@ export default function App() {
       <PageLayout {...data}>
         <Outlet />
       </PageLayout>
+      <MarketingPixels ga4Id={data.ga4Id} metaPixelId={data.metaPixelId} />
     </Analytics.Provider>
   );
 }

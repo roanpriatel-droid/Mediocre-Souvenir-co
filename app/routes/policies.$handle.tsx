@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {Link, redirect, useLoaderData} from 'react-router';
 import {useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/policies.$handle';
@@ -67,7 +68,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   return {
     policy,
     shopifyBody,
-    origin: new URL(request.url).origin,
+    origin: siteOrigin(request),
   };
 }
 

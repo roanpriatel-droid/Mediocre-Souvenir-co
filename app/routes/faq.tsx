@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {useLoaderData} from 'react-router';
 import type {Route} from './+types/faq';
 import {useNonce} from '@shopify/hydrogen';
@@ -51,7 +52,7 @@ const FAQS = [
 ];
 
 export async function loader({request}: Route.LoaderArgs) {
-  return {origin: new URL(request.url).origin};
+  return {origin: siteOrigin(request)};
 }
 
 export default function FAQ() {

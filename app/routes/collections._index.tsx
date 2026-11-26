@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {Link, useLoaderData} from 'react-router';
 import {useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/collections._index';
@@ -71,7 +72,7 @@ export async function loader({context, request}: Route.LoaderArgs) {
   return {
     open: status.open,
     live: status.live,
-    origin: new URL(request.url).origin,
+    origin: siteOrigin(request),
   };
 }
 

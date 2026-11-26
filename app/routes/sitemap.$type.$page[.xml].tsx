@@ -1,4 +1,5 @@
 import type {Route} from './+types/sitemap.$type.$page[.xml]';
+import {siteOrigin} from '~/lib/site-origin';
 import {getSitemap} from '@shopify/hydrogen';
 
 /**
@@ -16,7 +17,8 @@ export async function loader({
     request,
     params,
     locales: ['EN-CA', 'EN-US'],
-    getLink: ({type, baseUrl, handle}) => `${baseUrl}/${type}/${handle}`,
+    // Always the public domain, never the preview host.
+    getLink: ({type, handle}) => `${siteOrigin(request)}/${type}/${handle}`,
   });
 
   response.headers.set('Cache-Control', `max-age=${60 * 60 * 24}`);

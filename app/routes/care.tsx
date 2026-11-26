@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {Link} from 'react-router';
 import type {Route} from './+types/care';
 import {Reveal} from '~/components/Reveal';
@@ -38,7 +39,7 @@ const CARE_RULES = [
 ];
 
 export async function loader({request}: Route.LoaderArgs) {
-  return {origin: new URL(request.url).origin};
+  return {origin: siteOrigin(request)};
 }
 
 export default function CareGuide() {
