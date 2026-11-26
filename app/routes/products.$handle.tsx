@@ -1,5 +1,9 @@
 import {productsByHandle} from '~/lib/shopify-search';
-import {townPath, townSlugOf} from '~/lib/towns';
+import {loadTowns, townPath, townSlugOf} from '~/lib/towns';
+import {buildRegionMap, type RegionMapData} from '~/lib/region-map.server';
+import {RegionLocator} from '~/components/RegionLocator';
+import {PlaceBand} from '~/components/PlaceBand';
+import {TownSet, type SetProduct} from '~/components/TownSet';
 import {breadcrumbList, returnPolicy, shippingDetails} from '~/lib/schema';
 import {regionPath} from '~/lib/catalog/regions';
 import {useEffect, useMemo, useRef, useState} from 'react';
@@ -8,7 +12,7 @@ import type {Route} from './+types/products.$handle';
 import {Analytics, useNonce} from '@shopify/hydrogen';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {ProductGallery} from '~/components/ProductGallery';
-import {SouvenirGrid} from '~/components/SouvenirCard';
+import {SouvenirGrid, SouvenirProductCard} from '~/components/SouvenirCard';
 import {SizeTable} from '~/components/SizeGuide';
 import {NotifyMe} from '~/components/NotifyMe';
 import {useAside} from '~/components/Aside';
@@ -134,6 +138,28 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
   // The same town's other prints: the natural second shirt, and the one
   // that unlocks 15% off.
   const ownTown = townSlugOf(handle);
+  // Every print of this town with its variants, for "Add the whole set".
+  const setVariantsPromise: Promise<SetProduct[]> = ownTown
+    ? Promise.all(
+        PRINT_STYLES.map((style) =>
+          context.storefront
+            .query(PDP_SET_QUERY, {
+              variables: {handle: `${ownTown}-${style.value}`},
+              cache: context.storefront.CacheShort(),
+            })
+            .then((data) =>
+              data?.product
+                ? {
+                    handle: data.product.handle,
+                    title: data.product.title,
+                    variants: data.product.variants.nodes,
+                  }
+                : null,
+            )
+            .catch(() => null),
+        ),
+      ).then((list) => list.filter((item): item is SetProduct => Boolean(item)))
+    : Promise.resolve([]);
   const setPromise = ownTown
     ? productsByHandle(
         context.storefront,
@@ -154,12 +180,20 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
     );
     if (!pool.length)
       pool = await productsForRegion(context.storefront, region);
-    const seenTowns = new Set<string>(ownTown ? [ownTown] : []);
-    const distinct = pool.filter((product) => {
+    // One shirt per town, and the four prints taken in turn, so the row is
+    // not four of the same design.
+    const byTown = new Map<string, SouvenirCard[]>();
+    for (const product of pool) {
       const slug = townSlugOf(product.handle) ?? product.handle;
-      if (seenTowns.has(slug)) return false;
-      seenTowns.add(slug);
-      return true;
+      if (slug === ownTown) continue;
+      byTown.set(slug, [...(byTown.get(slug) ?? []), product]);
+    }
+    const distinct = [...byTown.values()].map((prints, index) => {
+      const want = PRINT_STYLES[index % PRINT_STYLES.length].value;
+      return (
+        prints.find((product) => product.handle.endsWith(`-${want}`)) ??
+        prints[0]
+      );
     });
     const offset = distinct.length
       ? [...handle].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) %
@@ -170,7 +204,28 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
       4,
     );
   }
-  const completeSet = await setPromise;
+  const [completeSet, setProducts] = await Promise.all([
+    setPromise,
+    setVariantsPromise,
+  ]);
+
+  // The town on its state or province's map, for the "Greetings from" band.
+  let map: RegionMapData | null = null;
+  if (region && ownTown) {
+    try {
+      const towns = await loadTowns(context.storefront);
+      map = buildRegionMap(
+        region,
+        [...towns.values()].filter(
+          (other) => other.region?.slug === region.slug,
+        ),
+        ownTown,
+      );
+      if (!map?.focus) map = null;
+    } catch (error) {
+      console.error('Product map failed', error);
+    }
+  }
 
   // Delivery window from today, in business days, per the shipping policy:
   // printed in 5–10, then 3–8 in transit to the US and 6–12 to Canada.
@@ -197,6 +252,8 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
     copy,
     siblings,
     completeSet,
+    setProducts,
+    map,
     delivery,
     elsewhere,
     origin: new URL(request.url).origin,
@@ -212,6 +269,8 @@ export default function ProductPage() {
     copy,
     siblings,
     completeSet,
+    setProducts,
+    map,
     delivery,
     elsewhere,
     origin,
@@ -385,19 +444,24 @@ export default function ProductPage() {
             </p>
           )}
 
-          {/* 4 · The town plaque */}
-          <aside className="town-plaque" aria-label={`About ${town}`}>
-            <div className="town-plaque-head">
+          {/* 4 · Where it is, in one line */}
+          <p className="pdp-place">
+            <span className="pdp-place-pin" aria-hidden="true">
+              ★
+            </span>
+            {townSlug ? (
+              <Link to={townPath(townSlug)} prefetch="intent">
+                {town}
+                {region ? `, ${region.name}` : ''}
+              </Link>
+            ) : (
               <span>
-                {region ? region.name.toUpperCase() : 'NORTH AMERICA'}
+                {town}
+                {region ? `, ${region.name}` : ''}
               </span>
-              <span>{foundedLabel(copy)}</span>
-            </div>
-            <p className="town-plaque-town">{town}</p>
-            <p className="town-plaque-fact">
-              {town} {copy.fact}.
-            </p>
-          </aside>
+            )}
+            <span className="pdp-place-est">{foundedLabel(copy)}</span>
+          </p>
 
           {/* 5 · Price */}
           <div className="pdp-price-row">
@@ -407,11 +471,17 @@ export default function ProductPage() {
                 {formatMoney(compareAt)}
               </span>
             )}
-            <span className="product-price-note">
-              {variant || samePrice ? 'USD' : 'From · USD'} · Comfort Colors
-              1717 · collect 2 save 15%
+            <span className="pdp-multibuy">
+              <strong>
+                3 for ${(Number(price.amount) * 3 * 0.8).toFixed(2)}
+              </strong>{' '}
+              · 20% off three or more
             </span>
           </div>
+          <p className="pdp-price-note">
+            {variant || samePrice ? 'USD' : 'From, USD'} · Garment-dyed Comfort
+            Colors 1717 · Two shirts 15% off
+          </p>
 
           <p className="pdp-sell">{sellLine(town, copy)}</p>
 
@@ -422,7 +492,7 @@ export default function ProductPage() {
                 {colorOption}
                 {selected[colorOption] ? `: ${selected[colorOption]}` : ''}
               </span>
-              <div className="pdp-chips">
+              <div className="pdp-dots">
                 {sortColours(
                   live.options.find((option) => option.name === colorOption)
                     ?.values ?? [],
@@ -430,20 +500,16 @@ export default function ProductPage() {
                   <button
                     key={value}
                     type="button"
-                    className="pdp-chip pdp-chip--swatch"
-                    data-selected={selected[colorOption] === value}
+                    className="pdp-dot"
+                    data-selected={selected[colorOption] === value || undefined}
                     aria-pressed={selected[colorOption] === value}
+                    aria-label={value}
+                    title={value}
                     onClick={() => setOption(colorOption, value)}
-                  >
-                    <span
-                      className="pdp-swatch"
-                      aria-hidden="true"
-                      style={{
-                        background: SWATCHES[value.toLowerCase()] ?? '#ccc',
-                      }}
-                    />
-                    {value}
-                  </button>
+                    style={{
+                      background: SWATCHES[value.toLowerCase()] ?? '#ccc',
+                    }}
+                  />
                 ))}
               </div>
             </div>
@@ -638,6 +704,41 @@ export default function ProductPage() {
 
       {/* ── Below the fold ────────────────────────────────────────────── */}
 
+      {map && region && (
+        <section className="pdp-band" aria-label={`Where ${town} is`}>
+          <PlaceBand
+            kicker="Greetings from"
+            title={town}
+            lede={copy.tourism}
+            stats={[
+              <>{region.name}</>,
+              <>{foundedLabel(copy)}</>,
+              <>
+                <strong>{map.pins.length}</strong> towns in {region.name}
+              </>,
+            ]}
+            map={
+              <RegionLocator
+                map={map}
+                regionName={region.name}
+                country={region.country}
+                products={[]}
+              />
+            }
+          >
+            {townSlug && (
+              <Link
+                className="pband-link"
+                to={townPath(townSlug)}
+                prefetch="intent"
+              >
+                Everything for {town} →
+              </Link>
+            )}
+          </PlaceBand>
+        </section>
+      )}
+
       {completeSet.length > 0 && (
         <section
           className="msc-section msc-page"
@@ -651,11 +752,20 @@ export default function ProductPage() {
               </Link>
             )}
           </div>
-          <p className="msc-section-lede">
-            Two shirts are 15% off and three or more are 20% off, applied at
-            checkout. Mix any prints and towns.
-          </p>
-          <SouvenirGrid products={completeSet} eagerCount={0} />
+          <div className="tile-grid pdp-set-grid">
+            {completeSet.map((product) => (
+              <SouvenirProductCard
+                key={product.id}
+                product={product}
+                loading="lazy"
+              />
+            ))}
+            {setProducts.length > 1 && (
+              <div className="pdp-set-box">
+                <TownSet town={town} products={setProducts} />
+              </div>
+            )}
+          </div>
         </section>
       )}
 
@@ -715,49 +825,17 @@ export default function ProductPage() {
         </div>
       </section>
 
-      <section className="msc-section msc-page" aria-labelledby="reviews">
-        <div className="msc-section-rule">
-          <h2 id="reviews">What people said</h2>
-        </div>
-        {live.rating ? (
+      {live.rating && (
+        <section className="msc-section msc-page" aria-labelledby="reviews">
+          <div className="msc-section-rule">
+            <h2 id="reviews">What people said</h2>
+          </div>
           <p className="pdp-reviews-summary">
             {live.rating.value.toFixed(1)} out of 5, from {live.rating.count}{' '}
             {live.rating.count === 1 ? 'review' : 'reviews'}.
           </p>
-        ) : (
-          <div className="guest-book-empty">
-            <h3>The guest book is open.</h3>
-            <p>
-              Nobody has reviewed {town} yet. We will print what they say when
-              they do, including the unenthusiastic ones — especially those.
-            </p>
-          </div>
-        )}
-      </section>
-
-      {/* Final CTA — the back of a postcard */}
-      <section className="pdp-postcard-band">
-        <div className="pdp-postcard">
-          <div className="pdp-postcard-left">
-            <span className="msc-kicker">Greetings from</span>
-            <p className="pdp-postcard-town">{town}</p>
-            <span className="msc-marker">
-              wish you were here, more or less.
-            </span>
-          </div>
-          <div className="pdp-postcard-right">
-            <div className="msc-stamp">
-              Genuine
-              <br />
-              Souvenir
-              <br />★ ★ ★
-            </div>
-            <Link className="msc-button" to="/collections/all-souvenirs">
-              Find another town
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Mobile sticky bar — thumb-reachable, appears when the buy box leaves */}
       <div
@@ -863,7 +941,7 @@ const SWATCHES: Record<string, string> = {
   ivory: '#eee3c8',
   bay: '#b3bfa3',
   'blue jean': '#6b8198',
-  brick: '#9a4b3d',
+  brick: '#8f4a50',
   white: '#f8f6f0',
   black: '#262626',
 };
@@ -1007,3 +1085,22 @@ function productJsonLd({
       : {}),
   };
 }
+
+const PDP_SET_QUERY = `#graphql
+  query PdpSetProduct($handle: String!) {
+    product(handle: $handle) {
+      handle
+      title
+      variants(first: 60) {
+        nodes {
+          id
+          availableForSale
+          selectedOptions {
+            name
+            value
+          }
+        }
+      }
+    }
+  }
+` as const;

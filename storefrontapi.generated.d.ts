@@ -1113,6 +1113,26 @@ export type PolicyQuery = {
   };
 };
 
+export type PdpSetProductQueryVariables = StorefrontAPI.Exact<{
+  handle: StorefrontAPI.Scalars['String']['input'];
+}>;
+
+export type PdpSetProductQuery = {
+  product?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Product, 'handle' | 'title'> & {
+      variants: {
+        nodes: Array<
+          Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'> & {
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
+      };
+    }
+  >;
+};
+
 export type TownSetProductQueryVariables = StorefrontAPI.Exact<{
   handle: StorefrontAPI.Scalars['String']['input'];
 }>;
@@ -1209,6 +1229,10 @@ interface GeneratedQueryTypes {
   '#graphql\n  fragment Policy on ShopPolicy {\n    body\n    handle\n    id\n    title\n    url\n  }\n  query Policy(\n    $country: CountryCode\n    $language: LanguageCode\n    $privacyPolicy: Boolean!\n    $refundPolicy: Boolean!\n    $shippingPolicy: Boolean!\n    $termsOfService: Boolean!\n  ) @inContext(language: $language, country: $country) {\n    shop {\n      privacyPolicy @include(if: $privacyPolicy) {\n        ...Policy\n      }\n      shippingPolicy @include(if: $shippingPolicy) {\n        ...Policy\n      }\n      termsOfService @include(if: $termsOfService) {\n        ...Policy\n      }\n      refundPolicy @include(if: $refundPolicy) {\n        ...Policy\n      }\n    }\n  }\n': {
     return: PolicyQuery;
     variables: PolicyQueryVariables;
+  };
+  '#graphql\n  query PdpSetProduct($handle: String!) {\n    product(handle: $handle) {\n      handle\n      title\n      variants(first: 60) {\n        nodes {\n          id\n          availableForSale\n          selectedOptions {\n            name\n            value\n          }\n        }\n      }\n    }\n  }\n': {
+    return: PdpSetProductQuery;
+    variables: PdpSetProductQueryVariables;
   };
   '#graphql\n  query TownSetProduct($handle: String!) {\n    product(handle: $handle) {\n      handle\n      title\n      variants(first: 60) {\n        nodes {\n          id\n          availableForSale\n          selectedOptions {\n            name\n            value\n          }\n        }\n      }\n    }\n  }\n': {
     return: TownSetProductQuery;

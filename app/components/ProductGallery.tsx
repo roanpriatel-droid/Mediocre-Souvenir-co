@@ -138,13 +138,18 @@ export function ProductGallery({
         .map(({i}) => i)
     : [];
   const pool = ofColour.length >= 2 ? ofColour : images.map((_, i) => i);
-  const gridIndexes = pool.slice(0, 4);
+  // Desktop: one large lead photo and up to four more of the same colour.
+  const gridIndexes = pool.slice(0, 5);
   const poolPosition = Math.max(pool.indexOf(index), 0) + 1;
 
   return (
     <div className="pdp-gallery">
       {images.length > 1 && (
-        <div className="pdp-grid" aria-label="Product photos">
+        <div
+          className="pdp-grid"
+          aria-label="Product photos"
+          data-rest={Math.max(0, gridIndexes.length - 1)}
+        >
           {gridIndexes.map((imageIndex, position) => {
             const image = images[imageIndex];
             if (!image) return null;
@@ -162,10 +167,15 @@ export function ProductGallery({
                 <Image
                   data={image}
                   alt={image.altText || title}
-                  aspectRatio="4/5"
+                  aspectRatio={position === 0 ? '1/1' : '4/5'}
                   crop="center"
-                  sizes="(min-width: 1200px) 360px, 30vw"
-                  loading={position < 2 ? 'eager' : 'lazy'}
+                  sizes={
+                    position === 0
+                      ? '(min-width: 1200px) 720px, 55vw'
+                      : '(min-width: 1200px) 360px, 28vw'
+                  }
+                  loading={position < 3 ? 'eager' : 'lazy'}
+                  fetchPriority={position === 0 ? 'high' : 'auto'}
                 />
               </button>
             );
