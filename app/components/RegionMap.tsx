@@ -132,7 +132,9 @@ export function RegionMap({counts}: {counts: Record<string, number>}) {
         {/* Hawaii's inset frame. */}
         <g className="nmap-inset" aria-hidden="true">
           <rect x="48" y="618" width="216" height="126" rx="2" />
-          <text x="58" y="732">Hawaii</text>
+          <text x="58" y="732">
+            Hawaii
+          </text>
         </g>
 
         <g className="nmap-labels" aria-hidden="true">
@@ -159,7 +161,8 @@ export function RegionMap({counts}: {counts: Record<string, number>}) {
                 </g>
               );
             }
-            const size = place.area < SMALL ? 'sm' : place.area < ROOMY ? 'md' : 'lg';
+            const size =
+              place.area < SMALL ? 'sm' : place.area < ROOMY ? 'md' : 'lg';
             return (
               <g
                 key={place.abbrev}
@@ -193,7 +196,8 @@ export function RegionMap({counts}: {counts: Record<string, number>}) {
             <span className="nmap-card-kicker">{current.region.country}</span>
             <strong className="nmap-card-name">{current.region.name}</strong>
             <span className="nmap-card-count">
-              {current.count} souvenir {current.count === 1 ? 'shirt' : 'shirts'}
+              {current.count} souvenir{' '}
+              {current.count === 1 ? 'shirt' : 'shirts'}
             </span>
             <span className="nmap-card-cta">Click to shop →</span>
           </>
@@ -207,7 +211,9 @@ export function RegionMap({counts}: {counts: Record<string, number>}) {
               across {places.length} states, provinces &amp; territories
             </span>
             <span className="nmap-card-cta">
-              <span className="nmap-hover-only">Hover the map, click to shop</span>
+              <span className="nmap-hover-only">
+                Hover the map, click to shop
+              </span>
               <span className="nmap-touch-only">Tap a place to shop it</span>
             </span>
           </>
@@ -229,7 +235,11 @@ export function RegionMap({counts}: {counts: Record<string, number>}) {
 /** A small four-point compass rose for the empty Atlantic. */
 function Compass({x, y}: {x: number; y: number}) {
   return (
-    <g className="nmap-compass" transform={`translate(${x} ${y})`} aria-hidden="true">
+    <g
+      className="nmap-compass"
+      transform={`translate(${x} ${y})`}
+      aria-hidden="true"
+    >
       <circle r="34" className="nmap-compass-ring" />
       <circle r="27" className="nmap-compass-ring nmap-compass-ring--thin" />
       <path d="M0 -40 L7 -7 L0 0 Z" className="nmap-compass-dark" />
