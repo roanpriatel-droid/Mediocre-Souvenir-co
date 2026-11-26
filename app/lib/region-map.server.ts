@@ -14,7 +14,7 @@ import type {Town} from '~/lib/towns';
  */
 
 /** Bump when the drawings are regenerated, to bust the long cache. */
-export const REGION_MAP_VERSION = '1';
+export const REGION_MAP_VERSION = '2';
 
 export interface RegionMapPin {
   slug: string;
@@ -153,9 +153,12 @@ export function buildRegionMap(
       // Spaced capitals run about 9.5px a letter; drop any that would be cut.
       .filter((entry) => {
         const half = (entry.name.length * 9.5) / 2;
-        return entry.slug && entry.x - half > 8 && entry.x + half < width - 8;
+        // The page's title label covers the left of the band.
+        return entry.slug && entry.x - half > 440 && entry.x + half < width - 8;
       }),
-    countries: drawing.c.map(([name, x, y]) => ({name, x, y})),
+    countries: drawing.c
+      .map(([name, x, y]) => ({name, x, y}))
+      .filter((country) => country.x > 500),
   };
 }
 

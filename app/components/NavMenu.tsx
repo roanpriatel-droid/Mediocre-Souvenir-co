@@ -1,10 +1,13 @@
-import {useEffect, useId, useRef, useState} from 'react';
-import {Link, NavLink} from 'react-router';
+import {lazy, Suspense, useEffect, useRef, useState} from 'react';
+import {Link, NavLink, useLocation} from 'react-router';
 import {getRegionsByCountry, type Region} from '~/lib/catalog';
 import {TownSearch} from '~/components/TownSearch';
 
 /**
- * The navigation, as dropdowns.
+ * The navigation. Desktop is a mega menu (MegaNav); mobile is the same tree
+ * as collapsible sections (MobileNav).
+ *
+ * Original notes on the dropdowns:
  *
  * Sixty-three regions cannot live in a flat nav bar, and making people hunt
  * through a directory page to find their own province was the wrong default —
@@ -94,7 +97,10 @@ export function buildNav(): NavEntry[] {
           title: 'The Trans-Canada Highway',
           to: '/postcards/trans-canada-highway-souvenirs',
         },
-        {title: 'A Rust Belt gift guide', to: '/postcards/rust-belt-gift-guide'},
+        {
+          title: 'A Rust Belt gift guide',
+          to: '/postcards/rust-belt-gift-guide',
+        },
         {title: 'The certificate in every box', to: '/certificate'},
       ],
     },
@@ -114,31 +120,109 @@ export function buildNav(): NavEntry[] {
   ];
 }
 
-export function DesktopNav() {
+/* ------------------------------------------------------------------------ */
+/* Desktop: a mega menu. Each menu opens a full-width panel under the header. */
+/* ------------------------------------------------------------------------ */
+
+const MegaMap = lazy(() => import('~/components/MegaMap'));
+
+const PRINTS = [
+  {
+    value: 'varsity',
+    name: 'Varsity',
+    blurb: 'Arched college letters',
+    colour: 'blue-jean',
+    sample: (
+      <>
+        <b className="pr-varsity">TOWN</b>
+        <i>ATHLETIC DEPT.</i>
+      </>
+    ),
+  },
+  {
+    value: 'greetings',
+    name: 'Greetings',
+    blurb: 'The old postcard',
+    colour: 'ivory',
+    sample: (
+      <>
+        <i className="pr-script">Greetings from</i>
+        <b>TOWN</b>
+      </>
+    ),
+  },
+  {
+    value: 'i-heart',
+    name: 'I Heart',
+    blurb: 'The classic, sincerely',
+    colour: 'bay',
+    sample: (
+      <b>
+        I <span className="pr-heart">♥</span>
+        <br />
+        TOWN
+      </b>
+    ),
+  },
+  {
+    value: 'tour',
+    name: 'Tour',
+    blurb: 'Band shirt, small venue',
+    colour: 'brick',
+    sample: (
+      <>
+        <b>TOWN</b>
+        <i>WORLD TOUR · 2026</i>
+      </>
+    ),
+  },
+];
+
+const GUIDES = [
+  {
+    title: 'For someone who moved away',
+    to: '/postcards/gifts-for-someone-who-moved-away-from-home',
+    tone: 'navy',
+  },
+  {
+    title: 'For the impossible to shop for',
+    to: '/postcards/christmas-gifts-for-people-who-are-impossible-to-shop-for',
+    tone: 'brick',
+  },
+  {
+    title: 'The Trans-Canada Highway',
+    to: '/postcards/trans-canada-highway-souvenirs',
+    tone: 'mustard',
+  },
+  {
+    title: 'A Rust Belt gift guide',
+    to: '/postcards/rust-belt-gift-guide',
+    tone: 'bay',
+  },
+];
+
+export function MegaNav() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const navRef = useRef<HTMLElement>(null);
-  const entries = buildNav();
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const location = useLocation();
+  const entries = buildNav().filter(isGroup);
 
-  // Click-outside and Escape are handled here rather than on the panel, so
-  // Escape works from anywhere inside an open menu — key events from the links
-  // bubble to the document either way.
+  useEffect(() => setOpenIndex(null), [location.pathname]);
+
   useEffect(() => {
     if (openIndex === null) return;
-
     const onPointerDown = (event: MouseEvent) => {
-      if (navRef.current && !navRef.current.contains(event.target as Node)) {
-        setOpenIndex(null);
-      }
+      const header = navRef.current?.closest('.sh');
+      if (header && !header.contains(event.target as Node)) setOpenIndex(null);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       setOpenIndex(null);
-      // Return focus to the trigger that opened the panel.
       navRef.current
-        ?.querySelectorAll<HTMLButtonElement>('.nav-dropdown-trigger')
+        ?.querySelectorAll<HTMLButtonElement>('.mega-trigger')
         ?.[openIndex]?.focus();
     };
-
     document.addEventListener('mousedown', onPointerDown);
     document.addEventListener('keydown', onKeyDown);
     return () => {
@@ -147,94 +231,225 @@ export function DesktopNav() {
     };
   }, [openIndex]);
 
+  // A short grace period so moving the pointer diagonally from a trigger to
+  // its panel does not snap the menu shut.
+  const openSoon = (index: number) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setOpenIndex(index), 90);
+  };
+  const closeSoon = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setOpenIndex(null), 180);
+  };
+  const keep = () => {
+    if (timer.current) clearTimeout(timer.current);
+  };
+  const close = () => setOpenIndex(null);
+
   return (
     <nav
-      className="header-menu-desktop"
-      role="navigation"
+      className="mega"
       aria-label="Main"
       ref={navRef}
-      onMouseLeave={() => setOpenIndex(null)}
+      onMouseLeave={closeSoon}
+      onMouseEnter={keep}
     >
-      {entries.map((entry, i) =>
-        isGroup(entry) ? (
-          <NavDropdown
-            key={entry.title}
-            group={entry}
-            open={openIndex === i}
-            onOpen={() => setOpenIndex(i)}
-            onClose={() => setOpenIndex(null)}
-          />
-        ) : (
-          <NavLink
-            key={entry.title}
-            className="header-menu-item"
-            to={entry.to}
-            prefetch="intent"
-            onMouseEnter={() => setOpenIndex(null)}
-          >
-            {entry.title}
-          </NavLink>
-        ),
-      )}
+      {entries.map((entry, index) => {
+        const open = openIndex === index;
+        const panelId = `mega-panel-${index}`;
+        return (
+          <div className="mega-item" key={entry.title}>
+            <button
+              type="button"
+              className="mega-trigger"
+              aria-expanded={open}
+              aria-controls={panelId}
+              onClick={() => setOpenIndex(open ? null : index)}
+              onMouseEnter={() => openSoon(index)}
+            >
+              {entry.title}
+              <svg viewBox="0 0 10 6" width="9" height="6" aria-hidden="true">
+                <path
+                  d="M1 1l4 4 4-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                />
+              </svg>
+            </button>
+            <div
+              id={panelId}
+              className="mega-panel"
+              hidden={!open}
+              onMouseEnter={keep}
+            >
+              <div className="mega-inner">
+                <MegaContent entry={entry} onNavigate={close} open={open} />
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </nav>
   );
 }
 
-function NavDropdown({
-  group,
+function MegaContent({
+  entry,
+  onNavigate,
   open,
-  onOpen,
-  onClose,
 }: {
-  group: NavGroup;
+  entry: NavGroup;
+  onNavigate: () => void;
   open: boolean;
-  onOpen: () => void;
-  onClose: () => void;
 }) {
-  const panelId = useId();
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  if (entry.title === 'Shop') {
+    return (
+      <div className="mega-shop">
+        <div className="mega-prints">
+          {PRINTS.map((print) => (
+            <Link
+              key={print.value}
+              to={`/collections/${print.value}`}
+              className="mega-print"
+              data-colour={print.colour}
+              onClick={onNavigate}
+              prefetch="intent"
+            >
+              <span className="mega-print-art">{print.sample}</span>
+              <span className="mega-print-name">{print.name}</span>
+              <span className="mega-print-blurb">{print.blurb}</span>
+            </Link>
+          ))}
+        </div>
+        <MegaLinks
+          heading="Browse"
+          items={entry.items.filter(
+            (item) => !PRINTS.some((p) => item.to.endsWith(`/${p.value}`)),
+          )}
+          onNavigate={onNavigate}
+        />
+      </div>
+    );
+  }
+
+  if (entry.title === 'Canada' || entry.title === 'USA') {
+    const country = entry.title === 'Canada' ? 'Canada' : 'United States';
+    const [all, ...regions] = entry.items;
+    return (
+      <div
+        className="mega-country"
+        data-country={entry.title === 'Canada' ? 'ca' : 'us'}
+      >
+        <div className="mega-map">
+          {open ? (
+            <Suspense fallback={<div className="mega-map-fallback" />}>
+              <MegaMap country={country} onNavigate={onNavigate} />
+            </Suspense>
+          ) : null}
+        </div>
+        <div className="mega-regions">
+          <span className="mega-heading">
+            {entry.title === 'Canada'
+              ? '13 provinces & territories'
+              : '50 states'}
+          </span>
+          <ul data-many={regions.length > 20 || undefined}>
+            {regions.map((item) => (
+              <li key={item.to}>
+                <Link to={item.to} onClick={onNavigate} prefetch="intent">
+                  {item.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <div className="mega-foot">
+            <Link to={all.to} onClick={onNavigate} className="mega-cta">
+              {all.title} →
+            </Link>
+            <Link to="/towns" onClick={onNavigate}>
+              Every town, A to Z →
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (entry.title === 'Gifts') {
+    const extra = entry.items.filter(
+      (item) => !GUIDES.some((guide) => guide.to === item.to),
+    );
+    return (
+      <div className="mega-gifts">
+        <div className="mega-guides">
+          {GUIDES.map((guide) => (
+            <Link
+              key={guide.to}
+              to={guide.to}
+              className="mega-guide"
+              data-tone={guide.tone}
+              onClick={onNavigate}
+              prefetch="intent"
+            >
+              <span className="mega-guide-kicker">Gift guide</span>
+              <span className="mega-guide-title">{guide.title}</span>
+              <span className="mega-guide-go">Read it →</span>
+            </Link>
+          ))}
+        </div>
+        <MegaLinks heading="Also" items={extra} onNavigate={onNavigate} />
+      </div>
+    );
+  }
 
   return (
-    <div className="nav-dropdown">
-      <button
-        type="button"
-        ref={buttonRef}
-        className="header-menu-item nav-dropdown-trigger"
-        aria-expanded={open}
-        aria-controls={panelId}
-        aria-haspopup="true"
-        onClick={() => (open ? onClose() : onOpen())}
-        onMouseEnter={onOpen}
+    <div className="mega-co">
+      <MegaLinks
+        heading="The company"
+        items={entry.items}
+        onNavigate={onNavigate}
+      />
+      <Link
+        to="/collections/all-souvenirs"
+        className="mega-promo"
+        onClick={onNavigate}
       >
-        {group.title}
-        <span className="nav-dropdown-caret" aria-hidden="true">
-          ▾
+        <span className="mega-promo-kicker">The collector&rsquo;s deal</span>
+        <span className="mega-promo-title">
+          Two shirts, 15% off.
+          <br />
+          Three or more, 20% off.
         </span>
-      </button>
+        <span className="mega-promo-note">
+          Mix any towns. Applied at checkout.
+        </span>
+      </Link>
+    </div>
+  );
+}
 
-      <div
-        id={panelId}
-        className="nav-dropdown-panel"
-        data-wide={group.wide || undefined}
-        hidden={!open}
-      >
-        <ul>
-          {group.items.map((item) => (
-            <li key={item.to}>
-              <Link to={item.to} prefetch="intent" onClick={onClose}>
-                {item.title}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        {group.wide && (
-          <p className="nav-dropdown-foot">
-            <Link to="/towns" onClick={onClose}>
-              Every region, A–Z, on one page →
+function MegaLinks({
+  heading,
+  items,
+  onNavigate,
+}: {
+  heading: string;
+  items: NavLeaf[];
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="mega-links">
+      <span className="mega-heading">{heading}</span>
+      <ul>
+        {items.map((item) => (
+          <li key={item.to}>
+            <Link to={item.to} onClick={onNavigate} prefetch="intent">
+              {item.title}
             </Link>
-          </p>
-        )}
-      </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

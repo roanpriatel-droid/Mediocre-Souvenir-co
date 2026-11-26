@@ -1,7 +1,8 @@
 import {Suspense} from 'react';
 import {Await, Link} from 'react-router';
 import type {Route} from './+types/_index';
-import {HeroCollage} from '~/components/HeroCollage';
+import {HeroRack} from '~/components/HeroRack';
+import {loadRackCards} from '~/lib/hero-rack';
 import {Reveal} from '~/components/Reveal';
 import {TrustBar} from '~/components/Strips';
 import {RegionBrowse} from '~/components/RegionBrowse';
@@ -29,12 +30,6 @@ import {SITE_NAME, SITE_TAGLINE} from '~/lib/seo';
 import {productsByHandle} from '~/lib/shopify-search';
 import {loadTowns, type Town} from '~/lib/towns';
 import {TownTicker} from '~/components/TownTicker';
-
-const HERO_HANDLES = [
-  'scranton-pa-i-heart',
-  'toledo-oh-varsity',
-  'moose-jaw-sk-greetings',
-];
 
 const STYLE_SHOT_HANDLES: Record<string, string> = {
   varsity: 'duluth-mn-varsity',
@@ -82,9 +77,9 @@ export async function loader({context, request}: Route.LoaderArgs) {
   const regionStatus = await loadRegionStatus(context.storefront);
 
   // The hero's photos, the product index (for counts) and the town list.
-  const [heroProducts, styleProducts, {entries, byRegion}, towns] =
+  const [rackCards, styleProducts, {entries, byRegion}, towns] =
     await Promise.all([
-      productsByHandle(context.storefront, HERO_HANDLES),
+      loadRackCards(context.storefront),
       productsByHandle(context.storefront, Object.values(STYLE_SHOT_HANDLES)),
       loadDerivedCatalog(context.storefront),
       loadTowns(context.storefront).catch(() => new Map<string, Town>()),
@@ -121,7 +116,7 @@ export async function loader({context, request}: Route.LoaderArgs) {
     origin: new URL(request.url).origin,
     city,
     region,
-    heroProducts,
+    rackCards,
     styleShots: Object.fromEntries(
       Object.entries(STYLE_SHOT_HANDLES).map(([style, handle]) => {
         const product = styleProducts.find((p) => p.handle === handle);
@@ -160,7 +155,7 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
     origin,
     city,
     region,
-    heroProducts,
+    rackCards,
     styleShots,
     townCount,
     tickerTowns,
@@ -177,12 +172,13 @@ export default function Homepage({loaderData}: Route.ComponentProps) {
   return (
     <div className="home">
       {/* 1 · HERO — one headline, one action, real shirts on real people */}
-      <HeroCollage
-        products={heroProducts}
+      <HeroRack
+        cards={rackCards}
         totalProducts={totalProducts}
         townCount={townCount}
         regionName={region?.name ?? null}
         regionSlug={region?.slug ?? null}
+        regionCount={region ? (counts[region.slug] ?? 0) : 0}
       />
 
       <TownTicker towns={tickerTowns} />

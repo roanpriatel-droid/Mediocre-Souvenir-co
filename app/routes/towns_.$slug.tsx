@@ -4,6 +4,7 @@ import type {Route} from './+types/towns_.$slug';
 import {SouvenirGrid} from '~/components/SouvenirCard';
 import {PlaceBanner} from '~/components/PlaceBanner';
 import {RegionLocator} from '~/components/RegionLocator';
+import {PlaceBand, TownStrip} from '~/components/PlaceBand';
 import {buildRegionMap, type RegionMapData} from '~/lib/region-map.server';
 import {TownSet, type SetProduct} from '~/components/TownSet';
 import {hydrateCards} from '~/lib/shopify-catalog';
@@ -196,30 +197,57 @@ export default function TownPage() {
         <span aria-current="page">{town.name}</span>
       </nav>
 
-      <PlaceBanner
-        kicker="Greetings from"
-        title={town.place}
-        products={products}
-        distinctTowns={false}
-        aside={
-          map?.focus && region ? (
-            <RegionLocator
-              map={map}
-              regionName={region.name}
-              country={region.country}
-              products={products}
-            />
-          ) : undefined
-        }
-      >
-        <p className="province-copy region-description">
-          {sellLine(town.name, copy)} {copy.tourism}
-        </p>
-        <span className="msc-kicker msc-kicker--navy">
-          {prints.length} {prints.length === 1 ? 'print' : 'prints'} · $36 USD ·
-          collect 2 and save 15% · {foundedLabel(copy)}
-        </span>
-      </PlaceBanner>
+      {map?.focus && region ? (
+        <>
+          <PlaceBand
+            kicker="Greetings from"
+            title={town.place}
+            lede={sellLine(town.name, copy)}
+            stats={[
+              <>
+                <strong>{prints.length}</strong>{' '}
+                {prints.length === 1 ? 'print' : 'prints'}
+              </>,
+              <>
+                <strong>$36</strong> each
+              </>,
+              <>{foundedLabel(copy)}</>,
+            ]}
+            map={
+              <RegionLocator
+                map={map}
+                regionName={region.name}
+                country={region.country}
+                products={products}
+              />
+            }
+          >
+            <p className="pband-deal">
+              Collect 2, save 15% · Collect 3, save 20%
+            </p>
+          </PlaceBand>
+          <TownStrip
+            heading={`More of ${region.name}`}
+            towns={map.pins}
+            current={town.slug}
+          />
+        </>
+      ) : (
+        <PlaceBanner
+          kicker="Greetings from"
+          title={town.place}
+          products={products}
+          distinctTowns={false}
+        >
+          <p className="province-copy region-description">
+            {sellLine(town.name, copy)} {copy.tourism}
+          </p>
+          <span className="msc-kicker msc-kicker--navy">
+            {prints.length} {prints.length === 1 ? 'print' : 'prints'} · $36 USD
+            · collect 2 and save 15% · {foundedLabel(copy)}
+          </span>
+        </PlaceBanner>
+      )}
 
       <section className="msc-section" aria-labelledby="town-prints">
         <div className="msc-section-rule">
@@ -237,7 +265,7 @@ export default function TownPage() {
         <TownSet town={town.name} products={setProducts} />
       </section>
 
-      {nearby.length > 0 && region && (
+      {nearby.length > 0 && region && !map?.focus && (
         <section className="msc-section" aria-labelledby="town-nearby">
           <div className="msc-section-rule">
             <h2 id="town-nearby">Also in {region.name}</h2>
@@ -254,6 +282,15 @@ export default function TownPage() {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {map?.focus && (
+        <section className="place-about" aria-labelledby="town-about">
+          <h2 id="town-about">About {town.name}</h2>
+          <p>
+            {sellLine(town.name, copy)} {copy.tourism}
+          </p>
         </section>
       )}
 
