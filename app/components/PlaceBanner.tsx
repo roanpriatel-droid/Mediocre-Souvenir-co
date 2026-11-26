@@ -14,6 +14,7 @@ export function PlaceBanner({
   children,
   products,
   distinctTowns = true,
+  aside,
 }: {
   kicker: ReactNode;
   title: ReactNode;
@@ -21,6 +22,8 @@ export function PlaceBanner({
   products: SouvenirCard[];
   /** A town page shows one town in several prints, so it turns this off. */
   distinctTowns?: boolean;
+  /** Shown on the right instead of the photos, e.g. the region's map. */
+  aside?: ReactNode;
 }) {
   // Three different towns where the page has them, so a region does not
   // open on the same town three times.
@@ -39,32 +42,39 @@ export function PlaceBanner({
   }
 
   return (
-    <header className="place-banner" data-shots={shots.length}>
+    <header
+      className="place-banner"
+      data-shots={aside ? 'aside' : shots.length}
+    >
       <div className="place-banner-copy">
         <span className="msc-kicker">{kicker}</span>
         <h1>{title}</h1>
         {children}
       </div>
-      {shots.length > 0 && (
-        <div className="place-banner-shots">
-          {shots.map(({product, image}, index) => (
-            <Link
-              key={product.id}
-              to={`/products/${product.handle}`}
-              className="place-banner-shot"
-              prefetch="intent"
-            >
-              <Image
-                data={image}
-                alt={`${product.title} t-shirt, worn`}
-                aspectRatio="3/4"
-                sizes="(min-width: 1000px) 200px, 30vw"
-                loading={index === 0 ? 'eager' : 'lazy'}
-              />
-              <span>{product.title.split(' — ')[0]}</span>
-            </Link>
-          ))}
-        </div>
+      {aside ? (
+        <div className="place-banner-aside">{aside}</div>
+      ) : (
+        shots.length > 0 && (
+          <div className="place-banner-shots">
+            {shots.map(({product, image}, index) => (
+              <Link
+                key={product.id}
+                to={`/products/${product.handle}`}
+                className="place-banner-shot"
+                prefetch="intent"
+              >
+                <Image
+                  data={image}
+                  alt={`${product.title} t-shirt, worn`}
+                  aspectRatio="3/4"
+                  sizes="(min-width: 1000px) 200px, 30vw"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                />
+                <span>{product.title.split(' — ')[0]}</span>
+              </Link>
+            ))}
+          </div>
+        )
       )}
     </header>
   );

@@ -8595,3 +8595,192 @@ body > main .msc-section--band {
     display: inline;
   }
 }
+
+/* ==========================================================================
+   Region page map: the place itself, its neighbours, a pin for every town.
+   ========================================================================== */
+@media (min-width: 1000px) {
+  .place-banner[data-shots='aside'] {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  }
+}
+
+.place-banner-aside {
+  min-width: 0;
+  padding: 0 6px 6px 0;
+}
+
+.rmap {
+  position: relative;
+}
+
+.rmap-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1.5px solid var(--msc-navy);
+  outline: 1px solid var(--msc-navy);
+  outline-offset: 5px;
+  background: #e3d9c1;
+}
+
+.rmap-countries text {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  text-anchor: middle;
+  fill: rgba(42, 61, 82, 0.4);
+  font-style: italic;
+}
+
+.rmap-neighbour-labels a {
+  outline: none;
+}
+
+.rmap-neighbour-labels a:hover text,
+.rmap-neighbour-labels a:focus-visible text {
+  fill: var(--msc-brick);
+  text-decoration: underline;
+}
+
+.rmap-neighbour-labels text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  text-anchor: middle;
+  fill: rgba(42, 61, 82, 0.55);
+  cursor: pointer;
+}
+
+.rmap-pin {
+  cursor: pointer;
+  outline: none;
+}
+
+.rmap-pin-hit {
+  fill: transparent;
+}
+
+.rmap-pin-dot {
+  fill: var(--msc-mustard);
+  stroke: var(--msc-cream);
+  stroke-width: 1.6;
+  transition: r 160ms ease;
+}
+
+.rmap-pin[data-active] .rmap-pin-dot,
+.rmap-pin:focus-visible .rmap-pin-dot {
+  fill: var(--msc-cream);
+  stroke: var(--msc-mustard);
+  stroke-width: 3;
+}
+
+.rmap-pin-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  dominant-baseline: middle;
+  fill: var(--msc-cream);
+  paint-order: stroke;
+  stroke: rgba(28, 28, 28, 0.45);
+  stroke-width: 2.6px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.rmap-pin[data-active] .rmap-pin-label {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 15px;
+  fill: var(--msc-mustard);
+  stroke: var(--msc-asphalt);
+  stroke-width: 3.5px;
+}
+
+/* Keep the hovered pin's label above its neighbours. */
+.rmap-pins .rmap-pin[data-active] {
+  isolation: isolate;
+}
+
+.rmap-card {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(320px, 70%);
+  padding: 10px 14px 10px 10px;
+  background: var(--msc-cream);
+  border: 1.5px solid var(--msc-navy);
+  box-shadow: 4px 5px 0 rgba(42, 61, 82, 0.9);
+  pointer-events: none;
+}
+
+.rmap-card > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rmap-card:not(:has(img)) {
+  padding-left: 14px;
+}
+
+.rmap-card-img {
+  width: 72px !important;
+  height: 72px !important;
+  flex: none;
+  object-fit: cover;
+  object-position: 50% 25%;
+}
+
+.rmap-card-name {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.05;
+  color: var(--msc-navy);
+}
+
+@media (max-width: 760px) {
+  .rmap-card {
+    position: static;
+    max-width: none;
+    margin-top: 12px;
+    box-shadow: 3px 4px 0 rgba(42, 61, 82, 0.9);
+  }
+
+  /* At phone width a label would print at 6px: pins only, bigger. */
+  .rmap-pin-dot {
+    r: 9px;
+    stroke-width: 2.5;
+  }
+
+  .rmap-pin-hit {
+    r: 18px;
+  }
+
+  .rmap-pin-label {
+    display: none;
+  }
+
+  .rmap-neighbour-labels text {
+    font-size: 14px;
+  }
+}
+
+.rmap-credit {
+  margin: 10px 0 0;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-align: right;
+  color: rgba(28, 28, 28, 0.45);
+}
+
+.rmap-credit a {
+  color: inherit;
+}

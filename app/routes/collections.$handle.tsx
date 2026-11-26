@@ -5,6 +5,9 @@ import {getPaginationVariables, useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/collections.$handle';
 import {SouvenirProductCard} from '~/components/SouvenirCard';
 import {PlaceBanner} from '~/components/PlaceBanner';
+import {RegionLocator} from '~/components/RegionLocator';
+import {buildRegionMap, type RegionMapData} from '~/lib/region-map.server';
+import {loadTowns} from '~/lib/towns';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {RegionWaitlist} from '~/components/RegionWaitlist';
 import {CountryTownFinder} from '~/components/CountryTownFinder';
@@ -137,6 +140,19 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     const description = regionDescription(region, open);
     const title = `${regionMetaTitle(region, open)} | ${SITE_NAME}`;
 
+    // The region drawn with a pin on every town. Built here so the outlines
+    // and d3 stay on the server; a failure only costs the picture.
+    let map: RegionMapData | null = null;
+    try {
+      const towns = await loadTowns(context.storefront);
+      map = buildRegionMap(
+        region,
+        [...towns.values()].filter((town) => town.region?.slug === region.slug),
+      );
+    } catch (error) {
+      console.error('Region map failed', error);
+    }
+
     return {
       kind: 'region' as const,
       connection: derived.products.length ? null : connection,
@@ -150,6 +166,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       heading: shopifyCollection?.title || `${region.name}`,
       description,
       products: regionProducts,
+      map,
       origin,
       seo: {
         title,
@@ -343,6 +360,16 @@ export default function CollectionPage() {
         }
         title={data.heading}
         products={visible}
+        aside={
+          data.kind === 'region' && data.map && data.map.pins.length > 0 ? (
+            <RegionLocator
+              map={data.map}
+              regionName={data.region!.name}
+              country={data.region!.country}
+              products={visible}
+            />
+          ) : undefined
+        }
       >
         {data.description && (
           <p className="province-copy region-description">{data.description}</p>
