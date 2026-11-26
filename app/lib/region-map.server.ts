@@ -28,6 +28,8 @@ export interface RegionMapPin {
 }
 
 export interface RegionMapData {
+  /** On a town page, the town the page is about. */
+  focus: string | null;
   width: number;
   height: number;
   src: string;
@@ -46,6 +48,8 @@ const BY_ABBREV = new Map(REGIONS.map((r) => [r.abbrev.toUpperCase(), r]));
 export function buildRegionMap(
   region: Region,
   towns: Town[],
+  /** A town page passes its own town, which is marked and labelled first. */
+  focus: string | null = null,
 ): RegionMapData | null {
   const abbrev = region.abbrev.toUpperCase();
   const drawing = REGION_DRAWINGS[abbrev];
@@ -75,7 +79,11 @@ export function buildRegionMap(
       };
     })
     .filter((pin): pin is NonNullable<typeof pin> => pin !== null)
-    .sort((a, b) => b.population - a.population);
+    .sort(
+      (a, b) =>
+        Number(b.slug === focus) - Number(a.slug === focus) ||
+        b.population - a.population,
+    );
 
   // Greedy label placement: right of the pin if it fits, else left, else
   // none (the name still shows on hover). Pins themselves are obstacles.
@@ -100,9 +108,23 @@ export function buildRegionMap(
   let labelled = 0;
   pins.forEach((pin, index) => {
     if (labelled >= MAX_LABELS) return;
-    const textWidth = pin.name.length * 7.2 + 4;
-    const right: Box = [pin.x + 8, pin.y - 8, pin.x + 8 + textWidth, pin.y + 8];
-    const left: Box = [pin.x - 8 - textWidth, pin.y - 8, pin.x - 8, pin.y + 8];
+    // The focus town is set in the display face at 18px and sits further out.
+    const big = pin.slug === focus;
+    const textWidth = pin.name.length * (big ? 11.5 : 7.2) + 4;
+    const gap = big ? 16 : 8;
+    const half = big ? 13 : 8;
+    const right: Box = [
+      pin.x + gap,
+      pin.y - half,
+      pin.x + gap + textWidth,
+      pin.y + half,
+    ];
+    const left: Box = [
+      pin.x - gap - textWidth,
+      pin.y - half,
+      pin.x - gap,
+      pin.y + half,
+    ];
     if (fits(right, index)) {
       pin.label = 'start';
       labelBoxes.push(right);
@@ -115,6 +137,7 @@ export function buildRegionMap(
   });
 
   return {
+    focus: pins.some((pin) => pin.slug === focus) ? focus : null,
     width,
     height,
     src: `/maps/${abbrev.toLowerCase()}.svg?v=${REGION_MAP_VERSION}`,

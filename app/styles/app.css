@@ -8784,3 +8784,64 @@ body > main .msc-section--band {
 .rmap-credit a {
   color: inherit;
 }
+
+/* A town page's own town: a starred, pulsing "you are here" marker. */
+.rmap-here {
+  pointer-events: none;
+}
+
+.rmap-here-ring {
+  fill: var(--msc-mustard);
+  stroke: var(--msc-asphalt);
+  stroke-width: 2;
+}
+
+.rmap-here-star {
+  fill: var(--msc-asphalt);
+}
+
+.rmap-here-pulse {
+  fill: none;
+  stroke: var(--msc-mustard);
+  stroke-width: 3;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: rmap-pulse 2.2s ease-out infinite;
+}
+
+@keyframes rmap-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+.rmap-here-label {
+  font-family: var(--font-display);
+  font-size: 18px;
+  dominant-baseline: middle;
+  fill: var(--msc-mustard);
+  paint-order: stroke;
+  stroke: var(--msc-asphalt);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 760px) {
+  /* The page's own town keeps its label on a phone, just larger. */
+  .rmap-here-label {
+    font-size: 26px;
+    stroke-width: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmap-here-pulse {
+    animation: none;
+    opacity: 0;
+  }
+}

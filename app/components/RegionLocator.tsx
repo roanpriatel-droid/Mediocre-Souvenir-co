@@ -6,10 +6,12 @@ import {wornImage, type SouvenirCard} from '~/lib/shopify-collections';
 import {townPath} from '~/lib/towns';
 
 /**
- * A region page's map: the state or province in its own shape with a pin on
- * every town we sell there. The neighbours' names link to their own pages. Hover a pin and the card shows that town's shirt; press it to go to
- * the town. The outlines are a pre-drawn SVG (see region-map.server.ts);
- * only the pins and names are drawn here.
+ * A region or town page's map: the state or province in its own shape with a
+ * pin on every town we sell there. The neighbours' names link to their own
+ * pages. Hover a pin and the card shows that town; press it to go there.
+ * On a town page (map.focus) the page's own town is marked "you are here".
+ * The outlines are a pre-drawn SVG (see region-map.server.ts); only the pins
+ * and names are drawn here.
  */
 export function RegionLocator({
   map,
@@ -23,7 +25,12 @@ export function RegionLocator({
   products: SouvenirCard[];
 }) {
   const [active, setActive] = useState<string | null>(null);
-  const pin = map.pins.find((entry) => entry.slug === active) ?? null;
+  const focus = map.focus
+    ? (map.pins.find((entry) => entry.slug === map.focus) ?? null)
+    : null;
+  const pin =
+    map.pins.find((entry) => entry.slug === active) ?? (active ? null : focus);
+  const isFocus = Boolean(pin && pin === focus);
   const ca = country === 'Canada';
 
   // A shirt from the hovered town, from the products already on the page.
@@ -77,6 +84,7 @@ export function RegionLocator({
 
         <g className="rmap-pins">
           {map.pins.map((entry) => {
+            if (entry.slug === map.focus) return null;
             const on = entry.slug === active;
             return (
               <Link
@@ -118,6 +126,36 @@ export function RegionLocator({
             );
           })}
         </g>
+
+        {focus && (
+          <g className="rmap-here" aria-hidden="true">
+            <circle
+              className="rmap-here-pulse"
+              cx={focus.x}
+              cy={focus.y}
+              r="10"
+            />
+            <circle
+              className="rmap-here-ring"
+              cx={focus.x}
+              cy={focus.y}
+              r="11"
+            />
+            <path
+              className="rmap-here-star"
+              transform={`translate(${focus.x} ${focus.y})`}
+              d="M0,-7.5L2.2,-2.3L7.8,-2.3L3.3,1.1L5,6.5L0,3.3L-5,6.5L-3.3,1.1L-7.8,-2.3L-2.2,-2.3Z"
+            />
+            <text
+              className="rmap-here-label"
+              x={focus.x + ((focus.label ?? 'start') === 'start' ? 17 : -17)}
+              y={focus.y}
+              textAnchor={focus.label ?? 'start'}
+            >
+              {focus.name}
+            </text>
+          </g>
+        )}
       </svg>
 
       <aside className="rmap-card" aria-live="polite">
@@ -133,10 +171,14 @@ export function RegionLocator({
               />
             )}
             <div>
-              <span className="nmap-card-kicker">{regionName}</span>
+              <span className="nmap-card-kicker">
+                {isFocus ? 'You are here' : regionName}
+              </span>
               <strong className="rmap-card-name">{pin.name}</strong>
               <span className="nmap-card-count">
-                {pin.prints} {pin.prints === 1 ? 'print' : 'prints'} · $36 each
+                {isFocus
+                  ? `One of ${map.pins.length} towns we sell in ${regionName}`
+                  : `${pin.prints} ${pin.prints === 1 ? 'print' : 'prints'} · $36 each`}
               </span>
             </div>
           </>
