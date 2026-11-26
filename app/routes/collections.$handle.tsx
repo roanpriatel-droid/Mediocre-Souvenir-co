@@ -1,11 +1,12 @@
 import {breadcrumbList} from '~/lib/schema';
-import {useMemo} from 'react';
+import {Fragment, useMemo} from 'react';
 import {Link, redirect, useLoaderData, useSearchParams} from 'react-router';
 import {getPaginationVariables, useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/collections.$handle';
 import {SouvenirProductCard} from '~/components/SouvenirCard';
 import {PlaceBanner} from '~/components/PlaceBanner';
 import {RegionLocator} from '~/components/RegionLocator';
+import {PlaceBand, TownStrip, firstSentence} from '~/components/PlaceBand';
 import {buildRegionMap, type RegionMapData} from '~/lib/region-map.server';
 import {loadTowns} from '~/lib/towns';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
@@ -350,40 +351,73 @@ export default function CollectionPage() {
         kind={data.kind}
       />
 
-      <PlaceBanner
-        kicker={
-          isRegion
-            ? data.open
-              ? 'Now open'
-              : 'Coming in due time'
-            : 'The rack'
-        }
-        title={data.heading}
-        products={visible}
-        aside={
-          data.kind === 'region' && data.map && data.map.pins.length > 0 ? (
-            <RegionLocator
-              map={data.map}
-              regionName={data.region!.name}
-              country={data.region!.country}
-              products={visible}
-            />
-          ) : undefined
-        }
-      >
-        {data.description && (
-          <p className="province-copy region-description">{data.description}</p>
-        )}
-        {visible.length > 0 && (
-          <span className="msc-kicker msc-kicker--navy">
-            {(() => {
-              const total = data.derived?.total ?? visible.length;
-              return `${total} ${total === 1 ? 'souvenir' : 'souvenirs'} · `;
-            })()}
-            collect 2 and save 15%
-          </span>
-        )}
-      </PlaceBanner>
+      {data.kind === 'region' && data.map && data.map.pins.length > 0 ? (
+        <>
+          <PlaceBand
+            kicker={data.open ? 'Now open' : 'Coming in due time'}
+            title={data.heading}
+            lede={data.description ? firstSentence(data.description) : null}
+            stats={[
+              <>
+                <strong>{data.derived?.total ?? visible.length}</strong> shirts
+              </>,
+              <>
+                <strong>{data.map.pins.length}</strong>{' '}
+                {data.map.pins.length === 1 ? 'town' : 'towns'}
+              </>,
+              <>
+                <strong>4</strong> prints
+              </>,
+              <>
+                <strong>$36</strong> each
+              </>,
+            ]}
+            map={
+              <RegionLocator
+                map={data.map}
+                regionName={data.region!.name}
+                country={data.region!.country}
+                products={visible}
+              />
+            }
+          >
+            <p className="pband-deal">
+              Collect 2, save 15% · Collect 3, save 20%
+            </p>
+          </PlaceBand>
+          <TownStrip
+            heading={`${data.map.pins.length} towns in ${data.region!.name}`}
+            towns={data.map.pins}
+          />
+        </>
+      ) : (
+        <PlaceBanner
+          kicker={
+            isRegion
+              ? data.open
+                ? 'Now open'
+                : 'Coming in due time'
+              : 'The rack'
+          }
+          title={data.heading}
+          products={visible}
+        >
+          {data.description && (
+            <p className="province-copy region-description">
+              {data.description}
+            </p>
+          )}
+          {visible.length > 0 && (
+            <span className="msc-kicker msc-kicker--navy">
+              {(() => {
+                const total = data.derived?.total ?? visible.length;
+                return `${total} ${total === 1 ? 'souvenir' : 'souvenirs'} · `;
+              })()}
+              collect 2 and save 15%
+            </span>
+          )}
+        </PlaceBanner>
+      )}
 
       {showWaitlist ? (
         <RegionWaitlist region={data.region as Region} />
@@ -521,17 +555,44 @@ export default function CollectionPage() {
           ) : (
             <div className="tile-grid">
               {visible.map((product, i) => (
-                <SouvenirProductCard
-                  key={product.id}
-                  product={product}
-                  loading={i < 4 ? 'eager' : 'lazy'}
-                />
+                <Fragment key={product.id}>
+                  <SouvenirProductCard
+                    product={product}
+                    loading={i < 4 ? 'eager' : 'lazy'}
+                  />
+                  {/* One editorial tile in the rack, after the second row. */}
+                  {i === 6 && visible.length > 10 && (
+                    <Link
+                      to="/collections/all-souvenirs"
+                      className="deal-tile"
+                      aria-label="Collect three shirts and save 20%"
+                    >
+                      <span className="deal-tile-kicker">
+                        The collector&rsquo;s deal
+                      </span>
+                      <span className="deal-tile-big">
+                        3<small>shirts</small>
+                      </span>
+                      <span className="deal-tile-title">20% off</span>
+                      <span className="deal-tile-note">
+                        Two is 15% off. Mix any towns, applied at checkout.
+                      </span>
+                    </Link>
+                  )}
+                </Fragment>
               ))}
             </div>
           )}
         </>
       ) : (
         <EmptyRack handle={data.handle} filtered={data.products.length > 0} />
+      )}
+
+      {data.kind === 'region' && data.map && data.description && (
+        <section className="place-about" aria-labelledby="place-about">
+          <h2 id="place-about">About {data.region!.name}</h2>
+          <p>{data.description}</p>
+        </section>
       )}
 
       {isRegion && visible.length > 0 && (

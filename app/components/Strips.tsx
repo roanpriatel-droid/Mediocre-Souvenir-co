@@ -1,10 +1,10 @@
 /** The horizontal furniture: announcement bar, marquee, trust bar. */
 
 const ANNOUNCEMENTS = [
-  'FREE SHIPPING OVER $60 USD · CANADA & USA',
-  'NEW TOWNS IN DUE TIME',
-  'NOW OPEN: THE GREAT LAKES · TOLEDO, PITTSBURGH, DETROIT, GARY, ROCKFORD',
-  'COLLECT 2 SAVE 15% · COLLECT 3 SAVE 20%',
+  'Free shipping over $60 · Canada & USA',
+  'Collect 2, save 15% · Collect 3, save 20%',
+  'New: four vintage colours · Ivory, Bay, Blue Jean, Brick',
+  'Printed to order on garment-dyed Comfort Colors 1717',
 ];
 
 /**
@@ -50,7 +50,9 @@ export function MarqueeStrip({variant}: {variant?: 'mustard'}) {
     </div>
   );
   return (
-    <div className={`marquee${variant === 'mustard' ? ' marquee--mustard' : ''}`}>
+    <div
+      className={`marquee${variant === 'mustard' ? ' marquee--mustard' : ''}`}
+    >
       <div className="marquee-track">
         {run('a')}
         {run('b')}
