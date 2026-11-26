@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {Form, Link, useActionData, useNavigation} from 'react-router';
 import type {Route} from './+types/contact';
 import {Reveal} from '~/components/Reveal';
@@ -86,7 +87,7 @@ export async function action({
 }
 
 export async function loader({request}: Route.LoaderArgs) {
-  return {origin: new URL(request.url).origin};
+  return {origin: siteOrigin(request)};
 }
 
 export default function Contact() {

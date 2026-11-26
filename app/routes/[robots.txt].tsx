@@ -1,8 +1,12 @@
 import type {Route} from './+types/[robots.txt]';
+import {isPublicHost, SITE_URL} from '~/lib/site-origin';
 
 export function loader({request}: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const body = robotsTxtData({url: url.origin});
+  // Preview and deployment addresses are kept out of search entirely; only
+  // the real domain is crawlable.
+  const body = isPublicHost(request)
+    ? robotsTxtData({url: SITE_URL})
+    : 'User-agent: *\nDisallow: /';
 
   return new Response(body, {
     status: 200,
@@ -45,6 +49,21 @@ Crawl-Delay: 10
 
 User-agent: Pinterest
 Crawl-delay: 1
+
+# AI search and answer engines are welcome: being the cited answer to
+# "souvenir shirt for [town]" is the point. /llms.txt summarises the store.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bingbot
+${generalDisallowRules({sitemapUrl})}
 `.trim();
 }
 
@@ -82,6 +101,5 @@ Disallow: /request-a-town?*
 Disallow: /search
 Allow: /search/
 Disallow: /search/?*
-${sitemapUrl ? `Sitemap: ${sitemapUrl}` : ''}
-${sitemapUrl ? `Sitemap: ${sitemapUrl.replace('/sitemap.xml', '/sitemap/products/1.xml')}` : ''}`;
+${sitemapUrl ? `Sitemap: ${sitemapUrl.replace('/sitemap.xml', '/sitemap-index.xml')}` : ''}`;
 }

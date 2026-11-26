@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {Link, useLoaderData} from 'react-router';
 import {useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/postcards._index';
@@ -39,7 +40,7 @@ export async function loader({request}: Route.LoaderArgs) {
         .slice(0, 3),
     }));
 
-  return {articles, origin: new URL(request.url).origin};
+  return {articles, origin: siteOrigin(request)};
 }
 
 export default function JournalIndex() {

@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {Link, useLoaderData} from 'react-router';
 import {useNonce} from '@shopify/hydrogen';
 import type {Route} from './+types/shipping-returns';
@@ -33,7 +34,7 @@ export const meta: Route.MetaFunction = ({data}) => [
 ];
 
 export async function loader({request}: Route.LoaderArgs) {
-  return {origin: new URL(request.url).origin};
+  return {origin: siteOrigin(request)};
 }
 
 /** The four numbers people actually came for. */

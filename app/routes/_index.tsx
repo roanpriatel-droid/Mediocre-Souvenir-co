@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {Suspense} from 'react';
 import {Await, Link} from 'react-router';
 import type {Route} from './+types/_index';
@@ -50,8 +51,9 @@ const FEATURED_HANDLES = [
   'fargo-nd-tour',
 ];
 
-export const meta: Route.MetaFunction = () => [
+export const meta: Route.MetaFunction = ({data}) => [
   {title: `${SITE_NAME} — ${SITE_TAGLINE}`},
+  {tagName: 'link', rel: 'canonical', href: `${data?.origin ?? ''}/`},
   {
     name: 'description',
     content:
@@ -113,7 +115,7 @@ export async function loader({context, request}: Route.LoaderArgs) {
     : {products: await productsInOpenRegions(context.storefront, 8), total: 0};
 
   return {
-    origin: new URL(request.url).origin,
+    origin: siteOrigin(request),
     city,
     region,
     rackCards,

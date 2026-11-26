@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import type {Route} from './+types/[sitemap.xml]';
 import {getOpenRegions, REGIONS} from '~/lib/catalog';
 import {UTILITY_COLLECTIONS} from '~/lib/shopify-collections';
@@ -13,7 +14,7 @@ import {loadTowns, townPath} from '~/lib/towns';
  * sitemap.$type.$page[.xml].tsx). robots.txt points crawlers at both.
  */
 export async function loader({request, context}: Route.LoaderArgs) {
-  const origin = new URL(request.url).origin;
+  const origin = siteOrigin(request);
   // One page per town, built from the product index. A failure here should
   // not take the rest of the sitemap down with it.
   const towns = await loadTowns(context.storefront).catch(

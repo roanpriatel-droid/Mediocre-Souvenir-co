@@ -241,11 +241,29 @@ export function productMetaDescription(
 ): string {
   const where = region ? `${region.name}` : 'somewhere';
   const how = style && STYLE_PHRASE[style] ? ` ${STYLE_PHRASE[style]}` : '';
-  return (
-    `${sellLine(town, copy)} A faux-vintage ${town}, ${where} souvenir ` +
-    `t-shirt${how}, on garment-dyed heavyweight cotton. ${town} ${copy.fact}. ` +
-    `Printed to order, ships with a Certificate of Mediocre Authenticity.`
-  );
+  return fitSnippet([
+    `A faux-vintage ${town}, ${where} souvenir t-shirt${how}, on garment-dyed heavyweight cotton.`,
+    sellLine(town, copy),
+    `${town} ${copy.fact}.`,
+    `Printed to order, ships with a Certificate of Mediocre Authenticity.`,
+  ]);
+}
+
+/**
+ * Whole sentences, in order, up to about what Google shows in a result
+ * (~160 characters), so the snippet never ends mid-word. The first sentence
+ * is always kept.
+ */
+function fitSnippet(sentences: string[], max = 160): string {
+  let out = '';
+  for (const sentence of sentences) {
+    const trimmed = sentence.trim();
+    if (!trimmed) continue;
+    const next = out ? `${out} ${trimmed}` : trimmed;
+    if (out && next.length > max) break;
+    out = next;
+  }
+  return out;
 }
 
 const abbrevToRegion = new Map(

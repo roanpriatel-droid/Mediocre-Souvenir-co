@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {breadcrumbList} from '~/lib/schema';
 import {Fragment, useMemo} from 'react';
 import {Link, redirect, useLoaderData, useSearchParams} from 'react-router';
@@ -85,7 +86,7 @@ export const meta: Route.MetaFunction = ({data}) => {
 
 export async function loader({params, context, request}: Route.LoaderArgs) {
   const handle = params.handle ?? '';
-  const origin = new URL(request.url).origin;
+  const origin = siteOrigin(request);
 
   const redirectTo = COLLECTION_REDIRECTS[handle];
   if (redirectTo) throw redirect(redirectTo, 301);
@@ -204,6 +205,9 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     shopifyCollection && !products.length && KNOWN_HANDLES.has(handle);
 
   if (shopifyCollection && !emptyUtility) {
+    // The whole shelf's size, not the 24 on this page. Cached, and shared with
+    // the homepage; when the count is unknown the title just leaves it out.
+    const total = (await loadRegionStatus(context.storefront)).counts[handle];
     return {
       kind: 'shopify' as const,
       connection,
@@ -219,7 +223,9 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       products,
       origin,
       seo: {
-        title: `${shopifyCollection.title} — ${products.length} Souvenir T-Shirts | ${SITE_NAME}`,
+        title: total
+          ? `${shopifyCollection.title} — ${total.toLocaleString('en-US')} Souvenir T-Shirts | ${SITE_NAME}`
+          : `${shopifyCollection.title} Souvenir T-Shirts | ${SITE_NAME}`,
         description:
           shopifyCollection.description ||
           `${shopifyCollection.title} — faux-vintage souvenir t-shirts for overlooked towns, ${DISPLAY_PRICE} each.`,

@@ -15,6 +15,8 @@
   (laid out like a concert tour shirt, with the town as the headline date).
 - Blank: Comfort Colors 1717. Garment-dyed heavyweight, 100% ring-spun
   cotton. Unisex fit, sizes S to 3XL.
+- Colours: White, Black, and four vintage colours: Ivory, Bay (sage green),
+  Blue Jean (faded blue) and Brick (faded red).
 - Price: $36 USD per shirt.
 - Multi-buy: 15% off two shirts, 20% off three or more. Automatic at
   checkout, mix and match any towns, no code needed.
@@ -45,12 +47,17 @@
   /collections/tour : by print style
 - /products/<town>-<state-code>-<style> : one page per shirt, for example
   /products/pittsfield-ma-varsity
+- /towns/<town>-<state-code> : every shirt for one town on one page, for
+  example /towns/akron-oh
 - /request-a-town : ask for a town that is not in the catalogue yet
 - /size-guide : measurements and fit advice
 - /materials : the Comfort Colors 1717 garment
 - /shipping-returns and /policies/refund-policy : delivery and returns
 - /faq : common questions
 - /journal : editorial about overlooked towns and souvenirs
+
+Website: https://mediocresouvenir.com · Sitemap:
+https://mediocresouvenir.com/sitemap-index.xml
 
 ## Voice and integrity
 

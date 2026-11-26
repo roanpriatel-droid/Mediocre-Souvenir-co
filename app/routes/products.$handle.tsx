@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {productsByHandle} from '~/lib/shopify-search';
 import {loadTowns, townPath, townSlugOf} from '~/lib/towns';
 import {buildRegionMap, type RegionMapData} from '~/lib/region-map.server';
@@ -256,7 +257,7 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
     map,
     delivery,
     elsewhere,
-    origin: new URL(request.url).origin,
+    origin: siteOrigin(request),
   };
 }
 
@@ -707,6 +708,7 @@ export default function ProductPage() {
       {map && region && (
         <section className="pdp-band" aria-label={`Where ${town} is`}>
           <PlaceBand
+            headingLevel={2}
             kicker="Greetings from"
             title={town}
             lede={copy.tourism}

@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {Form, useActionData, useNavigation, useSearchParams} from 'react-router';
 import type {Route} from './+types/request-a-town';
 import {getSubmissionStore, isValidEmail} from '~/lib/submissions';
@@ -81,7 +82,7 @@ export async function action({
 }
 
 export async function loader({request}: Route.LoaderArgs) {
-  return {origin: new URL(request.url).origin};
+  return {origin: siteOrigin(request)};
 }
 
 export default function RequestYourTown() {

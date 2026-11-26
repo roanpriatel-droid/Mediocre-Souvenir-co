@@ -15,6 +15,7 @@ export function PlaceBand({
   stats,
   map,
   children,
+  headingLevel = 1,
 }: {
   kicker: ReactNode;
   title: ReactNode;
@@ -24,13 +25,16 @@ export function PlaceBand({
   map: ReactNode;
   /** Extra content under the stats, e.g. buttons. */
   children?: ReactNode;
+  /** 2 when the band sits lower on a page that already has its own H1. */
+  headingLevel?: 1 | 2;
 }) {
+  const Heading = headingLevel === 1 ? 'h1' : 'h2';
   return (
     <header className="pband">
       <div className="pband-map">{map}</div>
       <div className="pband-label">
         <span className="pband-kicker">{kicker}</span>
-        <h1 className="pband-title">{title}</h1>
+        <Heading className="pband-title">{title}</Heading>
         {lede ? <p className="pband-lede">{lede}</p> : null}
         {stats && stats.length > 0 ? (
           <ul className="pband-stats">

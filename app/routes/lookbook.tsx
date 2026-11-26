@@ -1,3 +1,4 @@
+import {siteOrigin} from '~/lib/site-origin';
 import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/lookbook';
 import {Reveal} from '~/components/Reveal';
@@ -66,7 +67,7 @@ export async function loader({context, request}: Route.LoaderArgs) {
     town: getTownByHandle(stop.handle),
     product: byHandle.get(stop.handle) ?? null,
   })).filter((s) => s.town !== undefined);
-  return {stops, origin: new URL(request.url).origin};
+  return {stops, origin: siteOrigin(request)};
 }
 
 export default function Lookbook() {
