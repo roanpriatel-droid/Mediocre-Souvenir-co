@@ -82,7 +82,7 @@ const RATES = [
   {
     name: 'Everywhere else',
     price: 'From $10',
-    note: 'We ship worldwide from Florida: $10 for the first shirt and $4 for each one after it, quoted at checkout. Allow 13 to 35 business days, and expect your country to want its VAT or duty before the carrier hands the parcel over. The free-shipping threshold is a North American arrangement and does not apply.',
+    note: 'We ship worldwide from Florida: $10 for the first shirt and $4 for each one after it ($12.49 and $4 to the EU, $11.99 and $5 to Australia), quoted at checkout. The United Kingdom is paused for now. Allow 13 to 35 business days, and expect your country to want its VAT or duty before the carrier hands the parcel over. The free-shipping threshold is a North American arrangement and does not apply.',
   },
   {
     name: 'One speed',
@@ -125,11 +125,11 @@ const NOT_A_DEFECT = [
 const FAQS = [
   {
     q: 'Do you ship to somewhere nicer than the towns on the shirts?',
-    a: 'Yes. We ship to street addresses in 235 countries, including every one with actual tourism. The shirt will not comment on your surroundings.',
+    a: 'Yes. We ship to street addresses in 234 countries, including every one with actual tourism except, for now, the United Kingdom. The shirt will not comment on your surroundings.',
   },
   {
     q: 'How much is shipping?',
-    a: 'In Canada and the United States: free over $60 — two shirts, once the multi-town discount applies — and a flat $6.95 below that. Everywhere else: $10 for the first shirt and $4 for each one after. Every figure is US dollars, so a Canadian order is charged in USD too.',
+    a: 'In Canada and the United States: free over $60 — two shirts, once the multi-town discount applies — and a flat $6.95 below that. The EU: $12.49 for the first shirt and $4 for each one after. Australia: $11.99 and $5. Everywhere else: $10 and $4. We are not shipping to the United Kingdom at the moment. Every figure is US dollars, so a Canadian order is charged in USD too.',
   },
   {
     q: 'How long until it arrives?',
@@ -288,7 +288,7 @@ export default function ShippingReturns() {
                 Free shipping is two shirts. Two shirts is 15% off anyway — the
                 ladder applies automatically, mix-and-match, no code to
                 remember. The threshold is North American; elsewhere shipping
-                is $10 plus $4 a shirt. Every figure on this page is US
+                is from $10 plus $4 a shirt. Every figure on this page is US
                 dollars.
               </p>
               <Link className="msc-button msc-button--navy" to="/shop">
