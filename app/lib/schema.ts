@@ -4,7 +4,7 @@
  * These mirror the live store configuration, so search engines and AI
  * assistants read the same promises the checkout keeps:
  * - Canada and US: $6.95 USD standard shipping, free from $60.
- * - Everywhere else: value-based international shipping from $10.
+ * - Everywhere else: international shipping from $10 (EU $12.49, AU $11.99); UK paused.
  * - Printing takes 5–10 business days; transit is 3–8 to the US and 6–12
  *   to Canada (the shipping policy in policies.ts says the same).
  * - Returns: 30 days from delivery, free of restocking fees.

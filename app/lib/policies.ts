@@ -58,7 +58,8 @@ const shipping: PolicyDoc = {
     {
       heading: 'Where we ship, and where from',
       paragraphs: [
-        'We ship to street addresses in 235 countries. The shirts commemorate ' +
+        'We ship to street addresses in 234 countries: everywhere the mail goes ' +
+          'except, for now, the United Kingdom. The shirts commemorate ' +
           'North American towns, but we will post one to anywhere the mail ' +
           'goes, which we recognise is a strange service to offer and offer ' +
           'anyway.',
@@ -92,7 +93,10 @@ const shipping: PolicyDoc = {
       heading: 'What it costs',
       bullets: [
         'Canada and the United States: free standard shipping on orders over $60, and a flat $6.95 below that.',
+        'European Union: $12.49 for the first shirt and $4 for each additional shirt.',
+        'Australia: $11.99 for the first shirt and $5 for each additional shirt.',
         'Everywhere else: $10 for the first shirt and $4 for each additional shirt. The free-shipping threshold does not apply outside North America.',
+        'We are not shipping to the United Kingdom at the moment. Orders to a UK address cannot be placed at checkout.',
         'Every figure on this store, shipping included, is US dollars.',
         'The rate is shown at checkout before you pay.',
         'There is one shipping speed. We offer no expedited option, because printing sets the floor and no carrier can move it.',
