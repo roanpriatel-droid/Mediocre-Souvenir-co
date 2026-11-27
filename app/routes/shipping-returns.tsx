@@ -125,7 +125,7 @@ const NOT_A_DEFECT = [
 const FAQS = [
   {
     q: 'Do you ship to somewhere nicer than the towns on the shirts?',
-    a: 'Yes. We ship to street addresses in 234 countries, including every one with actual tourism except, for now, the United Kingdom. The shirt will not comment on your surroundings.',
+    a: 'Yes. We ship to street addresses in 227 countries, including every one with actual tourism except, for now, the United Kingdom. The shirt will not comment on your surroundings.',
   },
   {
     q: 'How much is shipping?',

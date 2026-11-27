@@ -58,8 +58,10 @@ const shipping: PolicyDoc = {
     {
       heading: 'Where we ship, and where from',
       paragraphs: [
-        'We ship to street addresses in 234 countries: everywhere the mail goes ' +
-          'except, for now, the United Kingdom. The shirts commemorate ' +
+        'We ship to street addresses in 227 countries: everywhere the mail goes ' +
+          'except, for now, the United Kingdom, and a few countries under ' +
+          'sanctions or without reliable post (among them Russia, Belarus, ' +
+          'Afghanistan and Yemen). The shirts commemorate ' +
           'North American towns, but we will post one to anywhere the mail ' +
           'goes, which we recognise is a strange service to offer and offer ' +
           'anyway.',
