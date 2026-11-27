@@ -34,14 +34,17 @@ declare global {
  * from "we have not opened this region yet", so the whole site fell back to
  * placeholder artwork and "in due time" while 1,600 real products sat there.
  *
- * Oxygen sets `oxygen-buyer-country` from the edge location. We trust it when
- * present and default to CA — the store's home market — rather than US.
+ * Every market now sees the whole catalogue, and every market charges USD.
+ * The US is the store's main market, so it is the default: Canadian visitors
+ * (by `oxygen-buyer-country`, set from the edge location) browse in the
+ * Canadian market, and everyone else in the US one. Checkout still picks the
+ * market, and its shipping rates, from the delivery address.
  */
 function detectI18n(request: Request): {language: 'EN'; country: 'CA' | 'US'} {
   const header = request.headers.get('oxygen-buyer-country')?.toUpperCase();
   return {
     language: 'EN',
-    country: header === 'US' ? 'US' : 'CA',
+    country: header === 'CA' ? 'CA' : 'US',
   };
 }
 
